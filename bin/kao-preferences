@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+file="${HOME}/config/dependencies.tsv"
+
+if [ ! -f "${file}" ]; then
+  printf '[FAIL] missing dependency policy file: %s\n' "${file}"
+  exit 1
+fi
+
+PASS=0
+WARN=0
+FAIL=0
+
+line() {
+  printf '%s\n' '------------------------------------------------------------'
+}
+
+section() {
+  printf '\n'
+  line
+  printf '%s\n' "$1"
+  line
+}
+
+check_dep() {
+  local name="$1"
+  local class="$2"
+  local manager="$3"
+  local package="$4"
+  local required="$5"
+
+  if command -v "$name" >/dev/null 2>&1; then
+    PASS=$((PASS + 1))
+    printf '[OK]   %-10s class=%-8s manager=%-4s package=%s\n' "$name" "$class" "$manager" "$package"
+  else
+    if [ "$required" = "yes" ]; then
+      FAIL=$((FAIL + 1))
+      printf '[FAIL] %-10s class=%-8s manager=%-4s package=%s\n' "$name" "$class" "$manager" "$package"
+    else
+      WARN=$((WARN + 1))
+      printf '[WARN] %-10s class=%-8s manager=%-4s package=%s\n' "$name" "$class" "$manager" "$package"
+    fi
+  fi
+}
+
+section 'DEPENDENCY POLICY / OPERATOR PREFERENCES'
+printf 'FILE            : %s\n' "$file"
+
+while IFS=$'\t' read -r name class manager package required; do
+  [ "$name" = "name" ] && continue
+  [ -z "$name" ] && continue
+  check_dep "$name" "$class" "$manager" "$package" "$required"
+done < "$file"
+
+section 'SUMMARY'
+printf 'PASS            : %s\n' "$PASS"
+printf 'WARN            : %s\n' "$WARN"
+printf 'FAIL            : %s\n' "$FAIL"
+
+if [ "$FAIL" -eq 0 ]; then
+  printf '[READY] operator dependency policy is acceptable\n'
+else
+  printf '[NOT READY] required dependencies missing\n'
+  exit 1
+fi

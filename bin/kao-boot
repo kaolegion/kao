@@ -1,0 +1,237 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+TIME_NOW="$(date +%H:%M)"
+MACHINE_HOST="$(hostname 2>/dev/null || echo unknown)"
+MACHINE_ROLE="host machine"
+
+SYSTEM_NAME="Kao"
+SYSTEM_ROLE="operator system"
+SYSTEM_ROOT="${KROOT}"
+SYSTEM_PATH_READY="${KROOT}/bin"
+SYSTEM_LAYER="operator interface"
+SYSTEM_SCENE="machine / system / owner"
+
+OWNER_ENV_FILE="${KROOT}/config/owner.env"
+OWNER_PROFILE_SELECTOR_FILE="${KROOT}/config/owner.profile"
+OWNER_PRESETS_DIR="${KROOT}/profiles/owners"
+OWNER_LOG_FILE="${KROOT}/state/logs/owner.log"
+OWNER_STATE_LIB="${KROOT}/lib/kao-owner-state.sh"
+
+USER_STATE_LIB="${KROOT}/lib/kao-user-state.sh"
+
+OWNER_SELECTOR_OFF="OFF"
+
+OWNER_NAME="${USER:-unknown}"
+OWNER_ROLE="machine and system owner"
+OWNER_ID=""
+OWNER_TITLE=""
+OWNER_HANDLE=""
+OWNER_ORG=""
+OWNER_SOURCE_LABEL="fallback user session"
+OWNER_SOURCE_VALUE='${USER}'
+OWNER_STATE="UNRESOLVED"
+
+USER_NAME=""
+USER_ROLE=""
+USER_ID=""
+USER_TITLE=""
+USER_HANDLE=""
+USER_ORG=""
+USER_STATE="INACTIVE"
+USER_MODE="inactive"
+USER_LABEL="runtime user inactive"
+USER_SOURCE_LABEL="missing runtime user"
+USER_SOURCE_VALUE="${KROOT}/config/user.env"
+USER_RELATION="owner primary only"
+USER_ACT_HINT="create ${KROOT}/config/user.env then activate explicitly"
+USER_RECOVER_HINT="none"
+USER_BROKEN_WHY="none"
+USER_SYNC_MODE="NO_ACTIVE_SNAPSHOT"
+USER_SYNC_HINT="activate user to create a runtime snapshot"
+USER_DIFF_COUNT="0"
+USER_ACTIVE_SNAPSHOT_FILE="${KROOT}/config/user.active.snapshot.env"
+
+ACTIVE_ENTITIES="owner"
+
+OWNER_ALLOWED_ACTIVE_FIELDS="KAO_OWNER_NAME KAO_OWNER_ROLE KAO_OWNER_ID"
+OWNER_VISIBLE_HUMAN_FIELDS="KAO_OWNER_TITLE KAO_OWNER_HANDLE KAO_OWNER_ORG"
+OWNER_HIDDEN_SENSITIVE_FIELDS="KAO_OWNER_EMAIL KAO_OWNER_DOMAIN"
+
+resolve_owner_identity() {
+  local owner_exports key value
+
+  if [ -f "${OWNER_STATE_LIB}" ]; then
+    # shellcheck disable=SC1090
+    . "${OWNER_STATE_LIB}"
+  fi
+
+  if declare -F kao_owner_resolve_active_exports >/dev/null 2>&1; then
+    if owner_exports="$(KROOT="${KROOT}" kao_owner_resolve_active_exports 2>/dev/null)"; then
+      while IFS='=' read -r key value; do
+        [ -n "${key}" ] || continue
+        case "${key}" in
+          KAO_OWNER_NAME) eval "OWNER_NAME=${value}" ;;
+          KAO_OWNER_ROLE) eval "OWNER_ROLE=${value}" ;;
+          KAO_OWNER_ID) eval "OWNER_ID=${value}" ;;
+          KAO_OWNER_TITLE) eval "OWNER_TITLE=${value}" ;;
+          KAO_OWNER_HANDLE) eval "OWNER_HANDLE=${value}" ;;
+          KAO_OWNER_ORG) eval "OWNER_ORG=${value}" ;;
+          KAO_OWNER_SOURCE_LABEL) eval "OWNER_SOURCE_LABEL=${value}" ;;
+          KAO_OWNER_SOURCE_VALUE) eval "OWNER_SOURCE_VALUE=${value}" ;;
+        esac
+      done <<EOF_OWNER_EXPORTS
+${owner_exports}
+EOF_OWNER_EXPORTS
+
+      OWNER_STATE="READY"
+    else
+      OWNER_STATE="BROKEN"
+      OWNER_SOURCE_LABEL="owner resolution failed"
+      OWNER_SOURCE_VALUE="${OWNER_ENV_FILE}"
+    fi
+  else
+    OWNER_STATE="FALLBACK"
+  fi
+
+  if [ -f "${OWNER_PROFILE_SELECTOR_FILE}" ]; then
+    OWNER_SELECTOR_OFF="$(tr -d '\r' < "${OWNER_PROFILE_SELECTOR_FILE}" | head -n 1)"
+    [ -n "${OWNER_SELECTOR_OFF}" ] || OWNER_SELECTOR_OFF="OFF"
+  fi
+}
+
+resolve_user_identity() {
+  local user_exports user_state_kv key value
+
+  if [ -f "${USER_STATE_LIB}" ]; then
+    # shellcheck disable=SC1090
+    . "${USER_STATE_LIB}"
+  fi
+
+  if declare -F kao_user_emit_state_kv >/dev/null 2>&1; then
+    user_state_kv="$(
+      KROOT="${KROOT}"
+      kao_user_emit_state_kv
+    )"
+
+    while IFS='=' read -r key value; do
+      [ -n "${key}" ] || continue
+      case "${key}" in
+        result_state) USER_STATE="${value}" ;;
+        state_mode) USER_MODE="${value}" ;;
+        state_label) USER_LABEL="${value}" ;;
+        source_label) USER_SOURCE_LABEL="${value}" ;;
+        source_value) USER_SOURCE_VALUE="${value}" ;;
+        state_relation) USER_RELATION="${value}" ;;
+        activation_hint) USER_ACT_HINT="${value}" ;;
+        recover_hint) USER_RECOVER_HINT="${value}" ;;
+        broken_reason) USER_BROKEN_WHY="${value}" ;;
+        runtime_active_snapshot_file) USER_ACTIVE_SNAPSHOT_FILE="${value}" ;;
+        sync_mode) USER_SYNC_MODE="${value}" ;;
+        sync_hint) USER_SYNC_HINT="${value}" ;;
+        diff_count) USER_DIFF_COUNT="${value}" ;;
+      esac
+    done <<EOF_USER_STATE
+${user_state_kv}
+EOF_USER_STATE
+
+    if [ "${USER_STATE}" = "AVAILABLE" ] || [ "${USER_STATE}" = "ACTIVE" ] || [ "${USER_STATE}" = "BROKEN" ]; then
+      SYSTEM_SCENE="machine / system / owner / user"
+    fi
+
+    if [ "${USER_STATE}" = "ACTIVE" ]; then
+      ACTIVE_ENTITIES="owner user"
+      if declare -F kao_user_state_load_resolved_vars >/dev/null 2>&1; then
+        KROOT="${KROOT}"
+        kao_user_state_require_context
+        if kao_user_state_load_resolved_vars "${KAO_USER_RUNTIME_ENV_FILE}" 2>/dev/null; then
+          USER_NAME="${KAO_USER_RESOLVED_NAME}"
+          USER_ROLE="${KAO_USER_RESOLVED_ROLE}"
+          USER_ID="${KAO_USER_RESOLVED_ID}"
+          USER_TITLE="${KAO_USER_RESOLVED_TITLE}"
+          USER_HANDLE="${KAO_USER_RESOLVED_HANDLE}"
+          USER_ORG="${KAO_USER_RESOLVED_ORG}"
+        fi
+      fi
+    fi
+
+    if [ "${USER_STATE}" = "AVAILABLE" ]; then
+      if declare -F kao_user_state_load_resolved_vars >/dev/null 2>&1; then
+        KROOT="${KROOT}"
+        kao_user_state_require_context
+        if kao_user_state_load_resolved_vars "${KAO_USER_RUNTIME_ENV_FILE}" 2>/dev/null; then
+          USER_NAME="${KAO_USER_RESOLVED_NAME}"
+          USER_ROLE="${KAO_USER_RESOLVED_ROLE}"
+          USER_ID="${KAO_USER_RESOLVED_ID}"
+          USER_TITLE="${KAO_USER_RESOLVED_TITLE}"
+          USER_HANDLE="${KAO_USER_RESOLVED_HANDLE}"
+          USER_ORG="${KAO_USER_RESOLVED_ORG}"
+        fi
+      fi
+    fi
+  fi
+}
+
+print_line() {
+  printf '%-18s: %s\n' "$1" "$2"
+}
+
+resolve_owner_identity
+resolve_user_identity
+
+printf '\n'
+printf '====================================\n'
+printf '         KAO :: LOGIN SCENE\n'
+printf '====================================\n'
+printf '\n'
+
+print_line "TIME" "${TIME_NOW}"
+print_line "MACHINE HOST" "${MACHINE_HOST}"
+print_line "MACHINE ROLE" "${MACHINE_ROLE}"
+print_line "SYSTEM NAME" "${SYSTEM_NAME}"
+print_line "SYSTEM ROLE" "${SYSTEM_ROLE}"
+print_line "SYSTEM ROOT" "${SYSTEM_ROOT}"
+print_line "SYSTEM PATH" "${SYSTEM_PATH_READY}"
+print_line "SYSTEM LAYER" "${SYSTEM_LAYER}"
+print_line "SYSTEM SCENE" "${SYSTEM_SCENE}"
+print_line "ACTIVE" "${ACTIVE_ENTITIES}"
+
+printf '\n'
+printf '%s\n' '--- OWNER ------------------------------------------------------------'
+print_line "OWNER STATE" "${OWNER_STATE}"
+print_line "OWNER NAME" "${OWNER_NAME}"
+print_line "OWNER ROLE" "${OWNER_ROLE}"
+print_line "OWNER ID" "${OWNER_ID:-not set}"
+print_line "OWNER TITLE" "${OWNER_TITLE:-not set}"
+print_line "OWNER HANDLE" "${OWNER_HANDLE:-not set}"
+print_line "OWNER ORG" "${OWNER_ORG:-not set}"
+print_line "OWNER SOURCE" "${OWNER_SOURCE_LABEL}"
+print_line "OWNER SOURCE VAL" "${OWNER_SOURCE_VALUE}"
+print_line "OWNER SELECTOR" "${OWNER_SELECTOR_OFF}"
+
+printf '\n'
+printf '%s\n' '--- USER -------------------------------------------------------------'
+print_line "USER STATE" "${USER_STATE}"
+print_line "USER MODE" "${USER_MODE}"
+print_line "USER LABEL" "${USER_LABEL}"
+print_line "USER NAME" "${USER_NAME:-not set}"
+print_line "USER ROLE" "${USER_ROLE:-not set}"
+print_line "USER ID" "${USER_ID:-not set}"
+print_line "USER TITLE" "${USER_TITLE:-not set}"
+print_line "USER HANDLE" "${USER_HANDLE:-not set}"
+print_line "USER ORG" "${USER_ORG:-not set}"
+print_line "USER SOURCE" "${USER_SOURCE_LABEL}"
+print_line "USER SOURCE VAL" "${USER_SOURCE_VALUE}"
+print_line "USER RELATION" "${USER_RELATION}"
+print_line "USER ACT HINT" "${USER_ACT_HINT}"
+print_line "USER RECOVER" "${USER_RECOVER_HINT}"
+print_line "USER BROKEN WHY" "${USER_BROKEN_WHY}"
+print_line "USER SYNC MODE" "${USER_SYNC_MODE}"
+print_line "USER SYNC HINT" "${USER_SYNC_HINT}"
+print_line "USER DIFF COUNT" "${USER_DIFF_COUNT}"
+print_line "USER SNAPSHOT" "${USER_ACTIVE_SNAPSHOT_FILE}"
+
+printf '\n'

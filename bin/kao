@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+mode="${1:-root}"
+
+runtime_dispatch() {
+  local subcommand target
+  subcommand="${1:-status}"
+  target="${2:-}"
+
+  . "${KROOT}/lib/kao-runtime.sh"
+
+  case "${subcommand}" in
+    ""|status)
+      kao_runtime_status
+      ;;
+    snapshot)
+      kao_runtime_snapshot
+      ;;
+    diff)
+      kao_runtime_diff
+      ;;
+    repair)
+      kao_runtime_repair
+      ;;
+    activate)
+      case "${target:-user}" in
+        user)
+          kao_runtime_activate_user
+          ;;
+        *)
+          printf 'ERROR: unsupported runtime activation target: %s\n' "${target}" >&2
+          printf 'USAGE: kao runtime activate user\n' >&2
+          return 1
+          ;;
+      esac
+      ;;
+    deactivate)
+      kao_runtime_deactivate
+      ;;
+    *)
+      printf 'ERROR: unknown runtime subcommand: %s\n' "${subcommand}" >&2
+      printf 'USAGE: kao runtime [status|snapshot|diff|repair|activate user|deactivate]\n' >&2
+      return 1
+      ;;
+  esac
+}
+
+gateway_dispatch() {
+  . "${KROOT}/lib/gateway/router.sh"
+  gateway_cli "${1:-status}"
+}
+
+case "${mode}" in
+  boot)
+    exec "${KROOT}/bin/kao-boot"
+    ;;
+
+  context)
+    shift
+    exec "${KROOT}/bin/kao-context" "${@:-root}"
+    ;;
+
+  sprint)
+    shift
+    exec "${KROOT}/bin/kao-sprint" "$@"
+    ;;
+
+  check|doctor)
+    shift
+    exec "${KROOT}/bin/kao-check" "${@:-full}"
+    ;;
+
+  owner)
+    shift || true
+    exec "${KROOT}/bin/kao-owner" "$@"
+    ;;
+
+  user)
+    shift || true
+    exec "${KROOT}/bin/kao-user" "$@"
+    ;;
+
+  runtime)
+    shift || true
+    runtime_dispatch "${1:-status}" "${2:-}"
+    ;;
+
+  gateway)
+    shift || true
+    gateway_dispatch "${1:-status}"
+    ;;
+
+  new)
+    exec python3 "${KROOT}/runtime/kao_cli.py" "$@"
+    ;;
+
+  open)
+    shift
+    exec "${KROOT}/bin/kao-open" "$@"
+    ;;
+
+  where|sense)
+    shift
+    exec "${KROOT}/bin/kao-where" "$@"
+    ;;
+
+  list|tree)
+    exec "${KROOT}/bin/kao-list" "${KROOT}" "${mode}" "${2:-2}"
+    ;;
+
+  columns)
+    shift
+    exec "${KROOT}/bin/kao-columns" "${1:-${KROOT}}"
+    ;;
+
+  dev|doc|refactor|conciergerie|bar|event|software|perso|root)
+    "${KROOT}/bin/kao-boot"
+    "${KROOT}/bin/kao-context" "${mode}"
+    ;;
+
+  *)
+    "${KROOT}/bin/kao-boot"
+    "${KROOT}/bin/kao-context" root
+    ;;
+esac

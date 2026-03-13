@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+name="${1:-sprint-untitled}"
+context="${2:-root}"
+goal="${3:-undefined-goal}"
+
+mkdir -p "${HOME}/state/sprints"
+file="${HOME}/state/sprints/${name}.md"
+
+cat > "${file}" <<SPRINT
+# ${name}
+
+context: ${context}
+status: IN_PROGRESS
+goal: ${goal}
+
+## mission
+${goal}
+
+## rules
+- one mission only
+- park new ideas
+- validate via CLI
+- validate via tests
+
+## next-entry-point
+to define
+SPRINT
+
+printf '[OK] sprint created: %s\n' "${file}"

@@ -1,0 +1,391 @@
+# SPRINT 4 — Runtime command surface canonization
+
+## Mission
+Introduce a canonical runtime command surface for Kao.
+
+## Goal
+Allow an operator to:
+
+- read runtime state
+- capture a snapshot
+- compare runtime against a snapshot
+- activate and deactivate runtime explicitly
+- repair a drift to an owner baseline
+
+## File 1 scope
+Create the canonical runtime library.
+
+## File 2 scope
+Wire runtime commands into the main `kao` entrypoint.
+
+## File 3 scope
+Add explicit runtime transitions:
+
+- kao runtime activate user
+- kao runtime deactivate
+
+## File 4 scope
+Add E2E coverage for the runtime command surface.
+
+## Validation target
+- runtime surface callable from `kao`
+- runtime state written in `state/runtime/`
+- runtime log trace written in `state/logs/runtime.log`
+- e2e scenario validates activate / snapshot / diff / deactivate
+
+## Notes
+Sprint 4 now covers runtime read, transition, snapshot, diff, repair, and E2E validation.
+
+---
+
+## DEV 0.4 documentary convergence note
+
+Gateway documentation and release readability were locked after the runtime surface was stabilized.
+
+Documented real state now includes:
+
+- canonical `brain infer "<query>"` entrypoint
+- gateway routing layer and provider roles
+- cloud/local routing policy
+- externalized secrets policy
+- gateway log observability
+- fallback behavior
+- validation path through E2E
+
+Current gateway state documented as real:
+
+- `mistral` operational as cloud provider
+- `ollama` present as local stub prepared for future extension
+- secrets expected outside `/home/kao`
+- gateway trace written in `state/logs/gateway.log`
+- E2E gateway scenario integrated in the global suite
+
+## Release lock result
+
+The project documentation now explains clearly:
+
+- how to launch `brain infer`
+- how provider routing works
+- where secrets live
+- how to inspect logs
+- what is production-ready
+- what remains stubbed
+- how to validate the whole surface
+
+## Safety note
+
+No secret was introduced in repository documentation.
+
+The documentation remains aligned with the inspected code surface.
+
+---
+
+## DEV 0.5 gateway operator surface note
+
+A canonical operator inspection surface now exists for the gateway.
+
+Implemented real state now includes:
+
+- canonical `kao gateway` command
+- canonical `kao gateway status` command
+- readable gateway diagnostic without reading shell libs directly
+- visible selected / forced / detected provider information
+- visible secrets file path and state
+- visible log file path and state
+- visible fallback policy
+- visible operator diagnostic hint
+- E2E lock for canonical gateway inspection behavior
+
+## DEV 0.5 validation result
+
+The gateway surface now supports two complementary operator paths:
+
+- inference via `brain infer "<query>"`
+- inspection via `kao gateway`
+
+Validation now confirms:
+
+- canonical gateway banner visibility
+- selected provider visibility
+- secrets path visibility
+- log path visibility
+- operator diagnostic visibility
+- canonical help visibility
+- preserved forced local route visibility
+- preserved ollama stub visibility
+- preserved provider auto-detection
+
+## DEV 0.5 operator result
+
+A human operator can now understand immediately:
+
+- which provider is selected
+- whether a provider is forced
+- whether the forced value is supported
+- which provider is detected
+- where secrets are expected
+- whether secrets are present
+- where logs are written
+- whether logs are already present
+- which fallback policy applies
+- what first diagnostic hint should guide the next action
+
+---
+
+## DEV 0.6 gateway health + logs diagnostics note
+
+The gateway cockpit surface is now stronger and more directly usable by an operator.
+
+Implemented real state now includes:
+
+- canonical `kao gateway health` command
+- canonical `kao gateway logs` command
+- visible provider kind
+- visible provider health
+- visible provider note
+- visible mistral availability and health
+- visible ollama availability and health
+- visible fallback status
+- visible log line count
+- visible last log event
+- visible short gateway log preview
+- reduced repeated secrets loading during one router process
+- E2E lock for health and logs inspection surfaces
+
+## DEV 0.6 validation result
+
+Validation now confirms:
+
+- canonical gateway status remains readable
+- canonical gateway health banner visibility
+- canonical gateway logs banner visibility
+- selected kind visibility
+- selected health visibility
+- mistral health visibility
+- ollama health visibility
+- fallback status visibility
+- log line count visibility
+- last log event visibility
+- log preview visibility
+- canonical help updated to `status|health|logs`
+- preserved forced local route visibility
+- preserved ollama stub visibility
+- preserved provider auto-detection
+
+## DEV 0.6 operator result
+
+A human operator can now diagnose quickly:
+
+- which provider is selected
+- whether it is cloud or local
+- whether it is really ready or only stub-ready
+- whether mistral is blocked by secrets or ready
+- whether fallback is armed
+- whether a gateway log already exists
+- how much trace already exists
+- what the latest gateway event was
+- which last lines should be read first
+
+---
+
+# SPRINT DEV 0.7 — Gateway Log Hygiene + Real Local Provider Readiness
+
+## Mission
+
+Faire évoluer la gateway vers un niveau plus production-ready :
+
+- clarifier le rôle du log runtime
+- isoler les commandes cockpit du log d’exécution
+- introduire une readiness locale progressive
+- préparer l’inférence locale réelle
+- conserver la stabilité E2E complète
+
+## Résultats obtenus
+
+### Log hygiene
+
+La gateway distingue désormais :
+
+- événements runtime réels → journalisés
+- inspections cockpit → non journalisées
+
+Cela permet :
+
+- une trace opératoire plus lisible
+- une réduction du bruit diagnostic
+- une meilleure capacité d’analyse post-incident
+
+Les traces importantes conservées :
+
+- sélection provider lors d’inférence réelle
+- succès d’inférence
+- fallback effectif
+- erreurs d’exécution
+
+### Local provider readiness
+
+Le provider local expose maintenant :
+
+- unavailable
+- local-stub-ready
+- local-real-ready
+
+Cela prépare Kao à :
+
+- inference offline
+- autonomie cognitive locale
+- routage adaptatif cloud/local
+
+Un stub opératoire reste disponible pour :
+
+- stabiliser le workflow actuel
+- permettre les tests E2E
+- préparer la transition vers backend réel
+
+### Gateway maturity
+
+La gateway atteint maintenant :
+
+- cockpit opérateur lisible
+- routing déterministe
+- fallback visible
+- observabilité runtime stable
+- base d’évolution vers cognition hybride
+
+## Impact architecture
+
+- renforcement du rôle du gateway comme couche cognitive
+- préparation de l’orchestration agentique
+- préparation de l’exécution locale réelle
+
+## Impact documentation
+
+Alignement complet :
+
+- README
+- PROJECT
+- ARCHITECTURE
+- USER_MANUAL
+
+## État global
+
+- E2E full vert
+- surface CLI stable
+- vocabulaire runtime consolidé
+- base prête pour DEV 0.8
+
+---
+
+# SPRINT DEV 0.9 — Controlled Real Ollama Execution + Model Readiness Verification
+
+## Mission
+
+Durcir la readiness locale réelle pour éviter les faux positifs entre :
+
+- runtime présent
+- backend joignable
+- modèle local disponible
+- policy autorisée
+- appel réel effectivement exécutable
+
+## Résultats obtenus
+
+### Ollama readiness durcie
+
+Le provider local expose maintenant explicitement :
+
+- un modèle local cible
+- un état du modèle local
+- un état runtime local
+- un état d’exécution réelle locale
+
+Readiness locale désormais distinguée :
+
+- `unavailable`
+- `local-stub-ready`
+- `local-real-backend-ready`
+- `local-real-ready`
+
+État du modèle local :
+
+- `unknown`
+- `missing`
+- `ready`
+
+État runtime local :
+
+- `stub-runtime`
+- `real-backend-ready`
+- `real-model-ready`
+- `unavailable`
+
+État d’exécution réelle :
+
+- `callable`
+- `blocked-policy`
+- `blocked-no-model`
+- `stub-only`
+- `unavailable`
+
+### Cockpit enrichi
+
+`kao gateway status` et `kao gateway health` exposent maintenant :
+
+- `ollama model`
+- `ollama model state`
+- `ollama runtime`
+- `ollama real calls`
+- `ollama real state`
+
+Cela rend la lecture opérateur plus juste et plus exploitable.
+
+### Runtime logs enrichis
+
+Les logs runtime distinguent maintenant :
+
+- tentative réelle locale
+- modèle ciblé
+- état du modèle
+- succès réel
+- succès stub
+- fallback réel
+- fallback stub
+
+Cela améliore la lisibilité du comportement réel sans polluer le cockpit.
+
+### CLI gateway réparée
+
+Le dispatcher `gateway_cli` a été restauré dans le router
+pour réaligner `bin/kao` avec la surface canonique :
+
+- `kao gateway`
+- `kao gateway status`
+- `kao gateway health`
+- `kao gateway logs`
+- `kao gateway help`
+
+### Validation
+
+Validation obtenue sur :
+
+- provider Ollama durci
+- router enrichi
+- cockpit status/health/logs lisible
+- forced local route préservée
+- log hygiene préservée
+- E2E gateway scenario vert
+
+## Impact
+
+- readiness locale réelle plus stricte
+- lecture explicite du modèle local
+- exécution réelle locale mieux gouvernée
+- base plus solide pour future cognition offline
+- base plus solide pour futur routeur multi-providers
+
+## État global
+
+- E2E full vert
+- surface CLI stable
+- documentation alignée
+- base prête pour extension online/offline plus intelligente

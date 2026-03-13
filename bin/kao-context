@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ctx="${1:-root}"
+
+case "${ctx}" in
+  dev)          prompt='kao::dev >' ;;
+  doc)          prompt='kao::doc >' ;;
+  refactor)     prompt='kao::refactor >' ;;
+  conciergerie) prompt='kao::ops/conciergerie >' ;;
+  bar)          prompt='kao::ops/bar >' ;;
+  event)        prompt='kao::ops/event >' ;;
+  software)     prompt='kao::ops/software >' ;;
+  perso)        prompt='kao::perso >' ;;
+  *)            prompt='kao::root >' ;;
+esac
+
+printf '%s\n' "${prompt}"

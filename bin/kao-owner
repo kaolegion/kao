@@ -1,0 +1,800 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+OWNER_ENV_DIR="${KROOT}/config"
+OWNER_ENV_FILE="${OWNER_ENV_DIR}/owner.env"
+OWNER_PROFILE_SELECTOR_FILE="${OWNER_ENV_DIR}/owner.profile"
+OWNER_PRESETS_DIR="${KROOT}/profiles/owners"
+OWNER_LOG_DIR="${KROOT}/state/logs"
+OWNER_LOG_FILE="${OWNER_LOG_DIR}/owner.log"
+OWNER_STATE_LIB="${KROOT}/lib/kao-owner-state.sh"
+
+OWNER_SELECTOR_OFF="OFF"
+
+OWNER_REQUIRED_FIELDS="KAO_OWNER_NAME"
+OWNER_OPTIONAL_FIELDS="KAO_OWNER_ROLE KAO_OWNER_ID"
+OWNER_VISIBLE_FIELDS="KAO_OWNER_TITLE KAO_OWNER_HANDLE KAO_OWNER_ORG"
+OWNER_HIDDEN_FIELDS="KAO_OWNER_EMAIL KAO_OWNER_DOMAIN"
+OWNER_CANONICAL_FIELDS="${OWNER_REQUIRED_FIELDS} ${OWNER_OPTIONAL_FIELDS} ${OWNER_VISIBLE_FIELDS} ${OWNER_HIDDEN_FIELDS}"
+
+if [ ! -f "${OWNER_STATE_LIB}" ]; then
+  printf 'ERROR: missing owner state library: %s\n' "${OWNER_STATE_LIB}" >&2
+  exit 1
+fi
+
+# shellcheck source=/home/kao/lib/kao-owner-state.sh
+. "${OWNER_STATE_LIB}"
+kao_owner_state_require_context
+
+usage() {
+  printf 'KAO OWNER COMMAND\n\n'
+  printf 'Usage:\n'
+  printf '  kao owner help\n'
+  printf '  kao owner list\n'
+  printf '  kao owner current\n'
+  printf '  kao owner selector\n'
+  printf '  kao owner inspect <preset>\n'
+  printf '  kao owner create <preset>\n'
+  printf '  kao owner edit <preset> <field> <value>\n'
+  printf '  kao owner activate <preset>\n'
+  printf '  kao owner use <preset>\n'
+  printf '  kao owner deactivate\n'
+  printf '  kao owner recover\n'
+  printf '\n'
+  printf 'Editable fields:\n'
+  printf '  %s\n' "${OWNER_CANONICAL_FIELDS}"
+  printf '\n'
+  printf 'Paths:\n'
+  printf '  selector : %s\n' "${OWNER_PROFILE_SELECTOR_FILE}"
+  printf '  presets  : %s\n' "${OWNER_PRESETS_DIR}"
+  printf '  runtime  : %s\n' "${OWNER_ENV_FILE}"
+  printf '  log      : %s\n' "${OWNER_LOG_FILE}"
+}
+
+ensure_owner_dirs() {
+  mkdir -p "${OWNER_ENV_DIR}" "${OWNER_PRESETS_DIR}" "${OWNER_LOG_DIR}"
+}
+
+log_owner_event() {
+  local event details
+  event="${1:-UNKNOWN}"
+  details="${2:-}"
+
+  ensure_owner_dirs
+
+  printf '%s | %s | %s\n' \
+    "$(date -Iseconds)" \
+    "${event}" \
+    "${details}" >> "${OWNER_LOG_FILE}"
+}
+
+write_selector_value() {
+  local selector_value
+  selector_value="$1"
+
+  ensure_owner_dirs
+  printf '%s\n' "${selector_value}" > "${OWNER_PROFILE_SELECTOR_FILE}"
+}
+
+validate_preset_name() {
+  local preset_name
+  preset_name="${1:-}"
+
+  if [ -z "${preset_name}" ]; then
+    printf 'ERROR: missing preset name\n' >&2
+    usage >&2
+    exit 1
+  fi
+
+  case "${preset_name}" in
+    *[!A-Za-z0-9._-]*)
+      printf 'ERROR: invalid preset name: %s\n' "${preset_name}" >&2
+      exit 1
+      ;;
+  esac
+}
+
+is_allowed_field() {
+  local field
+  field="${1:-}"
+
+  case "${field}" in
+    KAO_OWNER_NAME|KAO_OWNER_ROLE|KAO_OWNER_ID|KAO_OWNER_TITLE|KAO_OWNER_HANDLE|KAO_OWNER_ORG|KAO_OWNER_EMAIL|KAO_OWNER_DOMAIN)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+field_group_label() {
+  local field
+  field="$1"
+
+  case "${field}" in
+    KAO_OWNER_NAME)
+      printf 'required'
+      ;;
+    KAO_OWNER_ROLE|KAO_OWNER_ID)
+      printf 'optional'
+      ;;
+    KAO_OWNER_TITLE|KAO_OWNER_HANDLE|KAO_OWNER_ORG)
+      printf 'visible'
+      ;;
+    KAO_OWNER_EMAIL|KAO_OWNER_DOMAIN)
+      printf 'hidden'
+      ;;
+    *)
+      printf 'unknown'
+      ;;
+  esac
+}
+
+get_export_value() {
+  local owner_exports wanted_key
+  owner_exports="$1"
+  wanted_key="$2"
+
+  while IFS='=' read -r key value; do
+    [ -n "${key}" ] || continue
+    if [ "${key}" = "${wanted_key}" ]; then
+      printf '%s' "${value}"
+      return 0
+    fi
+  done <<EOF_OWNER_EXPORTS
+${owner_exports}
+EOF_OWNER_EXPORTS
+
+  return 1
+}
+
+shell_quote_value() {
+  python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "${1:-}"
+}
+
+owner_slug() {
+  local raw
+  raw="${1:-}"
+  raw="$(printf '%s' "${raw}" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-')"
+  raw="${raw#-}"
+  raw="${raw%-}"
+  if [ -z "${raw}" ]; then
+    raw="unknown"
+  fi
+  printf '%s' "${raw}"
+}
+
+write_canonical_preset() {
+  local preset_path
+  preset_path="$1"
+
+  local name role owner_id title handle org email domain
+  name="${2:-}"
+  role="${3:-}"
+  owner_id="${4:-}"
+  title="${5:-}"
+  handle="${6:-}"
+  org="${7:-}"
+  email="${8:-}"
+  domain="${9:-}"
+
+  if [ -z "${name}" ]; then
+    printf 'ERROR: missing required field KAO_OWNER_NAME during canonical preset write\n' >&2
+    exit 1
+  fi
+
+  if [ -z "${role}" ]; then
+    role="machine and system owner"
+  fi
+
+  if [ -z "${owner_id}" ]; then
+    owner_id="owner-$(owner_slug "${name}")"
+  fi
+
+  if [ -z "${title}" ]; then
+    title="not set"
+  fi
+
+  if [ -z "${handle}" ]; then
+    handle="not set"
+  fi
+
+  if [ -z "${org}" ]; then
+    org="not set"
+  fi
+
+  {
+    printf 'KAO_OWNER_NAME=%s\n' "$(shell_quote_value "${name}")"
+    printf 'KAO_OWNER_ROLE=%s\n' "$(shell_quote_value "${role}")"
+    printf 'KAO_OWNER_ID=%s\n' "$(shell_quote_value "${owner_id}")"
+    printf 'KAO_OWNER_TITLE=%s\n' "$(shell_quote_value "${title}")"
+    printf 'KAO_OWNER_HANDLE=%s\n' "$(shell_quote_value "${handle}")"
+    printf 'KAO_OWNER_ORG=%s\n' "$(shell_quote_value "${org}")"
+    if [ -n "${email}" ]; then
+      printf 'KAO_OWNER_EMAIL=%s\n' "$(shell_quote_value "${email}")"
+    fi
+    if [ -n "${domain}" ]; then
+      printf 'KAO_OWNER_DOMAIN=%s\n' "$(shell_quote_value "${domain}")"
+    fi
+  } > "${preset_path}"
+
+  if ! kao_owner_resolve_exports "${preset_path}" >/dev/null 2>&1; then
+    printf 'ERROR: canonical preset write failed validation: %s\n' "${preset_path}" >&2
+    exit 1
+  fi
+}
+
+write_runtime_owner_env() {
+  local owner_exports
+  owner_exports="$1"
+
+  local name role owner_id title handle org email domain
+  name="$(get_export_value "${owner_exports}" "KAO_OWNER_NAME" || true)"
+  role="$(get_export_value "${owner_exports}" "KAO_OWNER_ROLE" || true)"
+  owner_id="$(get_export_value "${owner_exports}" "KAO_OWNER_ID" || true)"
+  title="$(get_export_value "${owner_exports}" "KAO_OWNER_TITLE" || true)"
+  handle="$(get_export_value "${owner_exports}" "KAO_OWNER_HANDLE" || true)"
+  org="$(get_export_value "${owner_exports}" "KAO_OWNER_ORG" || true)"
+  email="$(get_export_value "${owner_exports}" "KAO_OWNER_EMAIL" || true)"
+  domain="$(get_export_value "${owner_exports}" "KAO_OWNER_DOMAIN" || true)"
+
+  if [ -z "${name}" ]; then
+    printf 'ERROR: missing required field KAO_OWNER_NAME during runtime rebuild\n' >&2
+    exit 1
+  fi
+
+  if [ -z "${role}" ]; then
+    role="machine and system owner"
+  fi
+
+  if [ -z "${owner_id}" ]; then
+    owner_id="owner-$(owner_slug "${name}")"
+  fi
+
+  if [ -z "${title}" ]; then
+    title="not set"
+  fi
+
+  if [ -z "${handle}" ]; then
+    handle="not set"
+  fi
+
+  if [ -z "${org}" ]; then
+    org="not set"
+  fi
+
+  {
+    printf 'KAO_OWNER_NAME=%s\n' "$(shell_quote_value "${name}")"
+    printf 'KAO_OWNER_ROLE=%s\n' "$(shell_quote_value "${role}")"
+    printf 'KAO_OWNER_ID=%s\n' "$(shell_quote_value "${owner_id}")"
+    printf 'KAO_OWNER_TITLE=%s\n' "$(shell_quote_value "${title}")"
+    printf 'KAO_OWNER_HANDLE=%s\n' "$(shell_quote_value "${handle}")"
+    printf 'KAO_OWNER_ORG=%s\n' "$(shell_quote_value "${org}")"
+    if [ -n "${email}" ]; then
+      printf 'KAO_OWNER_EMAIL=%s\n' "$(shell_quote_value "${email}")"
+    fi
+    if [ -n "${domain}" ]; then
+      printf 'KAO_OWNER_DOMAIN=%s\n' "$(shell_quote_value "${domain}")"
+    fi
+  } > "${OWNER_ENV_FILE}"
+
+  if ! kao_owner_resolve_exports "${OWNER_ENV_FILE}" >/dev/null 2>&1; then
+    printf 'ERROR: runtime owner env validation failed: %s\n' "${OWNER_ENV_FILE}" >&2
+    exit 1
+  fi
+}
+
+refresh_state() {
+  STATE_SELECTOR_RAW="missing"
+  STATE_SELECTOR_MODE="missing"
+  STATE_SELECTOR_VALUE=""
+  STATE_SELECTOR_TARGET="none"
+  STATE_SELECTOR_STATUS_LABEL="missing"
+  STATE_RUNTIME_CACHE_STATUS="missing"
+  STATE_RUNTIME_LINK="runtime cache missing"
+  STATE_REPAIR_HINT="activate a preset or keep legacy fallback"
+  STATE_REPAIR_ACTION="KEEP_OR_ACTIVATE"
+  STATE_RESULT_STATE="ABSENT"
+  STATE_AVAILABLE_PRESETS="none"
+
+  while IFS='=' read -r key value; do
+    [ -n "${key}" ] || continue
+    case "${key}" in
+      selector_raw_state) STATE_SELECTOR_RAW="${value}" ;;
+      selector_mode) STATE_SELECTOR_MODE="${value}" ;;
+      selector_value) STATE_SELECTOR_VALUE="${value}" ;;
+      selector_target) STATE_SELECTOR_TARGET="${value}" ;;
+      selector_status_label) STATE_SELECTOR_STATUS_LABEL="${value}" ;;
+      runtime_cache_status) STATE_RUNTIME_CACHE_STATUS="${value}" ;;
+      runtime_selector_relation) STATE_RUNTIME_LINK="${value}" ;;
+      repair_hint) STATE_REPAIR_HINT="${value}" ;;
+      repair_action) STATE_REPAIR_ACTION="${value}" ;;
+      result_state) STATE_RESULT_STATE="${value}" ;;
+      available_presets) STATE_AVAILABLE_PRESETS="${value}" ;;
+    esac
+  done <<EOF_OWNER_STATE
+$(kao_owner_emit_state_kv)
+EOF_OWNER_STATE
+}
+
+resolve_current_identity() {
+  refresh_state
+
+  OWNER_NAME="${USER:-unknown}"
+  OWNER_ROLE="machine and system owner"
+  OWNER_ID=""
+  OWNER_TITLE=""
+  OWNER_HANDLE=""
+  OWNER_ORG=""
+  OWNER_EMAIL=""
+  OWNER_DOMAIN=""
+
+  OWNER_SOURCE_LABEL="fallback user session"
+  OWNER_SOURCE_VALUE='${USER}'
+  OWNER_PROFILE_ACTIVE="none"
+  OWNER_PROFILE_STATUS="selector absent"
+  OWNER_RESOLVED_ENV_FILE="none"
+
+  case "${STATE_SELECTOR_MODE}" in
+    missing)
+      OWNER_PROFILE_STATUS="selector absent"
+      ;;
+    empty)
+      OWNER_PROFILE_STATUS="selector empty"
+      ;;
+    off)
+      OWNER_PROFILE_STATUS="selector intentionally deactivated"
+      ;;
+    target-missing)
+      OWNER_PROFILE_ACTIVE="${STATE_SELECTOR_VALUE:-none}"
+      OWNER_RESOLVED_ENV_FILE="${STATE_SELECTOR_TARGET}"
+      OWNER_PROFILE_STATUS="active preset missing"
+      ;;
+    target-invalid)
+      OWNER_PROFILE_ACTIVE="${STATE_SELECTOR_VALUE:-none}"
+      OWNER_RESOLVED_ENV_FILE="${STATE_SELECTOR_TARGET}"
+      OWNER_PROFILE_STATUS="active preset invalid"
+      ;;
+    target-valid)
+      OWNER_PROFILE_ACTIVE="${STATE_SELECTOR_VALUE:-none}"
+      OWNER_RESOLVED_ENV_FILE="${STATE_SELECTOR_TARGET}"
+      if OWNER_ENV_EXPORTS="$(kao_owner_resolve_exports "${OWNER_RESOLVED_ENV_FILE}")"; then
+        kao_owner_apply_exports_to_env "${OWNER_ENV_EXPORTS}"
+        OWNER_SOURCE_LABEL="canonical owner preset"
+        OWNER_SOURCE_VALUE="${OWNER_RESOLVED_ENV_FILE}"
+        OWNER_PROFILE_STATUS="active preset valid"
+      fi
+      ;;
+  esac
+
+  if [ "${OWNER_SOURCE_LABEL}" = "fallback user session" ] && [ -f "${OWNER_ENV_FILE}" ]; then
+    if OWNER_ENV_EXPORTS="$(kao_owner_resolve_exports "${OWNER_ENV_FILE}")"; then
+      kao_owner_apply_exports_to_env "${OWNER_ENV_EXPORTS}"
+
+      case "${STATE_SELECTOR_MODE}" in
+        missing)
+          OWNER_SOURCE_LABEL="legacy owner file"
+          OWNER_SOURCE_VALUE="${OWNER_ENV_FILE}"
+          OWNER_PROFILE_STATUS="selector absent -> legacy fallback active"
+          ;;
+        empty)
+          OWNER_SOURCE_LABEL="legacy owner file"
+          OWNER_SOURCE_VALUE="${OWNER_ENV_FILE}"
+          OWNER_PROFILE_STATUS="selector empty -> legacy fallback active"
+          ;;
+        off)
+          OWNER_SOURCE_LABEL="retained runtime owner file"
+          OWNER_SOURCE_VALUE="${OWNER_ENV_FILE}"
+          OWNER_PROFILE_STATUS="selector off -> retained runtime active"
+          ;;
+        target-missing)
+          OWNER_SOURCE_LABEL="stale runtime owner file"
+          OWNER_SOURCE_VALUE="${OWNER_ENV_FILE}"
+          OWNER_PROFILE_STATUS="selector target missing -> stale runtime active"
+          ;;
+        target-invalid)
+          OWNER_SOURCE_LABEL="stale runtime owner file"
+          OWNER_SOURCE_VALUE="${OWNER_ENV_FILE}"
+          OWNER_PROFILE_STATUS="selector target invalid -> stale runtime active"
+          ;;
+      esac
+    fi
+  fi
+
+  if [ -z "${OWNER_ID}" ] && [ -n "${OWNER_NAME}" ]; then
+    OWNER_ID="owner-$(owner_slug "${OWNER_NAME}")"
+  fi
+
+  if [ -z "${OWNER_TITLE}" ]; then
+    OWNER_TITLE="not set"
+  fi
+
+  if [ -z "${OWNER_HANDLE}" ]; then
+    OWNER_HANDLE="not set"
+  fi
+
+  if [ -z "${OWNER_ORG}" ]; then
+    OWNER_ORG="not set"
+  fi
+}
+
+print_policy_block() {
+  local policy_state repair_action result_state
+  policy_state="${1:-UNKNOWN}"
+  repair_action="${2:-INSPECT}"
+  result_state="${3:-UNKNOWN}"
+
+  printf 'policy state  : %s\n' "${policy_state}"
+  printf 'repair action : %s\n' "${repair_action}"
+  printf 'result state  : %s\n' "${result_state}"
+}
+
+cmd_list() {
+  ensure_owner_dirs
+
+  printf 'OWNER PRESETS\n\n'
+
+  if [ "${STATE_AVAILABLE_PRESETS:-none}" = "none" ]; then
+    printf 'available : none\n'
+    return 0
+  fi
+
+  while IFS= read -r preset_name; do
+    [ -n "${preset_name}" ] || continue
+
+    if [ "${STATE_SELECTOR_VALUE:-}" = "${preset_name}" ] && [ "${STATE_SELECTOR_MODE}" = "target-valid" ]; then
+      printf '* %s [active]\n' "${preset_name}"
+    elif [ "${STATE_SELECTOR_VALUE:-}" = "${preset_name}" ] && [ "${STATE_SELECTOR_MODE}" != "off" ]; then
+      printf '* %s [selected-%s]\n' "${preset_name}" "${STATE_SELECTOR_MODE}"
+    else
+      printf '- %s\n' "${preset_name}"
+    fi
+  done <<EOF_PRESETS
+$(kao_owner_list_valid_presets)
+EOF_PRESETS
+}
+
+cmd_current() {
+  resolve_current_identity
+
+  printf 'OWNER CURRENT STATE\n\n'
+  printf 'state           : %s\n' "${STATE_RESULT_STATE}"
+  printf 'selector mode   : %s\n' "${STATE_SELECTOR_MODE}"
+  printf 'selector value  : %s\n' "${STATE_SELECTOR_VALUE:-none}"
+  printf 'selector target : %s\n' "${STATE_SELECTOR_TARGET}"
+  printf 'profile status  : %s\n' "${OWNER_PROFILE_STATUS}"
+  printf 'repair action   : %s\n' "${STATE_REPAIR_ACTION}"
+  printf 'repair hint     : %s\n' "${STATE_REPAIR_HINT}"
+  printf 'runtime cache   : %s\n' "${STATE_RUNTIME_CACHE_STATUS}"
+  printf 'runtime link    : %s\n' "${STATE_RUNTIME_LINK}"
+  printf 'source label    : %s\n' "${OWNER_SOURCE_LABEL}"
+  printf 'source value    : %s\n' "${OWNER_SOURCE_VALUE}"
+  printf 'available       : %s\n' "${STATE_AVAILABLE_PRESETS}"
+  printf '\n'
+  printf 'name            : %s\n' "${OWNER_NAME}"
+  printf 'role            : %s\n' "${OWNER_ROLE}"
+  printf 'id              : %s\n' "${OWNER_ID}"
+  printf 'title           : %s\n' "${OWNER_TITLE}"
+  printf 'handle          : %s\n' "${OWNER_HANDLE}"
+  printf 'org             : %s\n' "${OWNER_ORG}"
+}
+
+cmd_selector() {
+  refresh_state
+
+  printf 'OWNER SELECTOR STATE\n\n'
+  printf 'raw state       : %s\n' "${STATE_SELECTOR_RAW}"
+  printf 'mode            : %s\n' "${STATE_SELECTOR_MODE}"
+  printf 'value           : %s\n' "${STATE_SELECTOR_VALUE:-none}"
+  printf 'target          : %s\n' "${STATE_SELECTOR_TARGET}"
+  printf 'status          : %s\n' "${STATE_SELECTOR_STATUS_LABEL}"
+  printf 'runtime cache   : %s\n' "${STATE_RUNTIME_CACHE_STATUS}"
+  printf 'runtime link    : %s\n' "${STATE_RUNTIME_LINK}"
+  printf 'repair action   : %s\n' "${STATE_REPAIR_ACTION}"
+  printf 'repair hint     : %s\n' "${STATE_REPAIR_HINT}"
+  printf 'result state    : %s\n' "${STATE_RESULT_STATE}"
+}
+
+cmd_inspect() {
+  local preset_name preset_path preset_exports
+  preset_name="${1:-}"
+
+  validate_preset_name "${preset_name}"
+  preset_path="$(kao_owner_get_preset_path "${preset_name}")"
+
+  printf 'OWNER PRESET INSPECTION\n\n'
+  printf 'preset        : %s\n' "${preset_name}"
+  printf 'path          : %s\n' "${preset_path}"
+
+  if [ ! -f "${preset_path}" ]; then
+    printf 'exists        : no\n'
+    print_policy_block "REFUSED" "INSPECT" "INVALID"
+    exit 1
+  fi
+
+  if ! preset_exports="$(kao_owner_resolve_exports "${preset_path}")"; then
+    printf 'exists        : yes\n'
+    printf 'valid         : no\n'
+    print_policy_block "REFUSED" "INSPECT" "INVALID"
+    exit 1
+  fi
+
+  printf 'exists        : yes\n'
+  printf 'valid         : yes\n'
+  printf '\n'
+
+  for field in ${OWNER_CANONICAL_FIELDS}; do
+    printf '%-13s : %s\n' "${field}" "$(get_export_value "${preset_exports}" "${field}" || printf 'not set')"
+  done
+
+  printf '\n'
+  print_policy_block "SUCCESS" "NONE" "ACTIVE"
+}
+
+cmd_create() {
+  local preset_name preset_path default_name default_role default_id
+  preset_name="${1:-}"
+
+  validate_preset_name "${preset_name}"
+  ensure_owner_dirs
+  preset_path="$(kao_owner_get_preset_path "${preset_name}")"
+
+  printf 'OWNER PRESET CREATED\n\n'
+  printf 'preset        : %s\n' "${preset_name}"
+  printf 'path          : %s\n' "${preset_path}"
+
+  if [ -f "${preset_path}" ]; then
+    print_policy_block "REFUSED" "NONE" "INVALID"
+    exit 1
+  fi
+
+  default_name="${preset_name}"
+  default_role="machine and system owner"
+  default_id="owner-$(owner_slug "${default_name}")"
+
+  write_canonical_preset "${preset_path}" \
+    "${default_name}" \
+    "${default_role}" \
+    "${default_id}" \
+    "" \
+    "" \
+    "" \
+    "" \
+    ""
+
+  log_owner_event "OWNER_CREATE" "preset=${preset_name} path=${preset_path}"
+
+  print_policy_block "SUCCESS" "NONE" "ACTIVE"
+}
+
+cmd_edit() {
+  local preset_name field new_value preset_path preset_exports
+  local name role owner_id title handle org email domain
+
+  preset_name="${1:-}"
+  field="${2:-}"
+  new_value="${3:-}"
+
+  validate_preset_name "${preset_name}"
+
+  if ! is_allowed_field "${field}"; then
+    printf 'ERROR: invalid field: %s\n' "${field}" >&2
+    exit 1
+  fi
+
+  preset_path="$(kao_owner_get_preset_path "${preset_name}")"
+
+  printf 'OWNER PRESET EDITED\n\n'
+  printf 'preset        : %s\n' "${preset_name}"
+  printf 'path          : %s\n' "${preset_path}"
+  printf 'field         : %s\n' "${field}"
+  printf 'group         : %s\n' "$(field_group_label "${field}")"
+  printf 'value         : %s\n' "${new_value}"
+
+  if [ ! -f "${preset_path}" ]; then
+    print_policy_block "REFUSED" "INSPECT" "INVALID"
+    exit 1
+  fi
+
+  if ! preset_exports="$(kao_owner_resolve_exports "${preset_path}")"; then
+    print_policy_block "REFUSED" "INSPECT" "INVALID"
+    exit 1
+  fi
+
+  name="$(get_export_value "${preset_exports}" "KAO_OWNER_NAME" || true)"
+  role="$(get_export_value "${preset_exports}" "KAO_OWNER_ROLE" || true)"
+  owner_id="$(get_export_value "${preset_exports}" "KAO_OWNER_ID" || true)"
+  title="$(get_export_value "${preset_exports}" "KAO_OWNER_TITLE" || true)"
+  handle="$(get_export_value "${preset_exports}" "KAO_OWNER_HANDLE" || true)"
+  org="$(get_export_value "${preset_exports}" "KAO_OWNER_ORG" || true)"
+  email="$(get_export_value "${preset_exports}" "KAO_OWNER_EMAIL" || true)"
+  domain="$(get_export_value "${preset_exports}" "KAO_OWNER_DOMAIN" || true)"
+
+  case "${field}" in
+    KAO_OWNER_NAME) name="${new_value}" ;;
+    KAO_OWNER_ROLE) role="${new_value}" ;;
+    KAO_OWNER_ID) owner_id="${new_value}" ;;
+    KAO_OWNER_TITLE) title="${new_value}" ;;
+    KAO_OWNER_HANDLE) handle="${new_value}" ;;
+    KAO_OWNER_ORG) org="${new_value}" ;;
+    KAO_OWNER_EMAIL) email="${new_value}" ;;
+    KAO_OWNER_DOMAIN) domain="${new_value}" ;;
+  esac
+
+  write_canonical_preset "${preset_path}" \
+    "${name}" \
+    "${role}" \
+    "${owner_id}" \
+    "${title}" \
+    "${handle}" \
+    "${org}" \
+    "${email}" \
+    "${domain}"
+
+  if [ "${STATE_SELECTOR_VALUE:-}" = "${preset_name}" ] && [ "${STATE_SELECTOR_MODE}" = "target-valid" ]; then
+    write_runtime_owner_env "$(kao_owner_resolve_exports "${preset_path}")"
+  fi
+
+  log_owner_event "OWNER_EDIT" "preset=${preset_name} field=${field}"
+
+  print_policy_block "SUCCESS" "NONE" "ACTIVE"
+}
+
+cmd_activate() {
+  local preset_name preset_path preset_exports
+  local before_action before_result
+
+  preset_name="${1:-}"
+  validate_preset_name "${preset_name}"
+  refresh_state
+
+  before_action="${STATE_REPAIR_ACTION}"
+  before_result="${STATE_RESULT_STATE}"
+  preset_path="$(kao_owner_get_preset_path "${preset_name}")"
+
+  printf 'OWNER PRESET ACTIVATED\n\n'
+  printf 'preset         : %s\n' "${preset_name}"
+  printf 'path           : %s\n' "${preset_path}"
+
+  if [ ! -f "${preset_path}" ]; then
+    printf 'runtime       : unchanged\n'
+    print_policy_block "REFUSED" "INSPECT" "${before_result}"
+    exit 1
+  fi
+
+  if ! preset_exports="$(kao_owner_resolve_exports "${preset_path}")"; then
+    printf 'runtime       : unchanged\n'
+    print_policy_block "REFUSED" "INSPECT" "INVALID"
+    exit 1
+  fi
+
+  if [ "${STATE_SELECTOR_MODE}" = "target-valid" ] \
+    && [ "${STATE_SELECTOR_VALUE:-}" = "${preset_name}" ] \
+    && [ "${STATE_RUNTIME_CACHE_STATUS}" = "aligned" ]; then
+    printf 'runtime       : aligned\n'
+    print_policy_block "NOOP" "NONE" "ACTIVE"
+    exit 0
+  fi
+
+  write_selector_value "${preset_name}"
+  write_runtime_owner_env "${preset_exports}"
+  refresh_state
+
+  printf 'runtime       : %s\n' "${STATE_RUNTIME_CACHE_STATUS}"
+  printf 'selector mode : %s\n' "${STATE_SELECTOR_MODE}"
+
+  log_owner_event "OWNER_ACTIVATE" "preset=${preset_name} path=${preset_path}"
+
+  if [ "${before_action}" = "NONE" ] || [ "${before_action}" = "REALIGN_RUNTIME" ] || [ "${before_action}" = "RECOVER_TARGET_MISSING" ] || [ "${before_action}" = "RECOVER_TARGET_INVALID" ] || [ "${before_action}" = "RECOVER_SELECTOR" ] || [ "${before_action}" = "RECOVER_FROM_OFF" ]; then
+    print_policy_block "REPAIR" "NONE" "${STATE_RESULT_STATE}"
+  else
+    print_policy_block "SUCCESS" "NONE" "${STATE_RESULT_STATE}"
+  fi
+}
+
+cmd_deactivate() {
+  refresh_state
+
+  printf 'OWNER SELECTOR DEACTIVATED\n\n'
+  printf 'selector file  : %s\n' "${OWNER_PROFILE_SELECTOR_FILE}"
+
+  if [ "${STATE_SELECTOR_MODE}" = "off" ]; then
+    print_policy_block "NOOP" "RECOVER_FROM_OFF" "DEACTIVATED"
+    exit 0
+  fi
+
+  write_selector_value "${OWNER_SELECTOR_OFF}"
+  refresh_state
+
+  log_owner_event "OWNER_DEACTIVATE" "selector=${OWNER_PROFILE_SELECTOR_FILE}"
+
+  print_policy_block "SUCCESS" "RECOVER_FROM_OFF" "${STATE_RESULT_STATE}"
+}
+
+cmd_recover() {
+  local before_action before_result recovery_preset recovery_path recovery_exports
+
+  refresh_state
+  before_action="${STATE_REPAIR_ACTION}"
+  before_result="${STATE_RESULT_STATE}"
+
+  printf 'OWNER STATE RECOVERED\n\n'
+  printf 'before state   : %s\n' "${before_result}"
+  printf 'before action  : %s\n' "${before_action}"
+
+  if [ "${before_action}" = "NONE" ]; then
+    print_policy_block "NOOP" "NONE" "${before_result}"
+    exit 0
+  fi
+
+  recovery_preset="$(kao_owner_choose_recovery_preset || true)"
+
+  if [ -z "${recovery_preset}" ]; then
+    print_policy_block "REFUSED" "${before_action}" "${before_result}"
+    exit 1
+  fi
+
+  recovery_path="$(kao_owner_get_preset_path "${recovery_preset}")"
+  recovery_exports="$(kao_owner_resolve_exports "${recovery_path}")"
+
+  write_selector_value "${recovery_preset}"
+  write_runtime_owner_env "${recovery_exports}"
+  refresh_state
+
+  printf 'recovered via  : %s\n' "${recovery_preset}"
+  printf 'result state  : %s\n' "${STATE_RESULT_STATE}"
+
+  log_owner_event "OWNER_RECOVER" "preset=${recovery_preset} from=${before_action}"
+
+  print_policy_block "REPAIR" "${before_action}" "${STATE_RESULT_STATE}"
+}
+
+refresh_state
+
+COMMAND="${1:-help}"
+shift || true
+
+case "${COMMAND}" in
+  help|-h|--help)
+    usage
+    ;;
+  list)
+    cmd_list
+    ;;
+  current)
+    cmd_current
+    ;;
+  selector)
+    cmd_selector
+    ;;
+  inspect)
+    cmd_inspect "${1:-}"
+    ;;
+  create)
+    cmd_create "${1:-}"
+    ;;
+  edit)
+    cmd_edit "${1:-}" "${2:-}" "${3:-}"
+    ;;
+  activate)
+    cmd_activate "${1:-}"
+    ;;
+  use)
+    cmd_activate "${1:-}"
+    ;;
+  deactivate)
+    cmd_deactivate
+    ;;
+  recover)
+    cmd_recover
+    ;;
+  *)
+    printf 'ERROR: unknown owner command: %s\n\n' "${COMMAND}" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

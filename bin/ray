@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# shellcheck disable=SC1091
+. "${KROOT}/lib/gateway/router.sh"
+
+ray_usage() {
+  cat <<'USAGE'
+USAGE: ray [status|run "<prompt>"]
+
+COMMANDS
+  ray                     show ray hybrid status
+  ray status              show ray hybrid status
+  ray run "<prompt>"      run a prompt through the gateway
+  ray "<prompt>"          shortcut for ray run "<prompt>"
+USAGE
+}
+
+ray_status() {
+  local selected_provider selected_label selected_kind selected_health selected_note
+  local selected_route cloud_readiness local_readiness hybrid_state operator_mode
+  local detected_provider forced_provider forced_state
+  local ollama_model ollama_model_state ollama_runtime ollama_real_calls ollama_real_state
+
+  selected_provider="$(gateway_provider_select)"
+  selected_label="$(gateway_provider_label "${selected_provider}")"
+  selected_kind="$(gateway_provider_kind "${selected_provider}")"
+  selected_health="$(gateway_provider_health "${selected_provider}")"
+  selected_note="$(gateway_provider_note "${selected_provider}")"
+
+  selected_route="$(gateway_selected_route)"
+  cloud_readiness="$(gateway_cloud_readiness)"
+  local_readiness="$(gateway_local_readiness)"
+  hybrid_state="$(gateway_hybrid_state)"
+  operator_mode="$(gateway_operator_mode)"
+
+  detected_provider="$(gateway_provider_detected)"
+  forced_provider="$(gateway_forced_provider)"
+  forced_state="$(gateway_forced_provider_state)"
+
+  ollama_model="$(gateway_ollama_model)"
+  ollama_model_state="$(gateway_ollama_model_state)"
+  ollama_runtime="$(gateway_ollama_runtime_state)"
+  ollama_real_calls="$(gateway_ollama_real_calls_policy)"
+  ollama_real_state="$(gateway_ollama_real_state)"
+
+  printf 'RAY STATUS\n'
+  printf 'selected route    : %s\n' "${selected_route}"
+  printf 'selected provider : %s\n' "${selected_provider}"
+  printf 'selected label    : %s\n' "${selected_label}"
+  printf 'selected kind     : %s\n' "${selected_kind}"
+  printf 'selected health   : %s\n' "${selected_health}"
+  printf 'selected note     : %s\n' "${selected_note}"
+  printf 'mode              : %s\n' "${operator_mode}"
+  printf 'hybrid state      : %s\n' "${hybrid_state}"
+  printf 'cloud readiness   : %s\n' "${cloud_readiness}"
+  printf 'local readiness   : %s\n' "${local_readiness}"
+  printf 'forced provider   : %s\n' "${forced_provider}"
+  printf 'forced state      : %s\n' "${forced_state}"
+  printf 'detected provider : %s\n' "${detected_provider}"
+  printf 'ollama model      : %s\n' "${ollama_model}"
+  printf 'ollama model state: %s\n' "${ollama_model_state}"
+  printf 'ollama runtime    : %s\n' "${ollama_runtime}"
+  printf 'ollama real calls : %s\n' "${ollama_real_calls}"
+  printf 'ollama real state : %s\n' "${ollama_real_state}"
+}
+
+ray_run() {
+  local prompt
+  if [ "$#" -eq 0 ]; then
+    printf 'RAY_ERROR missing prompt\n' >&2
+    ray_usage >&2
+    return 1
+  fi
+
+  prompt="$*"
+  exec "${KROOT}/bin/brain" infer "${prompt}"
+}
+
+main() {
+  local command
+
+  if [ "$#" -eq 0 ]; then
+    ray_status
+    return 0
+  fi
+
+  command="${1:-}"
+  case "${command}" in
+    status)
+      shift
+      ray_status "$@"
+      ;;
+    run)
+      shift
+      ray_run "$@"
+      ;;
+    help|-h|--help)
+      ray_usage
+      ;;
+    *)
+      ray_run "$@"
+      ;;
+  esac
+}
+
+main "$@"

@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+KROOT="${HOME}"
+mode="${1:-full}"
+
+PASS_COUNT=0
+WARN_COUNT=0
+FAIL_COUNT=0
+
+line() {
+  printf '%s\n' '------------------------------------------------------------'
+}
+
+section() {
+  printf '\n'
+  line
+  printf '%s\n' "$1"
+  line
+}
+
+ok() {
+  PASS_COUNT=$((PASS_COUNT + 1))
+  printf '[OK] %s\n' "$1"
+}
+
+warn() {
+  WARN_COUNT=$((WARN_COUNT + 1))
+  printf '[WARN] %s\n' "$1"
+}
+
+fail() {
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+  printf '[FAIL] %s\n' "$1"
+}
+
+check_dir() {
+  local path="$1"
+  if [ -d "$path" ]; then
+    ok "dir present: $path"
+  else
+    fail "dir missing: $path"
+  fi
+}
+
+check_exec() {
+  local path="$1"
+  if [ -x "$path" ]; then
+    ok "executable present: $path"
+  else
+    fail "missing executable: $path"
+  fi
+}
+
+check_cmd() {
+  local cmd="$1"
+  local label="${2:-$1}"
+  if command -v "$cmd" >/dev/null 2>&1; then
+    ok "${label} :: $(command -v "$cmd")"
+  else
+    warn "${label} missing"
+  fi
+}
+
+section_identity() {
+  section 'IDENTITY / SESSION'
+  printf 'USER            : %s\n' "${USER:-unknown}"
+  printf 'HOME            : %s\n' "${HOME:-unknown}"
+  printf 'HOSTNAME        : %s\n' "$(hostname 2>/dev/null || echo unknown)"
+  printf 'DATE            : %s\n' "$(date '+%Y-%m-%d %H:%M:%S %Z' 2>/dev/null || echo unknown)"
+  printf 'SHELL           : %s\n' "${SHELL:-unknown}"
+  printf 'PWD             : %s\n' "$(pwd)"
+  printf 'KROOT           : %s\n' "${KROOT}"
+
+  if printf '%s' "${PATH}" | tr ':' '\n' | grep -qx "${HOME}/bin"; then
+    ok 'PATH contains $HOME/bin'
+  else
+    fail 'PATH does not contain $HOME/bin'
+  fi
+}
+
+section_kao_root() {
+  section 'KAO ROOT / HOME LOGIN'
+  check_dir "${KROOT}/bin"
+  check_dir "${KROOT}/bootstrap"
+  check_dir "${KROOT}/config"
+  check_dir "${KROOT}/cockpit"
+  check_dir "${KROOT}/brain"
+  check_dir "${KROOT}/workspace"
+  check_dir "${KROOT}/log"
+  check_dir "${KROOT}/state"
+  check_dir "${KROOT}/runtime"
+  check_dir "${KROOT}/profiles"
+  check_dir "${KROOT}/run"
+  check_dir "${KROOT}/prod"
+
+  check_dir "${KROOT}/workspace/costumes"
+  check_dir "${KROOT}/workspace/conciergerie"
+  check_dir "${KROOT}/workspace/event"
+  check_dir "${KROOT}/workspace/software"
+  check_dir "${KROOT}/workspace/bar"
+  check_dir "${KROOT}/workspace/perso"
+
+  check_exec "${KROOT}/bin/kao"
+  check_exec "${KROOT}/bin/kao-boot"
+  check_exec "${KROOT}/bin/kao-context"
+  check_exec "${KROOT}/bin/kao-sprint"
+  check_exec "${KROOT}/bin/kao-check"
+}
+
+section_dependencies() {
+  section 'DEPENDENCIES / OPERATOR STACK'
+  check_cmd bash 'bash'
+  check_cmd git 'git'
+  check_cmd curl 'curl'
+  check_cmd wget 'wget'
+  check_cmd ssh 'ssh'
+  check_cmd python3 'python3'
+  check_cmd pip3 'pip3'
+  check_cmd node 'node'
+  check_cmd npm 'npm'
+  check_cmd cargo 'cargo'
+  check_cmd rustc 'rustc'
+  check_cmd fzf 'fzf'
+  check_cmd btop 'btop'
+  check_cmd htop 'htop'
+  check_cmd tmux 'tmux'
+  check_cmd jq 'jq'
+  check_cmd rg 'ripgrep'
+  check_cmd fd 'fd'
+  check_cmd tree 'tree'
+}
+
+section_system() {
+  section 'SYSTEM / CPU MEMORY DISK'
+  printf 'KERNEL          : %s\n' "$(uname -srmo 2>/dev/null || echo unknown)"
+
+  if [ -r /etc/os-release ]; then
+    . /etc/os-release
+    printf 'OS              : %s %s\n' "${NAME:-unknown}" "${VERSION_ID:-unknown}"
+  else
+    warn 'cannot read /etc/os-release'
+  fi
+
+  if command -v lscpu >/dev/null 2>&1; then
+    printf 'CPU MODEL       : %s\n' "$(lscpu 2>/dev/null | awk -F: '/Model name/ {gsub(/^[ \t]+/,"",$2); print $2; exit}')"
+    printf 'CPU CORES       : %s\n' "$(nproc 2>/dev/null || echo unknown)"
+    ok 'cpu inspection available'
+  else
+    warn 'lscpu unavailable'
+  fi
+
+  if command -v free >/dev/null 2>&1; then
+    printf 'MEMORY          : %s\n' "$(free -h 2>/dev/null | awk '/Mem:/ {print $2 " total / " $3 " used / " $7 " available"}')"
+    ok 'memory inspection available'
+  else
+    warn 'free unavailable'
+  fi
+
+  if command -v df >/dev/null 2>&1; then
+    printf 'DISK /HOME      : %s\n' "$(df -h "${HOME}" 2>/dev/null | awk 'NR==2 {print $2 " total / " $3 " used / " $4 " free / " $5 " used"}')"
+    ok 'disk inspection available'
+  else
+    warn 'df unavailable'
+  fi
+}
+
+section_kao_cli() {
+  section 'KAO CLI / SMOKE TEST'
+
+  if command -v kao >/dev/null 2>&1; then
+    ok "kao command available: $(command -v kao)"
+  else
+    fail 'kao command unavailable'
+    return
+  fi
+
+  printf '\n[TRACE] kao context dev\n'
+  "${KROOT}/bin/kao-context" dev || true
+
+  printf '\n[TRACE] kao boot\n'
+  "${KROOT}/bin/kao-boot" || true
+
+  ok 'kao cli smoke test executed'
+}
+
+section_summary() {
+  section 'SUMMARY'
+  printf 'PASS            : %s\n' "${PASS_COUNT}"
+  printf 'WARN            : %s\n' "${WARN_COUNT}"
+  printf 'FAIL            : %s\n' "${FAIL_COUNT}"
+
+  if [ "${FAIL_COUNT}" -eq 0 ]; then
+    printf '[READY] /home/kao canonical login is connectable\n'
+  else
+    printf '[NOT READY] fix FAIL items before full connect\n'
+    exit 1
+  fi
+}
+
+case "${mode}" in
+  quick)
+    section_identity
+    section_kao_root
+    section_dependencies
+    section_summary
+    ;;
+  full)
+    section_identity
+    section_kao_root
+    section_dependencies
+    section_system
+    section_kao_cli
+    section_summary
+    ;;
+  *)
+    printf '[FAIL] unsupported mode: %s\n' "${mode}"
+    printf 'usage: kao-check [quick|full]\n'
+    exit 1
+    ;;
+esac

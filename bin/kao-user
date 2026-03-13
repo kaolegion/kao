@@ -1,0 +1,273 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+. "${KROOT}/lib/kao-user-state.sh"
+
+kao_user_print_kv_block() {
+  local kv_data line key value
+  kv_data="${1:-}"
+
+  while IFS= read -r line; do
+    [ -n "${line}" ] || continue
+    key="${line%%=*}"
+    value="${line#*=}"
+    printf '%-16s : %s\n' "${key}" "${value}"
+  done <<EOF_KAO_USER_KV
+${kv_data}
+EOF_KAO_USER_KV
+}
+
+kao_user_print_help() {
+  cat <<EOF_HELP
+KAO USER COMMAND
+
+usage:
+  kao user help
+  kao user current
+  kao user inspect
+  kao user create [name] [role] [id] [title] [handle] [org]
+  kao user remove
+  kao user recover
+  kao user activate
+  kao user deactivate
+  kao user patch FIELD VALUE
+  kao user update FIELD=VALUE [FIELD=VALUE ...]
+  kao user rewrite
+  kao user diff
+
+commands:
+  help        show canonical user command help
+  current     show runtime user state
+  inspect     inspect runtime user source
+  create      create canonical runtime user source
+  remove      remove runtime user source, state and activation snapshot
+  recover     normalize runtime user state
+  activate    activate runtime user and snapshot current source
+  deactivate  deactivate runtime user and remove activation snapshot
+  patch       patch one allowed field in runtime user source
+  update      patch multiple allowed fields with FIELD=VALUE assignments
+  rewrite     rewrite runtime user source in canonical normalized form
+  diff        show source changes since activation snapshot
+
+allowed patch fields:
+  KAO_USER_NAME
+  KAO_USER_ROLE
+  KAO_USER_ID
+  KAO_USER_TITLE
+  KAO_USER_HANDLE
+  KAO_USER_ORG
+
+aliases:
+  NAME ROLE ID TITLE HANDLE ORG
+EOF_HELP
+}
+
+kao_user_cmd_current() {
+  local state_kv
+  state_kv="$(
+    KROOT="${KROOT}"
+    kao_user_emit_state_kv
+  )"
+
+  printf 'KAO USER CURRENT\n\n'
+  kao_user_print_kv_block "${state_kv}"
+}
+
+kao_user_cmd_inspect() {
+  local inspect_kv
+  inspect_kv="$(
+    KROOT="${KROOT}"
+    kao_user_state_require_context
+    kao_user_inspect_source_kv "${KAO_USER_RUNTIME_ENV_FILE}"
+  )"
+
+  printf 'KAO USER INSPECT\n\n'
+  kao_user_print_kv_block "${inspect_kv}"
+}
+
+kao_user_cmd_create() {
+  local create_kv
+  create_kv="$(
+    KROOT="${KROOT}"
+    kao_user_create_runtime_source \
+      "${1:-runtime user}" \
+      "${2:-operator user}" \
+      "${3:-}" \
+      "${4:-not set}" \
+      "${5:-not set}" \
+      "${6:-not set}"
+  )"
+
+  printf 'KAO USER CREATE\n\n'
+  kao_user_print_kv_block "${create_kv}"
+}
+
+kao_user_cmd_remove() {
+  local remove_kv
+  remove_kv="$(
+    KROOT="${KROOT}"
+    kao_user_remove_runtime_source
+  )"
+
+  printf 'KAO USER REMOVE\n\n'
+  kao_user_print_kv_block "${remove_kv}"
+}
+
+kao_user_cmd_recover() {
+  local recover_kv
+  recover_kv="$(
+    KROOT="${KROOT}"
+    kao_user_recover_runtime_state
+  )"
+
+  printf 'KAO USER RECOVER\n\n'
+  kao_user_print_kv_block "${recover_kv}"
+}
+
+kao_user_cmd_activate() {
+  local activate_kv
+  if ! activate_kv="$(
+    KROOT="${KROOT}"
+    kao_user_activate_runtime_source
+  )"; then
+    printf 'KAO USER ACTIVATE\n\n'
+    kao_user_print_kv_block "${activate_kv}"
+    return 1
+  fi
+
+  printf 'KAO USER ACTIVATE\n\n'
+  kao_user_print_kv_block "${activate_kv}"
+}
+
+kao_user_cmd_deactivate() {
+  local deactivate_kv
+  deactivate_kv="$(
+    KROOT="${KROOT}"
+    kao_user_deactivate_runtime_source
+  )"
+
+  printf 'KAO USER DEACTIVATE\n\n'
+  kao_user_print_kv_block "${deactivate_kv}"
+}
+
+kao_user_cmd_patch() {
+  local field value patch_kv
+
+  field="${1:-}"
+  value="${2:-}"
+
+  if [ -z "${field}" ] || [ "${#}" -lt 2 ]; then
+    printf 'ERROR: usage: kao user patch FIELD VALUE\n' >&2
+    return 1
+  fi
+
+  if ! patch_kv="$(
+    KROOT="${KROOT}"
+    kao_user_patch_runtime_source "${field}" "${value}"
+  )"; then
+    printf 'KAO USER PATCH\n\n'
+    kao_user_print_kv_block "${patch_kv}"
+    return 1
+  fi
+
+  printf 'KAO USER PATCH\n\n'
+  kao_user_print_kv_block "${patch_kv}"
+}
+
+kao_user_cmd_update() {
+  local update_kv
+
+  if [ "$#" -eq 0 ]; then
+    printf 'ERROR: usage: kao user update FIELD=VALUE [FIELD=VALUE ...]\n' >&2
+    return 1
+  fi
+
+  if ! update_kv="$(
+    KROOT="${KROOT}"
+    kao_user_update_runtime_source "$@"
+  )"; then
+    printf 'KAO USER UPDATE\n\n'
+    kao_user_print_kv_block "${update_kv}"
+    return 1
+  fi
+
+  printf 'KAO USER UPDATE\n\n'
+  kao_user_print_kv_block "${update_kv}"
+}
+
+kao_user_cmd_rewrite() {
+  local rewrite_kv
+
+  if ! rewrite_kv="$(
+    KROOT="${KROOT}"
+    kao_user_rewrite_runtime_source
+  )"; then
+    printf 'KAO USER REWRITE\n\n'
+    kao_user_print_kv_block "${rewrite_kv}"
+    return 1
+  fi
+
+  printf 'KAO USER REWRITE\n\n'
+  kao_user_print_kv_block "${rewrite_kv}"
+}
+
+kao_user_cmd_diff() {
+  local diff_kv
+  diff_kv="$(
+    KROOT="${KROOT}"
+    kao_user_diff_runtime_source_kv
+  )"
+
+  printf 'KAO USER DIFF\n\n'
+  kao_user_print_kv_block "${diff_kv}"
+}
+
+command="${1:-help}"
+shift || true
+
+case "${command}" in
+  help|-h|--help)
+    kao_user_print_help
+    ;;
+  current)
+    kao_user_cmd_current
+    ;;
+  inspect)
+    kao_user_cmd_inspect
+    ;;
+  create)
+    kao_user_cmd_create "$@"
+    ;;
+  remove)
+    kao_user_cmd_remove
+    ;;
+  recover)
+    kao_user_cmd_recover
+    ;;
+  activate)
+    kao_user_cmd_activate
+    ;;
+  deactivate)
+    kao_user_cmd_deactivate
+    ;;
+  patch)
+    kao_user_cmd_patch "$@"
+    ;;
+  update)
+    kao_user_cmd_update "$@"
+    ;;
+  rewrite)
+    kao_user_cmd_rewrite
+    ;;
+  diff)
+    kao_user_cmd_diff
+    ;;
+  *)
+    printf 'ERROR: unknown user command: %s\n\n' "${command}" >&2
+    kao_user_print_help >&2
+    exit 1
+    ;;
+esac

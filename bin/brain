@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
+
+if [ ! -f "${ROUTER_LIB}" ]; then
+  printf 'BRAIN_ERROR gateway router missing: %s\n' "${ROUTER_LIB}" >&2
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+. "${ROUTER_LIB}"
+
+brain_usage() {
+  printf 'Usage:\n'
+  printf '  brain infer "<query>"\n'
+}
+
+mode="${1:-help}"
+
+case "${mode}" in
+  infer)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      printf 'BRAIN_ERROR missing query\n' >&2
+      brain_usage >&2
+      exit 1
+    fi
+    query="$*"
+    gateway_infer "${query}"
+    ;;
+  help|-h|--help)
+    brain_usage
+    ;;
+  *)
+    printf 'BRAIN_ERROR unknown mode: %s\n' "${mode}" >&2
+    brain_usage >&2
+    exit 1
+    ;;
+esac
