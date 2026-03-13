@@ -389,3 +389,105 @@ Validation obtenue sur :
 - surface CLI stable
 - documentation alignée
 - base prête pour extension online/offline plus intelligente
+
+---
+
+# SPRINT DEV 1.1 — Hybrid Router Intelligence Layer
+
+## Mission
+
+Faire évoluer `ray` d’une façade lisible
+vers une façade décisionnelle lisible.
+
+Introduire une première couche compacte
+d’intelligence du routeur hybride
+sans remplacer la gateway existante
+et sans casser les surfaces déjà validées.
+
+## Résultats obtenus
+
+### Intelligence layer déterministe
+
+Le routeur expose maintenant explicitement :
+
+- `cloud score`
+- `local score`
+- `route score`
+- `route reason`
+
+Cette couche reste :
+
+- simple
+- lisible
+- déterministe
+- testable
+- documentable
+
+### Scoring posé
+
+Le scoring opérateur introduit est compact :
+
+- cloud prêt → score fort
+- local `local-real-ready` → score élevé
+- local `local-real-backend-ready` → score intermédiaire
+- local `local-stub-ready` → score utile
+- aucun provider prêt → score nul
+
+Le score de route retenue est exposé séparément
+pour permettre une lecture rapide de la décision effective.
+
+### Reason opérateur
+
+Les reasons exposées sont désormais :
+
+- `cloud-priority-ready`
+- `local-only-available`
+- `forced-provider-mistral`
+- `forced-provider-ollama`
+- `unsupported-forced-provider`
+- `no-provider-ready`
+
+Cela permet à l’opérateur de comprendre
+pourquoi une route est retenue
+sans devoir lire directement la logique shell.
+
+### Surface Ray enrichie
+
+`ray status` expose maintenant :
+
+- route sélectionnée
+- provider sélectionné
+- état de readiness
+- `route reason`
+- `route score`
+- `cloud score`
+- `local score`
+
+Ray devient donc :
+
+- une façade lisible
+- une surface décisionnelle
+- une première lecture cognitive du routeur hybride
+
+### Validation
+
+Validation obtenue sur :
+
+- helpers ajoutés dans `lib/gateway/router.sh`
+- exposition stable dans `bin/ray`
+- lock E2E de la nouvelle surface `ray`
+- convergence README / ARCHITECTURE / USER_MANUAL
+
+## Impact
+
+- meilleure lisibilité humaine du routage hybride
+- première couche d’intelligence opérateur posée
+- base prête pour priorisation plus fine future
+- base prête pour routeur vivant multi-critères
+
+## État global
+
+- surface CLI stable
+- E2E préservés
+- documentation convergée
+- base prête pour extension du router hybride

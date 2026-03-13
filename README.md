@@ -55,7 +55,7 @@ without requiring inspection of shell libraries.
 `ray` is the high-readability operator surface of the hybrid router foundation.
 
 `ray status` gives a compact human-readable reading of the selected route,
-operator mode and hybrid readiness state.
+route reason, operator mode, hybrid readiness state and route scoring.
 
 `ray run "<prompt>"` executes a request through the same gateway-backed path
 as `brain infer`.
@@ -72,6 +72,7 @@ The current gateway and ray model supports:
 - direct health reading through `kao gateway health`
 - direct short log preview through `kao gateway logs`
 - compact hybrid-readable operator reading through `ray status`
+- first deterministic hybrid scoring layer for route selection readability
 
 ## Gateway quick view
 
@@ -93,6 +94,9 @@ The current gateway behavior is:
 The current ray behavior is:
 
 - expose the selected route as `cloud`, `local` or `none`
+- expose the route reason
+- expose the selected route score
+- expose per-family cloud and local scores
 - expose a high-level operator mode:
   - `online`
   - `offline`
@@ -116,6 +120,10 @@ Typical operator reading now includes:
 - selected provider kind
 - selected provider health
 - selected provider note
+- route reason
+- route score
+- cloud score
+- local score
 - mode
 - hybrid state
 - cloud readiness
@@ -147,6 +155,13 @@ Current provider state:
   - `local-stub-ready`
   - `local-real-backend-ready`
   - `local-real-ready`
+- ray route reasons can be:
+  - `cloud-priority-ready`
+  - `local-only-available`
+  - `forced-provider-mistral`
+  - `forced-provider-ollama`
+  - `unsupported-forced-provider`
+  - `no-provider-ready`
 - ray operator mode can be:
   - `online`
   - `offline`

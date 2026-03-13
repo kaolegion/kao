@@ -388,6 +388,84 @@ gateway_fallback_status() {
   esac
 }
 
+gateway_cloud_score() {
+  case "$(gateway_provider_health mistral)" in
+    ready)
+      printf '100\n'
+      ;;
+    *)
+      printf '0\n'
+      ;;
+  esac
+}
+
+gateway_local_score() {
+  case "$(gateway_provider_health ollama)" in
+    local-real-ready)
+      printf '80\n'
+      ;;
+    local-real-backend-ready)
+      printf '60\n'
+      ;;
+    local-stub-ready)
+      printf '40\n'
+      ;;
+    *)
+      printf '0\n'
+      ;;
+  esac
+}
+
+gateway_route_score() {
+  case "$(gateway_provider_select)" in
+    mistral)
+      gateway_cloud_score
+      ;;
+    ollama)
+      gateway_local_score
+      ;;
+    *)
+      printf '0\n'
+      ;;
+  esac
+}
+
+gateway_route_reason() {
+  local forced_provider forced_state cloud_score local_score
+  forced_provider="$(gateway_forced_provider)"
+  forced_state="$(gateway_forced_provider_state)"
+  cloud_score="$(gateway_cloud_score)"
+  local_score="$(gateway_local_score)"
+
+  if [ "${forced_state}" = "unsupported" ]; then
+    printf 'unsupported-forced-provider\n'
+    return 0
+  fi
+
+  case "${forced_provider}" in
+    mistral)
+      printf 'forced-provider-mistral\n'
+      return 0
+      ;;
+    ollama)
+      printf 'forced-provider-ollama\n'
+      return 0
+      ;;
+  esac
+
+  if [ "${cloud_score}" -gt 0 ]; then
+    printf 'cloud-priority-ready\n'
+    return 0
+  fi
+
+  if [ "${local_score}" -gt 0 ]; then
+    printf 'local-only-available\n'
+    return 0
+  fi
+
+  printf 'no-provider-ready\n'
+}
+
 gateway_operator_hint() {
   local selected forced_provider secrets_state ollama_real_state detected_provider
   selected="$(gateway_provider_select)"

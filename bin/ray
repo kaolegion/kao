@@ -22,6 +22,7 @@ USAGE
 ray_status() {
   local selected_provider selected_label selected_kind selected_health selected_note
   local selected_route cloud_readiness local_readiness hybrid_state operator_mode
+  local route_reason route_score cloud_score local_score
   local detected_provider forced_provider forced_state
   local ollama_model ollama_model_state ollama_runtime ollama_real_calls ollama_real_state
 
@@ -36,6 +37,10 @@ ray_status() {
   local_readiness="$(gateway_local_readiness)"
   hybrid_state="$(gateway_hybrid_state)"
   operator_mode="$(gateway_operator_mode)"
+  route_reason="$(gateway_route_reason)"
+  route_score="$(gateway_route_score)"
+  cloud_score="$(gateway_cloud_score)"
+  local_score="$(gateway_local_score)"
 
   detected_provider="$(gateway_provider_detected)"
   forced_provider="$(gateway_forced_provider)"
@@ -54,6 +59,10 @@ ray_status() {
   printf 'selected kind     : %s\n' "${selected_kind}"
   printf 'selected health   : %s\n' "${selected_health}"
   printf 'selected note     : %s\n' "${selected_note}"
+  printf 'route reason      : %s\n' "${route_reason}"
+  printf 'route score       : %s\n' "${route_score}"
+  printf 'cloud score       : %s\n' "${cloud_score}"
+  printf 'local score       : %s\n' "${local_score}"
   printf 'mode              : %s\n' "${operator_mode}"
   printf 'hybrid state      : %s\n' "${hybrid_state}"
   printf 'cloud readiness   : %s\n' "${cloud_readiness}"

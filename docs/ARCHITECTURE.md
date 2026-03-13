@@ -79,12 +79,17 @@ Responsabilités :
 - exposition de l’état runtime local
 - exposition de la policy d’inférence locale réelle
 - exposition de l’état réel callable ou bloqué
+- exposition de score cloud déterministe
+- exposition de score local déterministe
+- exposition du score de route retenue
+- exposition d’une raison compacte de sélection
 
 Doctrine actuelle :
 
 - priorité cloud par défaut
 - fallback lisible vers local
 - montée progressive vers cognition offline
+- intelligence opérateur simple avant orchestration avancée
 
 Objectifs d’évolution :
 
@@ -105,6 +110,9 @@ Responsabilités :
 - synthèse cloud/local readiness
 - synthèse du mode opératoire courant
 - exposition de l’état hybride global
+- exposition de la raison de sélection de route
+- exposition d’un score compact par famille de route
+- exposition du score de la route retenue
 - exécution via le gateway existant
 
 Ray ne remplace pas :
@@ -118,6 +126,7 @@ Ray agit comme :
 - une couche de lecture cognitive
 - une surface de pilotage humain
 - une abstraction du routage réel
+- une première couche d’intelligence décisionnelle lisible
 
 États exposés :
 
@@ -126,6 +135,21 @@ Ray agit comme :
 - cloud
 - local
 - none
+
+### Reason opérateur
+
+- cloud-priority-ready
+- local-only-available
+- forced-provider-mistral
+- forced-provider-ollama
+- unsupported-forced-provider
+- no-provider-ready
+
+### Score opérateur
+
+- cloud score
+- local score
+- route score
 
 ### Mode opérateur
 
@@ -149,6 +173,7 @@ préparer Kao à :
 - une cognition hybride dynamique
 - une orchestration agentique future
 - une priorisation adaptative des modèles
+- une lecture humaine de la décision avant automatisation plus lourde
 
 ---
 
@@ -168,6 +193,7 @@ Chaque provider expose :
 - nécessite secret externe
 - inference HTTP déterministe
 - priorité de routage par défaut
+- score fort quand prêt
 
 ### Ollama
 
@@ -177,6 +203,7 @@ Chaque provider expose :
 - modèle cible explicite
 - appels réels activables par policy
 - journalisation distinguant tentative, stub et real
+- score progressif selon maturité locale réelle
 
 But :
 
@@ -220,6 +247,8 @@ Responsabilités :
 - visibilité du modèle local ciblé
 - visibilité du mode stub / backend / model-ready
 - visibilité synthétique via ray
+- visibilité de la raison de sélection
+- visibilité du différentiel de score cloud/local
 
 ---
 
@@ -242,4 +271,3 @@ Responsabilités :
 - inference distante
 - monitoring
 - distribution Kao
-

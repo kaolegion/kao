@@ -29,6 +29,38 @@ printf '%s\n' "${ray_status_output}" | grep -q "selected health   :" \
   && e2e_ok "ray selected health visible" \
   || e2e_error "ray selected health missing"
 
+printf '%s\n' "${ray_status_output}" | grep -q "route reason      :" \
+  && e2e_ok "ray route reason visible" \
+  || e2e_error "ray route reason missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "route reason      : (cloud-priority-ready|local-only-available|forced-provider-mistral|forced-provider-ollama|unsupported-forced-provider|no-provider-ready)" \
+  && e2e_ok "ray route reason readable" \
+  || e2e_error "ray route reason value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -q "route score       :" \
+  && e2e_ok "ray route score visible" \
+  || e2e_error "ray route score missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "route score       : [0-9][0-9]*" \
+  && e2e_ok "ray route score readable" \
+  || e2e_error "ray route score value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -q "cloud score       :" \
+  && e2e_ok "ray cloud score visible" \
+  || e2e_error "ray cloud score missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "cloud score       : [0-9][0-9]*" \
+  && e2e_ok "ray cloud score readable" \
+  || e2e_error "ray cloud score value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -q "local score       :" \
+  && e2e_ok "ray local score visible" \
+  || e2e_error "ray local score missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "local score       : [0-9][0-9]*" \
+  && e2e_ok "ray local score readable" \
+  || e2e_error "ray local score value missing"
+
 printf '%s\n' "${ray_status_output}" | grep -q "mode              :" \
   && e2e_ok "ray operator mode visible" \
   || e2e_error "ray operator mode missing"
@@ -112,6 +144,30 @@ ray_shortcut_output="$(
 printf '%s\n' "${ray_shortcut_output}" | grep -Eq "gateway -> (mistral cloud|ollama local)" \
   && e2e_ok "ray shortcut route visible" \
   || e2e_error "ray shortcut route missing"
+
+forced_local_status_output="$(
+  KAO_GATEWAY_PROVIDER=ollama /home/kao/bin/ray status 2>&1
+)"
+
+printf '%s\n' "${forced_local_status_output}" | grep -q "route reason      : forced-provider-ollama" \
+  && e2e_ok "ray forced local reason visible" \
+  || e2e_error "ray forced local reason missing"
+
+forced_mistral_status_output="$(
+  KAO_GATEWAY_PROVIDER=mistral /home/kao/bin/ray status 2>&1
+)"
+
+printf '%s\n' "${forced_mistral_status_output}" | grep -q "route reason      : forced-provider-mistral" \
+  && e2e_ok "ray forced mistral reason visible" \
+  || e2e_error "ray forced mistral reason missing"
+
+unsupported_forced_status_output="$(
+  KAO_GATEWAY_PROVIDER=badvalue /home/kao/bin/ray status 2>&1
+)"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "route reason      : unsupported-forced-provider" \
+  && e2e_ok "ray unsupported forced reason visible" \
+  || e2e_error "ray unsupported forced reason missing"
 
 forced_local_output="$(
   KAO_GATEWAY_PROVIDER=ollama /home/kao/bin/ray run "ray forced local test" 2>&1

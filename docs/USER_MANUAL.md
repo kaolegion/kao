@@ -11,229 +11,183 @@ It is intended for a Linux operator who wants to:
 - govern runtime
 - diagnose a situation
 - stabilize an incoherent state
+- understand routing decisions
 
 This manual describes an operable cognitive system.
 
 ---
 
-## General structure of Kao
-
-Kao is organized as an operator system in user space.
-
-Main directories:
-
-- `bin/` executable commands
-- `config/` configuration sources
-- `lib/` internal logic
-- `state/` runtime states and logs
-- `tests/` validation scenarios
-- `docs/` product documentation
-
-This allows:
-
-- direct inspection
-- controlled modification
-- deterministic understanding
-
----
-
 ## Canonical inference command
 
-The main inference entrypoint is:
+Main inference entrypoint:
 
-- `brain infer "<query>"`
+- brain infer "<query>"
 
 Execution flow:
 
-1. gateway loads external secrets if present  
-2. gateway selects provider  
-3. gateway executes inference  
-4. route is exposed in terminal  
-5. runtime trace is written to `state/logs/gateway.log`
-
-Typical route signals:
-
-- `gateway -> mistral cloud`
-- `gateway -> ollama local`
-- `gateway fallback -> ollama local`
-
-These signals describe the real execution path.
-
----
-
-## Gateway inspection commands
-
-Operator cockpit:
-
-- `kao gateway`
-- `kao gateway health`
-- `kao gateway logs`
-
-These commands:
-
-- expose readable diagnostic state
-- do not pollute runtime logs
-- help understand readiness before inference
+1. gateway loads secrets if present
+2. gateway evaluates cloud readiness
+3. gateway evaluates local readiness
+4. gateway computes routing decision
+5. gateway executes inference
+6. route signal is exposed
+7. runtime trace is written to logs
 
 ---
 
 ## Hybrid router operator surface (ray)
 
-Ray provides a more compact reading of routing cognition.
+Ray provides a compact decision-reading surface.
 
-Command surface:
+Commands:
 
-- `ray`
-- `ray status`
-- `ray run "<prompt>"`
-- `ray "<prompt>"`
+- ray
+- ray status
+- ray run "<prompt>"
 
-Ray does not replace `brain infer`.
-
-Ray simplifies operator perception of:
-
-- real execution route
-- hybrid cloud/local state
-- global readiness situation
+Ray exposes **decision cognition**, not only routing state.
 
 ---
 
-## Understand ray reading
+## Understand ray decision reading
 
-Ray exposes:
+Ray now exposes:
 
 ### Selected route
 
-- `cloud`
-- `local`
-- `none`
+- cloud
+- local
+- none
 
-### Operator mode
+### Route reason
 
-- `online`
-- `offline`
-- `degraded`
-- `hybrid-ready`
+Explains *why* the route was selected.
+
+Possible values:
+
+- cloud-priority-ready  
+- local-only-available  
+- forced-provider-mistral  
+- forced-provider-ollama  
+- unsupported-forced-provider  
+- no-provider-ready  
+
+This is the first human-readable decision layer.
+
+---
+
+## Understand routing scores
+
+Ray exposes three compact scores:
+
+- cloud score  
+- local score  
+- route score  
+
+Interpretation:
+
+- cloud score → relative strength of cloud route
+- local score → relative maturity of local route
+- route score → score of the actually selected route
+
+Typical reading:
+
+- cloud score high → secrets present and provider ready
+- local score medium → local stub usable
+- local score high → real local inference possible
+- route score low → degraded routing situation
+
+Scores are deterministic and intended for operator reasoning.
+
+---
+
+## Operator mode reading
+
+Ray exposes:
+
+- online  
+- offline  
+- degraded  
+- hybrid-ready  
 
 Meaning:
 
-- online → only cloud is usable  
-- offline → only local is usable  
-- degraded → no provider is fully ready  
-- hybrid-ready → both cloud and local are usable  
-
-### Hybrid state
-
-- `hybrid-ready`
-- `cloud-only`
-- `local-only`
-- `unavailable`
-
-This describes global routing capability.
+- online → only cloud usable
+- offline → only local usable
+- degraded → routing unstable
+- hybrid-ready → both routes usable
 
 ---
 
-## Understand local provider progression
+## Hybrid state reading
 
-Ollama local provider readiness:
+- hybrid-ready  
+- cloud-only  
+- local-only  
+- unavailable  
 
-- `unavailable`
-- `local-stub-ready`
-- `local-real-backend-ready`
-- `local-real-ready`
-
-Meaning:
-
-- stub-ready → development path usable  
-- backend-ready → runtime reachable but model not ready  
-- real-ready → real local inference possible  
-
----
-
-## Understand local model state
-
-Model states:
-
-- `unknown`
-- `missing`
-- `ready`
-
-Runtime states:
-
-- `stub-runtime`
-- `real-backend-ready`
-- `real-model-ready`
-- `unavailable`
-
----
-
-## Understand local real-call policy
-
-Policy:
-
-- `enabled`
-- `disabled`
-
-Real execution states:
-
-- `callable`
-- `blocked-policy`
-- `blocked-no-model`
-- `stub-only`
-- `unavailable`
-
-This allows safe evolution toward offline cognition.
-
----
-
-## Routing doctrine
-
-Priority:
-
-1. forced provider  
-2. mistral cloud  
-3. ollama local  
-4. fallback mistral → ollama  
-
-Cloud remains default production route.
-
-Local inference is progressive capability.
-
-Ray helps read this hybrid cognition faster.
-
----
-
-## Understand gateway runtime logs
-
-Runtime events are written in:
-
-- `state/logs/gateway.log`
-
-Logs distinguish:
-
-- real inference attempts  
-- stub inference  
-- fallback paths  
-- target model state  
-
-Cockpit commands must not pollute this log.
+This expresses global routing capability.
 
 ---
 
 ## Recommended operator workflow
 
-Before inference:
+Before running inference:
 
-- read `ray status`
+1. read ray status
+2. understand route reason
+3. evaluate scores
+4. decide whether to force a provider
+5. run inference
 
-If detailed diagnosis needed:
+If deeper diagnosis is needed:
 
-- read `kao gateway`
+- read kao gateway
+- read kao gateway logs
 
-If execution unclear:
+This prevents blind routing usage.
 
-- read `kao gateway logs`
+---
 
-This sequence reduces routing confusion
-and improves cognitive stability.
+## Routing doctrine
 
+Priority order:
+
+1. forced provider
+2. cloud ready route
+3. local ready route
+4. degraded state
+
+Cloud remains default production route.
+
+Local evolves progressively toward autonomy.
+
+Ray helps the operator **understand routing cognition**.
+
+---
+
+## Runtime logs
+
+Runtime events are written in:
+
+- state/logs/gateway.log
+
+Logs show:
+
+- route attempts
+- real vs stub execution
+- fallback events
+- target model states
+
+Cockpit commands must not pollute runtime logs.
+
+---
+
+## Goal of the hybrid router
+
+Prepare Kao for:
+
+- adaptive multi-LLM routing
+- autonomous offline cognition
+- agentic orchestration
+- human-readable decision layers
