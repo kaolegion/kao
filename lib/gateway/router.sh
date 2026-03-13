@@ -27,6 +27,11 @@ gateway_require_providers() {
   . "${KAO_GATEWAY_ROOT}/lib/gateway/providers/ollama.sh"
 }
 
+gateway_require_model_registry() {
+  # shellcheck disable=SC1091
+  . "${KAO_GATEWAY_ROOT}/lib/gateway/model_registry.sh"
+}
+
 gateway_load_secrets() {
   local mode
   mode="${1:-silent}"
@@ -324,23 +329,292 @@ gateway_provider_select() {
   printf 'none\n'
 }
 
-gateway_secrets_state() {
-  if [ -f "${KAO_GATEWAY_SECRETS_FILE}" ]; then
-    printf 'present\n'
+gateway_selected_route() {
+  local provider forced_state
+  provider="$(gateway_provider_select)"
+  forced_state="$(gateway_forced_provider_state)"
+
+  if [ -n "${KAO_GATEWAY_PROVIDER:-}" ] && [ "${forced_state}" = "unsupported" ]; then
+    printf 'none\n'
+    return 0
+  fi
+
+  case "${provider}" in
+    mistral) printf 'cloud\n' ;;
+    ollama) printf 'local\n' ;;
+    *) printf 'none\n' ;;
+  esac
+}
+
+gateway_cloud_readiness() {
+  if [ "$(gateway_provider_health mistral)" = "ready" ]; then
+    printf 'ready\n'
   else
-    printf 'missing\n'
+    printf 'blocked\n'
   fi
 }
 
-gateway_log_state() {
-  if [ -f "${KAO_GATEWAY_LOG_FILE}" ]; then
-    printf 'present\n'
+gateway_local_readiness() {
+  case "$(gateway_provider_health ollama)" in
+    local-stub-ready|local-real-backend-ready|local-real-ready)
+      gateway_provider_health ollama
+      ;;
+    *)
+      printf 'unavailable\n'
+      ;;
+  esac
+}
+
+gateway_hybrid_state() {
+  local cloud_readiness local_readiness
+  cloud_readiness="$(gateway_cloud_readiness)"
+  local_readiness="$(gateway_local_readiness)"
+
+  if [ "${cloud_readiness}" = "ready" ] && [ "${local_readiness}" != "unavailable" ]; then
+    printf 'hybrid-ready\n'
+    return 0
+  fi
+
+  if [ "${cloud_readiness}" = "ready" ]; then
+    printf 'cloud-only\n'
+    return 0
+  fi
+
+  if [ "${local_readiness}" != "unavailable" ]; then
+    printf 'local-only\n'
+    return 0
+  fi
+
+  printf 'unavailable\n'
+}
+
+gateway_decision_state() {
+  local route forced_state
+  route="$(gateway_selected_route)"
+  forced_state="$(gateway_forced_provider_state)"
+
+  if [ -n "${KAO_GATEWAY_PROVIDER:-}" ] && [ "${forced_state}" = "unsupported" ]; then
+    printf 'blocked-unsupported-forcing\n'
+    return 0
+  fi
+
+  if [ "${route}" = "none" ]; then
+    printf 'no-route-selected\n'
+    return 0
+  fi
+
+  printf 'route-selected\n'
+}
+
+gateway_route_reason() {
+  local selected_provider forced_provider forced_state
+  selected_provider="$(gateway_provider_select)"
+  forced_provider="$(gateway_forced_provider)"
+  forced_state="$(gateway_forced_provider_state)"
+
+  if [ -n "${KAO_GATEWAY_PROVIDER:-}" ] && [ "${forced_state}" = "unsupported" ]; then
+    printf 'unsupported-forced-provider\n'
+    return 0
+  fi
+
+  if [ "${forced_provider}" = "mistral" ]; then
+    printf 'forced-provider-mistral\n'
+    return 0
+  fi
+
+  if [ "${forced_provider}" = "ollama" ]; then
+    printf 'forced-provider-ollama\n'
+    return 0
+  fi
+
+  case "${selected_provider}" in
+    mistral)
+      printf 'cloud-priority-ready\n'
+      ;;
+    ollama)
+      printf 'local-only-available\n'
+      ;;
+    *)
+      printf 'no-provider-ready\n'
+      ;;
+  esac
+}
+
+gateway_cloud_score() {
+  if [ "$(gateway_cloud_readiness)" = "ready" ]; then
+    printf '100\n'
   else
-    printf 'missing\n'
+    printf '0\n'
   fi
 }
 
-gateway_log_line_count() {
+gateway_local_score() {
+  case "$(gateway_local_readiness)" in
+    local-real-ready)
+      printf '90\n'
+      ;;
+    local-real-backend-ready)
+      printf '70\n'
+      ;;
+    local-stub-ready)
+      printf '40\n'
+      ;;
+    *)
+      printf '0\n'
+      ;;
+  esac
+}
+
+gateway_route_score() {
+  case "$(gateway_selected_route)" in
+    cloud)
+      gateway_cloud_score
+      ;;
+    local)
+      gateway_local_score
+      ;;
+    *)
+      printf '0\n'
+      ;;
+  esac
+}
+
+gateway_operator_mode() {
+  local hybrid_state selected_route forced_state
+  hybrid_state="$(gateway_hybrid_state)"
+  selected_route="$(gateway_selected_route)"
+  forced_state="$(gateway_forced_provider_state)"
+
+  if [ -n "${KAO_GATEWAY_PROVIDER:-}" ] && [ "${forced_state}" = "unsupported" ]; then
+    printf 'degraded\n'
+    return 0
+  fi
+
+  case "${hybrid_state}" in
+    hybrid-ready)
+      printf 'hybrid-ready\n'
+      ;;
+    cloud-only)
+      if [ "${selected_route}" = "cloud" ]; then
+        printf 'online\n'
+      else
+        printf 'degraded\n'
+      fi
+      ;;
+    local-only)
+      if [ "${selected_route}" = "local" ]; then
+        printf 'offline\n'
+      else
+        printf 'degraded\n'
+      fi
+      ;;
+    *)
+      printf 'degraded\n'
+      ;;
+  esac
+}
+
+gateway_model_registry_count() {
+  gateway_require_model_registry
+  gateway_model_registry_count
+}
+
+gateway_model_registry_selected_provider() {
+  local selected_provider
+  gateway_require_model_registry
+  selected_provider="$(gateway_provider_select)"
+
+  if gateway_model_registry_has_provider "${selected_provider}"; then
+    printf '%s\n' "${selected_provider}"
+  else
+    printf 'none\n'
+  fi
+}
+
+gateway_model_registry_selected_model() {
+  local selected_provider
+  gateway_require_model_registry
+  selected_provider="$(gateway_model_registry_selected_provider)"
+
+  if [ "${selected_provider}" = "none" ]; then
+    printf 'none\n'
+    return 0
+  fi
+
+  gateway_model_registry_model "${selected_provider}"
+}
+
+gateway_model_registry_selected_family() {
+  local selected_provider
+  gateway_require_model_registry
+  selected_provider="$(gateway_model_registry_selected_provider)"
+
+  if [ "${selected_provider}" = "none" ]; then
+    printf 'none\n'
+    return 0
+  fi
+
+  gateway_model_registry_family "${selected_provider}"
+}
+
+gateway_model_registry_selected_base_score() {
+  local selected_provider
+  gateway_require_model_registry
+  selected_provider="$(gateway_model_registry_selected_provider)"
+
+  if [ "${selected_provider}" = "none" ]; then
+    printf '0\n'
+    return 0
+  fi
+
+  gateway_model_registry_base_score "${selected_provider}"
+}
+
+gateway_model_registry_selected_declared_state() {
+  local selected_provider
+  gateway_require_model_registry
+  selected_provider="$(gateway_model_registry_selected_provider)"
+
+  if [ "${selected_provider}" = "none" ]; then
+    printf 'unknown\n'
+    return 0
+  fi
+
+  gateway_model_registry_declared_state "${selected_provider}"
+}
+
+gateway_model_registry_selected_runtime_state() {
+  local selected_provider
+  gateway_require_model_registry
+  selected_provider="$(gateway_model_registry_selected_provider)"
+
+  if [ "${selected_provider}" = "none" ]; then
+    printf 'unknown\n'
+    return 0
+  fi
+
+  gateway_model_registry_runtime_state "${selected_provider}"
+}
+
+gateway_model_registry_selected_runtime_score() {
+  local selected_provider
+  gateway_require_model_registry
+  selected_provider="$(gateway_model_registry_selected_provider)"
+
+  if [ "${selected_provider}" = "none" ]; then
+    printf '0\n'
+    return 0
+  fi
+
+  gateway_model_registry_runtime_score "${selected_provider}"
+}
+
+gateway_model_registry_operator_surface() {
+  gateway_require_model_registry
+  gateway_model_registry_operator_surface
+}
+
+gateway_log_lines() {
   if [ ! -f "${KAO_GATEWAY_LOG_FILE}" ]; then
     printf '0\n'
     return 0
@@ -355,314 +629,176 @@ gateway_last_log_event() {
     return 0
   fi
 
-  tail -n 1 "${KAO_GATEWAY_LOG_FILE}" 2>/dev/null || printf 'none\n'
+  tail -n 1 "${KAO_GATEWAY_LOG_FILE}"
 }
 
 gateway_log_preview() {
   if [ ! -f "${KAO_GATEWAY_LOG_FILE}" ]; then
-    printf '(no gateway log yet)\n'
     return 0
   fi
 
-  tail -n "${KAO_GATEWAY_LOG_PREVIEW_LINES}" "${KAO_GATEWAY_LOG_FILE}" 2>/dev/null || true
+  tail -n "${KAO_GATEWAY_LOG_PREVIEW_LINES}" "${KAO_GATEWAY_LOG_FILE}"
 }
 
-gateway_log_preview_print() {
-  local line
-  while IFS= read -r line; do
-    printf '  %s\n' "${line}"
-  done <<EOF_PREVIEW
-$(gateway_log_preview)
-EOF_PREVIEW
-}
+gateway_health() {
+  local selected_provider selected_label forced_provider detected_provider
+  local selected_kind selected_health selected_note
+  local mistral_available mistral_health ollama_available ollama_kind ollama_health
+  local secrets_state log_state fallback_status
 
-gateway_fallback_policy() {
-  printf 'mistral -> ollama on inference failure\n'
-}
-
-gateway_fallback_status() {
-  case "$(gateway_provider_health ollama)" in
-    local-real-ready)
-      printf 'armed-via-ollama-real\n'
-      ;;
-    local-real-backend-ready)
-      printf 'armed-via-ollama-backend-only\n'
-      ;;
-    local-stub-ready)
-      printf 'armed-via-ollama-stub\n'
-      ;;
-    *)
-      printf 'fallback-unavailable\n'
-      ;;
-  esac
-}
-
-gateway_cloud_score() {
-  case "$(gateway_provider_health mistral)" in
-    ready)
-      printf '100\n'
-      ;;
-    *)
-      printf '0\n'
-      ;;
-  esac
-}
-
-gateway_local_score() {
-  case "$(gateway_provider_health ollama)" in
-    local-real-ready)
-      printf '80\n'
-      ;;
-    local-real-backend-ready)
-      printf '60\n'
-      ;;
-    local-stub-ready)
-      printf '40\n'
-      ;;
-    *)
-      printf '0\n'
-      ;;
-  esac
-}
-
-gateway_route_score() {
-  case "$(gateway_provider_select)" in
-    mistral)
-      gateway_cloud_score
-      ;;
-    ollama)
-      gateway_local_score
-      ;;
-    *)
-      printf '0\n'
-      ;;
-  esac
-}
-
-gateway_route_reason() {
-  local forced_provider forced_state cloud_score local_score
-  forced_provider="$(gateway_forced_provider)"
-  forced_state="$(gateway_forced_provider_state)"
-  cloud_score="$(gateway_cloud_score)"
-  local_score="$(gateway_local_score)"
-
-  if [ "${forced_state}" = "unsupported" ]; then
-    printf 'unsupported-forced-provider\n'
-    return 0
-  fi
-
-  case "${forced_provider}" in
-    mistral)
-      printf 'forced-provider-mistral\n'
-      return 0
-      ;;
-    ollama)
-      printf 'forced-provider-ollama\n'
-      return 0
-      ;;
-  esac
-
-  if [ "${cloud_score}" -gt 0 ]; then
-    printf 'cloud-priority-ready\n'
-    return 0
-  fi
-
-  if [ "${local_score}" -gt 0 ]; then
-    printf 'local-only-available\n'
-    return 0
-  fi
-
-  printf 'no-provider-ready\n'
-}
-
-gateway_decision_state() {
-  local forced_state selected_provider
-
-  forced_state="$(gateway_forced_provider_state)"
   selected_provider="$(gateway_provider_select)"
-
-  if [ "${forced_state}" = "unsupported" ]; then
-    printf 'blocked-unsupported-forcing\n'
-    return 0
-  fi
-
-  if [ "${selected_provider}" = "none" ]; then
-    printf 'no-route-selected\n'
-    return 0
-  fi
-
-  printf 'route-selected\n'
-}
-
-gateway_operator_hint() {
-  local selected forced_provider forced_state secrets_state ollama_real_state detected_provider
-  selected="$(gateway_provider_select)"
+  selected_label="$(gateway_provider_label "${selected_provider}")"
   forced_provider="$(gateway_forced_provider)"
-  forced_state="$(gateway_forced_provider_state)"
   detected_provider="$(gateway_provider_detected)"
-  secrets_state="$(gateway_secrets_state)"
-  ollama_real_state="$(gateway_ollama_real_state)"
-
-  if [ "${forced_state}" = "unsupported" ]; then
-    printf 'unsupported forced provider blocks routing decision -> clear KAO_GATEWAY_PROVIDER or use mistral/ollama\n'
-    return 0
-  fi
-
-  if [ "${forced_provider}" = "ollama" ]; then
-    printf 'forced provider active -> ollama (%s / %s / model=%s / real=%s)\n' \
-      "$(gateway_provider_kind ollama)" \
-      "$(gateway_provider_health ollama)" \
-      "$(gateway_ollama_model_state)" \
-      "${ollama_real_state}"
-    return 0
-  fi
-
-  if [ "${forced_provider}" = "mistral" ]; then
-    printf 'forced provider active -> mistral cloud\n'
-    return 0
-  fi
-
-  if [ "${selected}" = "mistral" ] && [ "${secrets_state}" = "present" ]; then
-    printf 'cloud route ready -> mistral selected from external secrets\n'
-    return 0
-  fi
-
-  if [ "${selected}" = "ollama" ] && [ "${detected_provider}" = "ollama" ]; then
-    printf 'local route active -> ollama selected (%s / %s / model=%s / real=%s)\n' \
-      "$(gateway_provider_kind ollama)" \
-      "$(gateway_provider_health ollama)" \
-      "$(gateway_ollama_model_state)" \
-      "${ollama_real_state}"
-    return 0
-  fi
-
-  if [ "${selected}" = "none" ]; then
-    printf 'no provider ready -> verify secrets or local provider runtime\n'
-    return 0
-  fi
-
-  printf 'gateway inspection available -> verify selected provider and fallback status\n'
-}
-
-gateway_print_status() {
-  local selected forced_provider forced_state detected_provider decision_state
-  local selected_label selected_kind selected_health selected_note
-  local mistral_available mistral_health mistral_note
-  local ollama_available ollama_kind ollama_health ollama_note
-  local ollama_model ollama_model_state ollama_runtime_state
-  local ollama_real_calls ollama_real_state
-  local secrets_state log_state log_lines last_log_event fallback_policy fallback_status operator_hint
-
-  selected="$(gateway_provider_select)"
-  forced_provider="$(gateway_forced_provider)"
-  forced_state="$(gateway_forced_provider_state)"
-  detected_provider="$(gateway_provider_detected)"
-  decision_state="$(gateway_decision_state)"
-
-  selected_label="$(gateway_provider_label "${selected}")"
-  selected_kind="$(gateway_provider_kind "${selected}")"
-  selected_health="$(gateway_provider_health "${selected}")"
-  selected_note="$(gateway_provider_note "${selected}")"
+  selected_kind="$(gateway_provider_kind "${selected_provider}")"
+  selected_health="$(gateway_provider_health "${selected_provider}")"
+  selected_note="$(gateway_provider_note "${selected_provider}")"
 
   mistral_available="$(gateway_provider_available mistral)"
   mistral_health="$(gateway_provider_health mistral)"
-  mistral_note="$(gateway_provider_note mistral)"
-
   ollama_available="$(gateway_provider_available ollama)"
-  ollama_kind="$(gateway_ollama_kind)"
+  ollama_kind="$(gateway_provider_kind ollama)"
   ollama_health="$(gateway_provider_health ollama)"
-  ollama_note="$(gateway_provider_note ollama)"
-  ollama_model="$(gateway_ollama_model)"
-  ollama_model_state="$(gateway_ollama_model_state)"
-  ollama_runtime_state="$(gateway_ollama_runtime_state)"
-  ollama_real_calls="$(gateway_ollama_real_calls_policy)"
-  ollama_real_state="$(gateway_ollama_real_state)"
 
-  secrets_state="$(gateway_secrets_state)"
-  log_state="$(gateway_log_state)"
-  log_lines="$(gateway_log_line_count)"
-  last_log_event="$(gateway_last_log_event)"
-  fallback_policy="$(gateway_fallback_policy)"
-  fallback_status="$(gateway_fallback_status)"
-  operator_hint="$(gateway_operator_hint)"
+  if [ -f "${KAO_GATEWAY_SECRETS_FILE}" ]; then
+    secrets_state="present"
+  else
+    secrets_state="missing"
+  fi
 
-  printf 'KAO GATEWAY STATUS\n'
-  printf 'root              : %s\n' "${KAO_GATEWAY_ROOT}"
-  printf 'selected provider : %s\n' "${selected}"
+  if [ -f "${KAO_GATEWAY_LOG_FILE}" ]; then
+    log_state="present"
+  else
+    log_state="missing"
+  fi
+
+  if [ "${selected_provider}" = "mistral" ] && [ "${ollama_available}" = "available" ]; then
+    fallback_status="armed-local"
+  else
+    fallback_status="not-armed"
+  fi
+
+  printf 'KAO GATEWAY HEALTH\n'
+  printf 'selected provider : %s\n' "${selected_provider}"
   printf 'selected label    : %s\n' "${selected_label}"
   printf 'selected kind     : %s\n' "${selected_kind}"
   printf 'selected health   : %s\n' "${selected_health}"
   printf 'selected note     : %s\n' "${selected_note}"
-  printf 'decision state    : %s\n' "${decision_state}"
   printf 'forced provider   : %s\n' "${forced_provider}"
-  printf 'forced state      : %s\n' "${forced_state}"
   printf 'detected provider : %s\n' "${detected_provider}"
   printf 'mistral available : %s\n' "${mistral_available}"
   printf 'mistral health    : %s\n' "${mistral_health}"
-  printf 'mistral note      : %s\n' "${mistral_note}"
   printf 'ollama available  : %s\n' "${ollama_available}"
   printf 'ollama kind       : %s\n' "${ollama_kind}"
   printf 'ollama health     : %s\n' "${ollama_health}"
-  printf 'ollama note       : %s\n' "${ollama_note}"
-  printf 'ollama model      : %s\n' "${ollama_model}"
-  printf 'ollama model state: %s\n' "${ollama_model_state}"
-  printf 'ollama runtime    : %s\n' "${ollama_runtime_state}"
-  printf 'ollama real calls : %s\n' "${ollama_real_calls}"
-  printf 'ollama real state : %s\n' "${ollama_real_state}"
+  printf 'secrets state     : %s\n' "${secrets_state}"
+  printf 'log state         : %s\n' "${log_state}"
+  printf 'fallback status   : %s\n' "${fallback_status}"
+}
+
+gateway_logs_surface() {
+  local log_state line_count last_event
+  if [ -f "${KAO_GATEWAY_LOG_FILE}" ]; then
+    log_state="present"
+  else
+    log_state="missing"
+  fi
+
+  line_count="$(gateway_log_lines)"
+  last_event="$(gateway_last_log_event)"
+
+  printf 'KAO GATEWAY LOGS\n'
+  printf 'log file          : %s\n' "${KAO_GATEWAY_LOG_FILE}"
+  printf 'log state         : %s\n' "${log_state}"
+  printf 'log line count    : %s\n' "${line_count}"
+  printf 'last log event    : %s\n' "${last_event}"
+  printf 'log preview\n'
+  gateway_log_preview
+}
+
+gateway_status() {
+  local selected_provider selected_label forced_provider detected_provider
+  local secrets_state log_state selected_kind selected_health selected_note
+  local log_line_count last_log_event fallback_policy fallback_status diagnostic_hint
+  local mistral_available mistral_health ollama_available ollama_kind ollama_health
+  local ollama_model ollama_model_state ollama_runtime ollama_real_calls ollama_real_state
+  local registry_count registry_selected_provider registry_selected_model registry_selected_family
+  local registry_selected_base registry_selected_declared registry_selected_runtime registry_selected_score
+
+  selected_provider="$(gateway_provider_select)"
+  selected_label="$(gateway_provider_label "${selected_provider}")"
+  forced_provider="$(gateway_forced_provider)"
+  detected_provider="$(gateway_provider_detected)"
+
+  selected_kind="$(gateway_provider_kind "${selected_provider}")"
+  selected_health="$(gateway_provider_health "${selected_provider}")"
+  selected_note="$(gateway_provider_note "${selected_provider}")"
+
+  mistral_available="$(gateway_provider_available mistral)"
+  mistral_health="$(gateway_provider_health mistral)"
+  ollama_available="$(gateway_provider_available ollama)"
+  ollama_kind="$(gateway_provider_kind ollama)"
+  ollama_health="$(gateway_provider_health ollama)"
+  ollama_model="$(gateway_ollama_model)"
+  ollama_model_state="$(gateway_ollama_model_state)"
+  ollama_runtime="$(gateway_ollama_runtime_state)"
+  ollama_real_calls="$(gateway_ollama_real_calls_policy)"
+  ollama_real_state="$(gateway_ollama_real_state)"
+
+  registry_count="$(gateway_model_registry_count)"
+  registry_selected_provider="$(gateway_model_registry_selected_provider)"
+  registry_selected_model="$(gateway_model_registry_selected_model)"
+  registry_selected_family="$(gateway_model_registry_selected_family)"
+  registry_selected_base="$(gateway_model_registry_selected_base_score)"
+  registry_selected_declared="$(gateway_model_registry_selected_declared_state)"
+  registry_selected_runtime="$(gateway_model_registry_selected_runtime_state)"
+  registry_selected_score="$(gateway_model_registry_selected_runtime_score)"
+
+  if [ -f "${KAO_GATEWAY_SECRETS_FILE}" ]; then
+    secrets_state="present"
+  else
+    secrets_state="missing"
+  fi
+
+  if [ -f "${KAO_GATEWAY_LOG_FILE}" ]; then
+    log_state="present"
+  else
+    log_state="missing"
+  fi
+
+  log_line_count="$(gateway_log_lines)"
+  last_log_event="$(gateway_last_log_event)"
+
+  fallback_policy="cloud-then-local"
+  if [ "${selected_provider}" = "mistral" ] && [ "${ollama_available}" = "available" ]; then
+    fallback_status="armed-local"
+  else
+    fallback_status="not-armed"
+  fi
+
+  diagnostic_hint="run 'kao gateway health' then 'kao gateway logs' for deeper diagnostics"
+
+  printf 'KAO GATEWAY STATUS\n'
+  printf 'root              : %s\n' "${KAO_GATEWAY_ROOT}"
+  printf 'selected provider : %s\n' "${selected_provider}"
+  printf 'selected label    : %s\n' "${selected_label}"
+  printf 'selected kind     : %s\n' "${selected_kind}"
+  printf 'selected health   : %s\n' "${selected_health}"
+  printf 'selected note     : %s\n' "${selected_note}"
+  printf 'forced provider   : %s\n' "${forced_provider}"
+  printf 'detected provider : %s\n' "${detected_provider}"
+  printf 'registry count    : %s\n' "${registry_count}"
+  printf 'registry provider : %s\n' "${registry_selected_provider}"
+  printf 'registry model    : %s\n' "${registry_selected_model}"
+  printf 'registry family   : %s\n' "${registry_selected_family}"
+  printf 'registry base     : %s\n' "${registry_selected_base}"
+  printf 'registry declared : %s\n' "${registry_selected_declared}"
+  printf 'registry runtime  : %s\n' "${registry_selected_runtime}"
+  printf 'registry score    : %s\n' "${registry_selected_score}"
   printf 'secrets file      : %s\n' "${KAO_GATEWAY_SECRETS_FILE}"
   printf 'secrets state     : %s\n' "${secrets_state}"
   printf 'log file          : %s\n' "${KAO_GATEWAY_LOG_FILE}"
   printf 'log state         : %s\n' "${log_state}"
-  printf 'log lines         : %s\n' "${log_lines}"
-  printf 'last log event    : %s\n' "${last_log_event}"
-  printf 'fallback policy   : %s\n' "${fallback_policy}"
-  printf 'fallback status   : %s\n' "${fallback_status}"
-  printf 'diagnostic        : %s\n' "${operator_hint}"
-  printf 'log preview       :\n'
-  gateway_log_preview_print
-}
-
-gateway_print_health() {
-  local selected forced_provider forced_state detected_provider decision_state
-  local selected_kind selected_health
-  local mistral_available mistral_health
-  local ollama_available ollama_kind ollama_health
-  local ollama_model ollama_model_state ollama_runtime_state
-  local ollama_real_calls ollama_real_state
-  local fallback_status operator_hint
-
-  selected="$(gateway_provider_select)"
-  forced_provider="$(gateway_forced_provider)"
-  forced_state="$(gateway_forced_provider_state)"
-  detected_provider="$(gateway_provider_detected)"
-  decision_state="$(gateway_decision_state)"
-
-  selected_kind="$(gateway_provider_kind "${selected}")"
-  selected_health="$(gateway_provider_health "${selected}")"
-
-  mistral_available="$(gateway_provider_available mistral)"
-  mistral_health="$(gateway_provider_health mistral)"
-
-  ollama_available="$(gateway_provider_available ollama)"
-  ollama_kind="$(gateway_ollama_kind)"
-  ollama_health="$(gateway_provider_health ollama)"
-  ollama_model="$(gateway_ollama_model)"
-  ollama_model_state="$(gateway_ollama_model_state)"
-  ollama_runtime_state="$(gateway_ollama_runtime_state)"
-  ollama_real_calls="$(gateway_ollama_real_calls_policy)"
-  ollama_real_state="$(gateway_ollama_real_state)"
-
-  fallback_status="$(gateway_fallback_status)"
-  operator_hint="$(gateway_operator_hint)"
-
-  printf 'KAO GATEWAY HEALTH\n'
-  printf 'selected provider : %s\n' "${selected}"
-  printf 'selected kind     : %s\n' "${selected_kind}"
-  printf 'selected health   : %s\n' "${selected_health}"
-  printf 'decision state    : %s\n' "${decision_state}"
-  printf 'forced provider   : %s\n' "${forced_provider}"
-  printf 'forced state      : %s\n' "${forced_state}"
-  printf 'detected provider : %s\n' "${detected_provider}"
   printf 'mistral available : %s\n' "${mistral_available}"
   printf 'mistral health    : %s\n' "${mistral_health}"
   printf 'ollama available  : %s\n' "${ollama_available}"
@@ -670,247 +806,100 @@ gateway_print_health() {
   printf 'ollama health     : %s\n' "${ollama_health}"
   printf 'ollama model      : %s\n' "${ollama_model}"
   printf 'ollama model state: %s\n' "${ollama_model_state}"
-  printf 'ollama runtime    : %s\n' "${ollama_runtime_state}"
+  printf 'ollama runtime    : %s\n' "${ollama_runtime}"
   printf 'ollama real calls : %s\n' "${ollama_real_calls}"
   printf 'ollama real state : %s\n' "${ollama_real_state}"
+  printf 'fallback policy   : %s\n' "${fallback_policy}"
   printf 'fallback status   : %s\n' "${fallback_status}"
-  printf 'diagnostic        : %s\n' "${operator_hint}"
+  printf 'log line count    : %s\n' "${log_line_count}"
+  printf 'last log event    : %s\n' "${last_log_event}"
+  printf 'diagnostic hint   : %s\n' "${diagnostic_hint}"
+  printf 'log preview\n'
+  gateway_log_preview
 }
 
-gateway_print_logs() {
-  printf 'KAO GATEWAY LOGS\n'
-  printf 'log file          : %s\n' "${KAO_GATEWAY_LOG_FILE}"
-  printf 'log state         : %s\n' "$(gateway_log_state)"
-  printf 'log lines         : %s\n' "$(gateway_log_line_count)"
-  printf 'last log event    : %s\n' "$(gateway_last_log_event)"
-  printf 'preview           :\n'
-  gateway_log_preview_print
-}
+gateway_run_provider() {
+  local provider prompt
+  provider="${1:-none}"
+  shift || true
+  prompt="$*"
 
-gateway_help() {
-  printf 'USAGE: kao gateway [status|health|logs]\n'
-}
+  gateway_require_providers
 
-gateway_cli() {
-  local subcommand
-  subcommand="${1:-status}"
-
-  case "${subcommand}" in
-    ""|status)
-      gateway_print_status
+  case "${provider}" in
+    mistral)
+      gateway_log INFO "gateway selected provider: mistral"
+      gateway_provider_mistral_infer "${prompt}"
       ;;
-    health)
-      gateway_print_health
-      ;;
-    logs)
-      gateway_print_logs
-      ;;
-    help|-h|--help)
-      gateway_help
+    ollama)
+      gateway_log INFO "gateway selected provider: ollama"
+      gateway_provider_ollama_infer "${prompt}"
       ;;
     *)
-      printf 'ERROR: unknown gateway subcommand: %s\n' "${subcommand}" >&2
-      gateway_help >&2
+      gateway_log ERROR "gateway no provider available"
+      printf 'gateway error: no provider available\n' >&2
       return 1
       ;;
   esac
 }
 
 gateway_infer() {
-  local query provider response fallback_response
-  local ollama_health ollama_real_state ollama_model ollama_model_state
-
-  query="${1:-}"
-
-  if [ -z "${query}" ]; then
-    printf 'GATEWAY_ERROR missing query\n' >&2
+  local provider label prompt
+  if [ "$#" -eq 0 ]; then
+    printf 'gateway error: missing prompt\n' >&2
     return 1
   fi
 
-  gateway_require_providers
-  gateway_load_secrets runtime >/dev/null 2>&1 || true
-
+  prompt="$*"
   provider="$(gateway_provider_select)"
+  label="$(gateway_provider_label "${provider}")"
 
-  if [ "${provider}" = "none" ]; then
-    gateway_log ERROR "no provider available"
-    printf 'GATEWAY_ERROR no provider available\n' >&2
-    return 1
-  fi
-
-  gateway_log INFO "provider selected: ${provider}"
-  printf 'gateway -> %s\n' "$(gateway_provider_label "${provider}")"
-
-  case "${provider}" in
-    mistral)
-      if response="$(gateway_provider_mistral_infer "${query}")"; then
-        gateway_log INFO "mistral inference ok"
-        printf '%s\n' "${response}"
-        return 0
-      fi
-
-      gateway_log WARN "mistral inference failed, trying ollama fallback"
-      printf 'gateway fallback -> %s\n' "$(gateway_provider_label "ollama")"
-
-      ollama_health="$(gateway_provider_health ollama)"
-      ollama_real_state="$(gateway_ollama_real_state)"
-      ollama_model="$(gateway_ollama_model)"
-      ollama_model_state="$(gateway_ollama_model_state)"
-
-      gateway_log INFO "ollama fallback target model: ${ollama_model} (${ollama_model_state})"
-
-      if [ "${ollama_health}" = "local-real-ready" ]; then
-        gateway_log INFO "ollama real fallback attempt"
-      fi
-
-      if fallback_response="$(gateway_provider_ollama_infer "${query}")"; then
-        case "${ollama_real_state}" in
-          callable)
-            gateway_log INFO "ollama real fallback response ok"
-            ;;
-          blocked-policy|blocked-no-model|stub-only)
-            gateway_log INFO "ollama stub fallback response ok"
-            ;;
-          *)
-            gateway_log INFO "ollama fallback response ok"
-            ;;
-        esac
-        printf '%s\n' "${fallback_response}"
-        return 0
-      fi
-
-      gateway_log ERROR "fallback inference failed"
-      printf 'GATEWAY_ERROR fallback inference failed\n' >&2
-      return 1
-      ;;
-    ollama)
-      ollama_health="$(gateway_provider_health ollama)"
-      ollama_real_state="$(gateway_ollama_real_state)"
-      ollama_model="$(gateway_ollama_model)"
-      ollama_model_state="$(gateway_ollama_model_state)"
-
-      gateway_log INFO "ollama target model: ${ollama_model} (${ollama_model_state})"
-
-      if [ "${ollama_health}" = "local-real-ready" ]; then
-        gateway_log INFO "ollama real inference attempt"
-      fi
-
-      if response="$(gateway_provider_ollama_infer "${query}")"; then
-        case "${ollama_real_state}" in
-          callable)
-            gateway_log INFO "ollama real inference ok"
-            ;;
-          blocked-policy|blocked-no-model|stub-only)
-            gateway_log INFO "ollama stub inference ok"
-            ;;
-          *)
-            if [ "${ollama_health}" = "local-real-ready" ]; then
-              gateway_log INFO "ollama real inference ok"
-            else
-              gateway_log INFO "ollama inference ok"
-            fi
-            ;;
-        esac
-        printf '%s\n' "${response}"
-        return 0
-      fi
-
-      gateway_log ERROR "ollama inference failed"
-      printf 'GATEWAY_ERROR ollama inference failed\n' >&2
-      return 1
-      ;;
-    *)
-      gateway_log ERROR "unsupported provider selected: ${provider}"
-      printf 'GATEWAY_ERROR unsupported provider selected\n' >&2
-      return 1
-      ;;
-  esac
+  printf 'gateway -> %s\n' "${label}"
+  gateway_run_provider "${provider}" "${prompt}"
 }
 
-gateway_selected_route() {
-  local provider
-  provider="$(gateway_provider_select)"
+gateway_help() {
+  cat <<'USAGE'
+USAGE: kao gateway [status|health|logs|help]
 
-  case "${provider}" in
-    mistral)
-      printf 'cloud\n'
-      ;;
-    ollama)
-      printf 'local\n'
-      ;;
-    *)
-      printf 'none\n'
-      ;;
-  esac
+COMMANDS
+  kao gateway         show canonical gateway status
+  kao gateway status  show canonical gateway status
+  kao gateway health  show provider health surface
+  kao gateway logs    show gateway log preview
+  kao gateway help    show this help
+USAGE
 }
 
-gateway_cloud_readiness() {
-  printf '%s\n' "$(gateway_provider_health mistral)"
-}
+gateway_cli() {
+  local command
 
-gateway_local_readiness() {
-  printf '%s\n' "$(gateway_provider_health ollama)"
-}
-
-gateway_hybrid_state() {
-  local cloud_health local_health cloud_ready local_ready
-  cloud_health="$(gateway_cloud_readiness)"
-  local_health="$(gateway_local_readiness)"
-  cloud_ready=0
-  local_ready=0
-
-  if [ "${cloud_health}" = "ready" ]; then
-    cloud_ready=1
-  fi
-
-  case "${local_health}" in
-    local-stub-ready|local-real-backend-ready|local-real-ready)
-      local_ready=1
-      ;;
-  esac
-
-  if [ "${cloud_ready}" = "1" ] && [ "${local_ready}" = "1" ]; then
-    printf 'hybrid-ready\n'
+  if [ "$#" -eq 0 ]; then
+    gateway_status
     return 0
   fi
 
-  if [ "${cloud_ready}" = "1" ]; then
-    printf 'cloud-only\n'
-    return 0
-  fi
-
-  if [ "${local_ready}" = "1" ]; then
-    printf 'local-only\n'
-    return 0
-  fi
-
-  printf 'unavailable\n'
-}
-
-gateway_operator_mode() {
-  case "$(gateway_decision_state)" in
-    blocked-unsupported-forcing)
-      printf 'degraded\n'
-      return 0
+  command="${1:-}"
+  case "${command}" in
+    status)
+      shift
+      gateway_status "$@"
       ;;
-    no-route-selected)
-      printf 'degraded\n'
-      return 0
+    health)
+      shift
+      gateway_health "$@"
       ;;
-  esac
-
-  case "$(gateway_hybrid_state)" in
-    hybrid-ready)
-      printf 'hybrid-ready\n'
+    logs)
+      shift
+      gateway_logs_surface "$@"
       ;;
-    cloud-only)
-      printf 'online\n'
-      ;;
-    local-only)
-      printf 'offline\n'
+    help|-h|--help)
+      shift || true
+      gateway_help "$@"
       ;;
     *)
-      printf 'degraded\n'
+      gateway_help >&2
+      return 1
       ;;
   esac
 }

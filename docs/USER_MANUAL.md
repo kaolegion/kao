@@ -12,6 +12,7 @@ It is intended for a Linux operator who wants to:
 - diagnose a situation
 - stabilize an incoherent state
 - understand routing decisions
+- understand model registry reading
 
 This manual describes an operable cognitive system.
 
@@ -29,9 +30,10 @@ Execution flow:
 2. gateway evaluates cloud readiness
 3. gateway evaluates local readiness
 4. gateway computes routing decision
-5. gateway executes inference
-6. route signal is exposed
-7. runtime trace is written to logs
+5. gateway reads registry model context
+6. gateway executes inference
+7. route signal is exposed
+8. runtime trace is written to logs
 
 ---
 
@@ -43,21 +45,54 @@ Commands:
 
 - ray
 - ray status
+- ray registry
 - ray run "<prompt>"
 
 Ray exposes routing cognition,
 not only provider availability.
 
----
-Ray also distinguishes clearly between:
-
-- forced raw value (operator input exactly as expressed)
-- forced provider (normalized supported provider)
-- forced state (unset / supported / unsupported)
-- effective routing decision
+Ray also exposes a first readable
+internal model registry.
 
 ---
 
+## Understand ray registry reading
+
+`ray registry` shows the internal canonical model registry.
+
+This registry is:
+
+- deterministic
+- local to Kao runtime
+- independent from real routing decision
+- designed to prepare future ranking logic
+
+Each entry exposes:
+
+- provider
+- model
+- family (cloud / local)
+- base score
+- declared state
+- runtime state
+- runtime score
+
+Declared state reflects
+the canonical registry declaration.
+
+Runtime state reflects
+the actual runtime situation.
+
+Runtime score is derived from:
+
+- base score
+- runtime readiness
+
+This score is **informational only** at this stage.
+
+Routing still follows gateway policy.
+
+---
 
 ## Understand ray decision reading
 
@@ -79,6 +114,7 @@ It is distinct from:
 - the raw forcing input
 - the normalized provider reading
 - the global runtime capability
+- the registry reading
 
 Possible values:
 
@@ -86,7 +122,9 @@ Possible values:
 - no-route-selected
 - blocked-unsupported-forcing
 
-### Route reason
+---
+
+## Route reason
 
 Explains *why* the route was selected
 or why the routing decision is blocked.
@@ -106,26 +144,23 @@ This is the first human-readable decision layer.
 
 ## Understand routing scores
 
-Ray exposes three compact scores:
+Ray exposes three compact routing scores:
 
 - cloud score
 - local score
 - route score
 
+Ray also exposes:
+
+- registry base score
+- registry runtime score
+
 Interpretation:
 
-- cloud score → relative strength of cloud route
-- local score → relative maturity of local route
-- route score → score of the actually selected route
+- routing scores describe decision strength
+- registry scores describe model ranking potential
 
-Typical reading:
-
-- cloud score high → secrets present and provider ready
-- local score medium → local stub usable
-- local score high → real local inference possible
-- route score low → degraded routing situation
-
-Scores are deterministic and intended for operator reasoning.
+Registry scores do not change routing yet.
 
 ---
 
@@ -175,13 +210,13 @@ If the operator forces a provider that is not supported:
 However:
 
 - hybrid state can still be `hybrid-ready`
-- cloud and local readiness can remain positive
+- registry reading still exists
+- runtime capacity still exists
 
 This means:
 
-runtime capacity still exists
-but the effective routing decision is blocked
-by an invalid forcing configuration.
+routing cognition is blocked,
+not runtime capability.
 
 ---
 
@@ -190,18 +225,18 @@ by an invalid forcing configuration.
 Before running inference:
 
 1. read ray status
-2. understand decision state
-3. understand route reason
-4. evaluate scores
-5. decide whether to force a provider
-6. run inference
+2. read ray registry
+3. understand decision state
+4. understand route reason
+5. evaluate routing scores
+6. evaluate registry reading
+7. decide whether to force a provider
+8. run inference
 
 If deeper diagnosis is needed:
 
 - read kao gateway
 - read kao gateway logs
-
-This prevents blind routing usage.
 
 ---
 
@@ -214,15 +249,17 @@ Priority order:
 3. local ready route
 4. degraded state
 
+Registry reading does not override routing policy yet.
+
 Cloud remains default production route.
 
 Local evolves progressively toward autonomy.
 
-Ray helps the operator understand:
+Registry prepares:
 
-- routing cognition
-- decision validity
-- capacity vs decision mismatch situations
+- ranking logic
+- multi-LLM cognition
+- adaptive routing intelligence
 
 ---
 
@@ -250,4 +287,5 @@ Prepare Kao for:
 - adaptive multi-LLM routing
 - autonomous offline cognition
 - agentic orchestration
-- human-readable decision layers
+- ranking-aware routing
+- human-readable model landscape

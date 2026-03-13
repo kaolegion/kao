@@ -83,6 +83,8 @@ Responsabilités :
 - exposition de score local déterministe
 - exposition du score de route retenue
 - exposition d’une raison compacte de sélection
+- lecture du modèle sélectionné dans un registry canonique
+- exposition d’un premier score registry indépendant du routage
 
 Doctrine actuelle :
 
@@ -90,6 +92,7 @@ Doctrine actuelle :
 - fallback lisible vers local
 - montée progressive vers cognition offline
 - intelligence opérateur simple avant orchestration avancée
+- registry lisible avant ranking dynamique réel
 
 Objectifs d’évolution :
 
@@ -97,6 +100,8 @@ Objectifs d’évolution :
 - continuité cognitive offline
 - policy adaptative cloud/local
 - stabilité agentique
+- ranking vivant des modèles
+- sélection provider plus intelligente
 
 ---
 
@@ -114,6 +119,8 @@ Responsabilités :
 - exposition de la raison de sélection de route
 - exposition d’un score compact par famille de route
 - exposition du score de la route retenue
+- exposition d’une lecture compacte du registry actif
+- exposition d’une vue registry dédiée
 - exécution via le gateway existant
 
 Ray ne remplace pas :
@@ -128,6 +135,7 @@ Ray agit comme :
 - une surface de pilotage humain
 - une abstraction du routage réel
 - une première couche d’intelligence décisionnelle lisible
+- une première fenêtre vers le paysage vivant des modèles
 
 Ray distingue maintenant explicitement :
 
@@ -137,6 +145,8 @@ Ray distingue maintenant explicitement :
 - la capacité runtime disponible
 - la décision effectivement retenue
 - l’impact opérateur d’un forcing invalide
+- la lecture registry sélectionnée
+- la vue complète des entrées registry
 
 États exposés :
 
@@ -181,6 +191,17 @@ Ray distingue maintenant explicitement :
 - local-only
 - unavailable
 
+### Lecture registry
+
+- registry count
+- registry provider
+- registry model
+- registry family
+- registry base
+- registry declared
+- registry runtime
+- registry score
+
 Doctrine de lecture :
 
 - `forced raw value` expose l’entrée opérateur telle qu’exprimée
@@ -189,6 +210,9 @@ Doctrine de lecture :
 - `decision state` décrit si une décision effective peut être retenue
 - `hybrid state` décrit la capacité runtime cloud/local
 - `mode` traduit la lecture opérateur effective de la situation
+- `registry declared` conserve l’état canonique déclaré dans le registry
+- `registry runtime` traduit la lecture runtime actuelle de cette entrée
+- `registry score` prépare une couche de ranking lisible sans modifier la décision réelle
 
 Cas important :
 
@@ -201,6 +225,7 @@ Cas important :
 - `hybrid state` peut donc rester `hybrid-ready`
 - pendant que `decision state` devient `blocked-unsupported-forcing`
 - et que `mode` devient `degraded`
+- la lecture registry sélectionnée peut rester `none`
 
 Finalité :
 
@@ -211,6 +236,7 @@ préparer Kao à :
 - une orchestration agentique future
 - une priorisation adaptative des modèles
 - une lecture humaine de la décision avant automatisation plus lourde
+- un futur classement vivant des modèles/providers
 
 ---
 
@@ -231,6 +257,7 @@ Chaque provider expose :
 - inference HTTP déterministe
 - priorité de routage par défaut
 - score fort quand prêt
+- entrée canonique dans le registry
 
 ### Ollama
 
@@ -241,6 +268,7 @@ Chaque provider expose :
 - appels réels activables par policy
 - journalisation distinguant tentative, stub et real
 - score progressif selon maturité locale réelle
+- entrée canonique dans le registry
 
 But :
 
@@ -249,6 +277,7 @@ préparer Kao à :
 - inference offline
 - autonomie cognitive machine
 - orchestration hybride cloud/local
+- classement lisible des capacités disponibles
 
 ---
 
@@ -287,6 +316,8 @@ Responsabilités :
 - visibilité de la raison de sélection
 - visibilité du différentiel de score cloud/local
 - visibilité de la différence entre capacité et décision
+- visibilité du registry vivant
+- visibilité du modèle actuellement retenu dans le registry
 
 ---
 

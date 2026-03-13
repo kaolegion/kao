@@ -40,6 +40,7 @@ The current canonical gateway and router entrypoints are:
 - `kao gateway logs`
 - `ray`
 - `ray status`
+- `ray registry`
 - `ray run "<prompt>"`
 - `ray "<prompt>"`
 
@@ -55,8 +56,11 @@ without requiring inspection of shell libraries.
 `ray` is the high-readability operator surface of the hybrid router foundation.
 
 `ray status` gives a compact human-readable reading of the selected route,
-decision state, route reason, operator mode, hybrid capability state
-and route scoring.
+decision state, route reason, operator mode, hybrid capability state,
+route scoring and selected registry reading.
+
+`ray registry` gives a first stable readable surface of the live internal
+model registry.
 
 `ray run "<prompt>"` executes a request through the same gateway-backed path
 as `brain infer`.
@@ -74,7 +78,9 @@ The current gateway and ray model supports:
 - direct short log preview through `kao gateway logs`
 - compact hybrid-readable operator reading through `ray status`
 - first deterministic hybrid scoring layer for route selection readability
+- first internal live model registry layer
 - explicit separation between runtime capacity and effective routing decision
+- explicit separation between provider routing and model registry reading
 
 ## Gateway quick view
 
@@ -88,6 +94,7 @@ The current gateway behavior is:
 - preserve a readable fallback model
 - expose a direct operator diagnostic surface
 - expose provider kind, provider health, target model, runtime state, real-call policy and real-call state
+- expose selected registry provider, model, family, declared state, runtime state and registry score
 - expose a short readable log preview
 - keep cockpit inspection out of runtime log pollution
 
@@ -112,6 +119,7 @@ The current ray behavior is:
   - `unavailable`
 - expose cloud readiness
 - expose local readiness
+- expose a first readable model registry surface through `ray registry`
 - preserve the selected provider visibility
 - preserve the same execution path as `brain infer`
 
@@ -134,6 +142,14 @@ Typical operator reading now includes:
 - local readiness
 - forced raw value, forced provider and forced state
 - detected provider
+- registry count
+- registry provider
+- registry model
+- registry family
+- registry base score
+- registry declared state
+- registry runtime state
+- registry score
 - provider availability and health for mistral
 - provider availability, kind and health for ollama
 - ollama model
@@ -154,11 +170,18 @@ Current provider state:
 
 - `mistral` is operational when external secrets are present
 - `ollama` now exposes progressive local readiness
+- a first internal model registry exists with canonical provider/model entries
 - local readiness can be:
   - `unavailable`
   - `local-stub-ready`
   - `local-real-backend-ready`
   - `local-real-ready`
+- registry declared state can currently be:
+  - `unknown`
+- registry runtime state can be:
+  - `unknown`
+  - `ready`
+  - `degraded`
 - ray decision states can be:
   - `route-selected`
   - `no-route-selected`
@@ -208,6 +231,9 @@ Decision reading doctrine:
 - `decision state` describes whether the router can actually retain a decision
 - `hybrid state` describes runtime capability across cloud and local families
 - `mode` gives the operator-facing effective reading of the current decision situation
+- `registry declared state` preserves the canonical registry declaration
+- `registry runtime state` reflects the current runtime reading of the registered entry
+- `registry score` preserves a first readable ranking-ready value without changing routing
 
 Important decision case:
 
@@ -220,6 +246,7 @@ Important decision case:
   - decision state can become `blocked-unsupported-forcing`
   - mode can become `degraded`
   - hybrid state can still remain `hybrid-ready`
+  - registry provider can remain `none`
 - this means runtime capacity is still present
   but the effective routing decision is blocked by invalid forcing
 

@@ -9,11 +9,12 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 ray_usage() {
   cat <<'USAGE'
-USAGE: ray [status|run "<prompt>"]
+USAGE: ray [status|registry|run "<prompt>"]
 
 COMMANDS
   ray                     show ray hybrid status
   ray status              show ray hybrid status
+  ray registry            show live model registry reading
   ray run "<prompt>"      run a prompt through the gateway
   ray "<prompt>"          shortcut for ray run "<prompt>"
 USAGE
@@ -25,6 +26,8 @@ ray_status() {
   local route_reason route_score cloud_score local_score
   local detected_provider forced_raw_value forced_provider forced_state
   local ollama_model ollama_model_state ollama_runtime ollama_real_calls ollama_real_state
+  local registry_count registry_selected_provider registry_selected_model registry_selected_family
+  local registry_selected_base registry_selected_declared registry_selected_runtime registry_selected_score
 
   selected_provider="$(gateway_provider_select)"
   selected_label="$(gateway_provider_label "${selected_provider}")"
@@ -54,6 +57,15 @@ ray_status() {
   ollama_real_calls="$(gateway_ollama_real_calls_policy)"
   ollama_real_state="$(gateway_ollama_real_state)"
 
+  registry_count="$(gateway_model_registry_count)"
+  registry_selected_provider="$(gateway_model_registry_selected_provider)"
+  registry_selected_model="$(gateway_model_registry_selected_model)"
+  registry_selected_family="$(gateway_model_registry_selected_family)"
+  registry_selected_base="$(gateway_model_registry_selected_base_score)"
+  registry_selected_declared="$(gateway_model_registry_selected_declared_state)"
+  registry_selected_runtime="$(gateway_model_registry_selected_runtime_state)"
+  registry_selected_score="$(gateway_model_registry_selected_runtime_score)"
+
   printf 'RAY STATUS\n'
   printf 'selected route    : %s\n' "${selected_route}"
   printf 'selected provider : %s\n' "${selected_provider}"
@@ -74,11 +86,23 @@ ray_status() {
   printf 'forced provider   : %s\n' "${forced_provider}"
   printf 'forced state      : %s\n' "${forced_state}"
   printf 'detected provider : %s\n' "${detected_provider}"
+  printf 'registry count    : %s\n' "${registry_count}"
+  printf 'registry provider : %s\n' "${registry_selected_provider}"
+  printf 'registry model    : %s\n' "${registry_selected_model}"
+  printf 'registry family   : %s\n' "${registry_selected_family}"
+  printf 'registry base     : %s\n' "${registry_selected_base}"
+  printf 'registry declared : %s\n' "${registry_selected_declared}"
+  printf 'registry runtime  : %s\n' "${registry_selected_runtime}"
+  printf 'registry score    : %s\n' "${registry_selected_score}"
   printf 'ollama model      : %s\n' "${ollama_model}"
   printf 'ollama model state: %s\n' "${ollama_model_state}"
   printf 'ollama runtime    : %s\n' "${ollama_runtime}"
   printf 'ollama real calls : %s\n' "${ollama_real_calls}"
   printf 'ollama real state : %s\n' "${ollama_real_state}"
+}
+
+ray_registry() {
+  gateway_model_registry_operator_surface
 }
 
 ray_run() {
@@ -106,6 +130,10 @@ main() {
     status)
       shift
       ray_status "$@"
+      ;;
+    registry)
+      shift
+      ray_registry "$@"
       ;;
     run)
       shift

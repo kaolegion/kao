@@ -610,3 +610,69 @@ This clarifies the difference between:
 - ray_surface e2e OK
 - documentation converged
 - repo clean expected after commit
+
+---
+
+# SPRINT DEV 1.4 — Hybrid Router Live Model Registry
+
+## Mission
+
+Introduire une première couche interne de registry des modèles
+afin de préparer un routage multi-LLM plus intelligent.
+
+## Objectifs
+
+- déclarer un registry canonique provider / modèle
+- exposer une lecture runtime simple et déterministe
+- introduire une notion de score registry indépendante du routage
+- préparer une logique future de ranking dynamique
+- préserver la stabilité complète du gateway et des E2E existants
+
+## Implémentation
+
+Le router possède maintenant :
+
+- un registry interne lisible en shell pur
+- une entrée cloud canonique (mistral)
+- une entrée locale canonique (ollama)
+- un score base par entrée
+- un état déclaré registry
+- un état runtime registry
+- un score runtime dérivé
+
+Ray expose désormais :
+
+- une lecture compacte du registry sélectionné via `ray status`
+- une vue complète du registry via `ray registry`
+
+## Doctrine
+
+- le registry prépare la cognition future
+- le registry n’influence pas encore la décision réelle
+- le routage reste gouverné par la policy gateway
+- la lecture humaine du paysage LLM devient possible
+
+## Résultat opérateur
+
+Un opérateur peut maintenant :
+
+- comprendre quel modèle est réellement considéré
+- lire un embryon de classement des capacités
+- anticiper l’évolution du routage
+- visualiser la maturité cloud vs local
+
+## Impact architecture
+
+- préparation d’un router vivant multi-modèles
+- base pour ranking dynamique
+- base pour sélection adaptative future
+- fondation pour router agentique
+
+## Validation
+
+- E2E existants préservés
+- surface ray stable
+- gateway stable
+- registry lisible
+- documentation convergente
+
