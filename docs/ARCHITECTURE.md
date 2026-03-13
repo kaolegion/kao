@@ -110,6 +110,7 @@ Responsabilités :
 - synthèse cloud/local readiness
 - synthèse du mode opératoire courant
 - exposition de l’état hybride global
+- exposition de l’état de décision effectif
 - exposition de la raison de sélection de route
 - exposition d’un score compact par famille de route
 - exposition du score de la route retenue
@@ -128,6 +129,12 @@ Ray agit comme :
 - une abstraction du routage réel
 - une première couche d’intelligence décisionnelle lisible
 
+Ray distingue maintenant explicitement :
+
+- la capacité runtime disponible
+- la décision effectivement retenue
+- l’impact opérateur d’un forcing invalide
+
 États exposés :
 
 ### Route sélectionnée
@@ -135,6 +142,12 @@ Ray agit comme :
 - cloud
 - local
 - none
+
+### État de décision
+
+- route-selected
+- no-route-selected
+- blocked-unsupported-forcing
 
 ### Reason opérateur
 
@@ -164,6 +177,20 @@ Ray agit comme :
 - cloud-only
 - local-only
 - unavailable
+
+Doctrine de lecture :
+
+- `decision state` décrit si une décision effective peut être retenue
+- `hybrid state` décrit la capacité runtime cloud/local
+- `mode` traduit la lecture opérateur effective de la situation
+
+Cas important :
+
+- un forcing invalide peut bloquer la décision
+- dans ce cas, la capacité runtime peut rester favorable
+- `hybrid state` peut donc rester `hybrid-ready`
+- pendant que `decision state` devient `blocked-unsupported-forcing`
+- et que `mode` devient `degraded`
 
 Finalité :
 
@@ -249,6 +276,7 @@ Responsabilités :
 - visibilité synthétique via ray
 - visibilité de la raison de sélection
 - visibilité du différentiel de score cloud/local
+- visibilité de la différence entre capacité et décision
 
 ---
 

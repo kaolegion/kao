@@ -37,7 +37,7 @@ Execution flow:
 
 ## Hybrid router operator surface (ray)
 
-Ray provides a compact decision-reading surface.
+Ray provides a compact **decision-reading surface**.
 
 Commands:
 
@@ -45,13 +45,14 @@ Commands:
 - ray status
 - ray run "<prompt>"
 
-Ray exposes **decision cognition**, not only routing state.
+Ray exposes routing cognition,
+not only provider availability.
 
 ---
 
 ## Understand ray decision reading
 
-Ray now exposes:
+Ray exposes:
 
 ### Selected route
 
@@ -59,18 +60,29 @@ Ray now exposes:
 - local
 - none
 
+### Decision state
+
+This describes whether the router
+can actually retain a routing decision.
+
+Possible values:
+
+- route-selected
+- no-route-selected
+- blocked-unsupported-forcing
+
 ### Route reason
 
 Explains *why* the route was selected.
 
 Possible values:
 
-- cloud-priority-ready  
-- local-only-available  
-- forced-provider-mistral  
-- forced-provider-ollama  
-- unsupported-forced-provider  
-- no-provider-ready  
+- cloud-priority-ready
+- local-only-available
+- forced-provider-mistral
+- forced-provider-ollama
+- unsupported-forced-provider
+- no-provider-ready
 
 This is the first human-readable decision layer.
 
@@ -80,9 +92,9 @@ This is the first human-readable decision layer.
 
 Ray exposes three compact scores:
 
-- cloud score  
-- local score  
-- route score  
+- cloud score
+- local score
+- route score
 
 Interpretation:
 
@@ -105,28 +117,52 @@ Scores are deterministic and intended for operator reasoning.
 
 Ray exposes:
 
-- online  
-- offline  
-- degraded  
-- hybrid-ready  
+- online
+- offline
+- degraded
+- hybrid-ready
 
 Meaning:
 
-- online → only cloud usable
-- offline → only local usable
-- degraded → routing unstable
-- hybrid-ready → both routes usable
+- online → effective decision uses cloud route
+- offline → effective decision uses local route
+- degraded → decision cannot be retained or routing unstable
+- hybrid-ready → both route families are operationally usable
 
 ---
 
 ## Hybrid state reading
 
-- hybrid-ready  
-- cloud-only  
-- local-only  
-- unavailable  
+Hybrid state describes **runtime capability**, not the decision.
 
-This expresses global routing capability.
+Values:
+
+- hybrid-ready
+- cloud-only
+- local-only
+- unavailable
+
+---
+
+## Important decision case — unsupported forcing
+
+If the operator forces a provider that is not supported:
+
+- routing decision can become blocked
+- selected route can become `none`
+- decision state becomes `blocked-unsupported-forcing`
+- operator mode becomes `degraded`
+
+However:
+
+- hybrid state can still be `hybrid-ready`
+- cloud and local readiness can remain positive
+
+This means:
+
+runtime capacity still exists  
+but the effective routing decision is blocked
+by an invalid forcing configuration.
 
 ---
 
@@ -135,10 +171,11 @@ This expresses global routing capability.
 Before running inference:
 
 1. read ray status
-2. understand route reason
-3. evaluate scores
-4. decide whether to force a provider
-5. run inference
+2. understand decision state
+3. understand route reason
+4. evaluate scores
+5. decide whether to force a provider
+6. run inference
 
 If deeper diagnosis is needed:
 
@@ -162,7 +199,11 @@ Cloud remains default production route.
 
 Local evolves progressively toward autonomy.
 
-Ray helps the operator **understand routing cognition**.
+Ray helps the operator understand:
+
+- routing cognition
+- decision validity
+- capacity vs decision mismatch situations
 
 ---
 

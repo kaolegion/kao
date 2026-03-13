@@ -491,3 +491,79 @@ Validation obtenue sur :
 - E2E préservés
 - documentation convergée
 - base prête pour extension du router hybride
+
+---
+
+# SPRINT DEV 1.2 — Router Decision Policy Refinement
+
+## Mission
+
+Clarifier la lecture cognitive du routeur hybride.
+
+Introduire une distinction explicite entre :
+
+- capacité runtime du système
+- décision de routage effectivement retenue
+
+Sans modifier la logique fondamentale
+de sélection des providers.
+
+## Évolution introduite
+
+Le routeur expose maintenant :
+
+- `decision state`
+- `operator mode`
+- `hybrid state`
+
+Ces trois lectures permettent :
+
+- une compréhension humaine immédiate
+- une détection des incohérences de forcing
+- une base stable pour intelligence future du router
+
+## États décisionnels introduits
+
+- `route-selected`
+- `no-route-selected`
+- `blocked-unsupported-forcing`
+
+Le dernier état apparaît lorsqu’un provider forcé :
+
+- est invalide
+- ou non supporté par la configuration runtime
+
+Dans ce cas :
+
+- la décision est bloquée
+- la capacité runtime peut rester élevée
+- le mode opérateur devient `degraded`
+
+## Lecture cognitive du routeur
+
+La doctrine devient :
+
+- `hybrid state` → capacité runtime globale
+- `decision state` → validité de la décision
+- `mode` → lecture opérateur effective
+
+Cela permet :
+
+- une lecture claire des situations incohérentes
+- une meilleure gouvernance du forcing
+- une base pour futur router adaptatif multi-critères
+
+## Impact
+
+- amélioration forte de la lisibilité humaine
+- stabilisation de la surface ray
+- meilleure préparation au router vivant multi-LLM
+- base cognitive plus robuste pour offline intelligence
+
+## État global
+
+- surface CLI stable
+- E2E verts
+- docs convergées
+- base prête pour extensions futures
+

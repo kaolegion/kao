@@ -466,13 +466,38 @@ gateway_route_reason() {
   printf 'no-provider-ready\n'
 }
 
+gateway_decision_state() {
+  local forced_state selected_provider
+
+  forced_state="$(gateway_forced_provider_state)"
+  selected_provider="$(gateway_provider_select)"
+
+  if [ "${forced_state}" = "unsupported" ]; then
+    printf 'blocked-unsupported-forcing\n'
+    return 0
+  fi
+
+  if [ "${selected_provider}" = "none" ]; then
+    printf 'no-route-selected\n'
+    return 0
+  fi
+
+  printf 'route-selected\n'
+}
+
 gateway_operator_hint() {
-  local selected forced_provider secrets_state ollama_real_state detected_provider
+  local selected forced_provider forced_state secrets_state ollama_real_state detected_provider
   selected="$(gateway_provider_select)"
   forced_provider="$(gateway_forced_provider)"
+  forced_state="$(gateway_forced_provider_state)"
   detected_provider="$(gateway_provider_detected)"
   secrets_state="$(gateway_secrets_state)"
   ollama_real_state="$(gateway_ollama_real_state)"
+
+  if [ "${forced_state}" = "unsupported" ]; then
+    printf 'unsupported forced provider blocks routing decision -> clear KAO_GATEWAY_PROVIDER or use mistral/ollama\n'
+    return 0
+  fi
 
   if [ "${forced_provider}" = "ollama" ]; then
     printf 'forced provider active -> ollama (%s / %s / model=%s / real=%s)\n' \
@@ -511,7 +536,7 @@ gateway_operator_hint() {
 }
 
 gateway_print_status() {
-  local selected forced_provider forced_state detected_provider
+  local selected forced_provider forced_state detected_provider decision_state
   local selected_label selected_kind selected_health selected_note
   local mistral_available mistral_health mistral_note
   local ollama_available ollama_kind ollama_health ollama_note
@@ -523,6 +548,7 @@ gateway_print_status() {
   forced_provider="$(gateway_forced_provider)"
   forced_state="$(gateway_forced_provider_state)"
   detected_provider="$(gateway_provider_detected)"
+  decision_state="$(gateway_decision_state)"
 
   selected_label="$(gateway_provider_label "${selected}")"
   selected_kind="$(gateway_provider_kind "${selected}")"
@@ -558,6 +584,7 @@ gateway_print_status() {
   printf 'selected kind     : %s\n' "${selected_kind}"
   printf 'selected health   : %s\n' "${selected_health}"
   printf 'selected note     : %s\n' "${selected_note}"
+  printf 'decision state    : %s\n' "${decision_state}"
   printf 'forced provider   : %s\n' "${forced_provider}"
   printf 'forced state      : %s\n' "${forced_state}"
   printf 'detected provider : %s\n' "${detected_provider}"
@@ -587,7 +614,7 @@ gateway_print_status() {
 }
 
 gateway_print_health() {
-  local selected forced_provider forced_state detected_provider
+  local selected forced_provider forced_state detected_provider decision_state
   local selected_kind selected_health
   local mistral_available mistral_health
   local ollama_available ollama_kind ollama_health
@@ -599,6 +626,7 @@ gateway_print_health() {
   forced_provider="$(gateway_forced_provider)"
   forced_state="$(gateway_forced_provider_state)"
   detected_provider="$(gateway_provider_detected)"
+  decision_state="$(gateway_decision_state)"
 
   selected_kind="$(gateway_provider_kind "${selected}")"
   selected_health="$(gateway_provider_health "${selected}")"
@@ -622,6 +650,7 @@ gateway_print_health() {
   printf 'selected provider : %s\n' "${selected}"
   printf 'selected kind     : %s\n' "${selected_kind}"
   printf 'selected health   : %s\n' "${selected_health}"
+  printf 'decision state    : %s\n' "${decision_state}"
   printf 'forced provider   : %s\n' "${forced_provider}"
   printf 'forced state      : %s\n' "${forced_state}"
   printf 'detected provider : %s\n' "${detected_provider}"
@@ -850,6 +879,17 @@ gateway_hybrid_state() {
 }
 
 gateway_operator_mode() {
+  case "$(gateway_decision_state)" in
+    blocked-unsupported-forcing)
+      printf 'degraded\n'
+      return 0
+      ;;
+    no-route-selected)
+      printf 'degraded\n'
+      return 0
+      ;;
+  esac
+
   case "$(gateway_hybrid_state)" in
     hybrid-ready)
       printf 'hybrid-ready\n'

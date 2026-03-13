@@ -55,7 +55,8 @@ without requiring inspection of shell libraries.
 `ray` is the high-readability operator surface of the hybrid router foundation.
 
 `ray status` gives a compact human-readable reading of the selected route,
-route reason, operator mode, hybrid readiness state and route scoring.
+decision state, route reason, operator mode, hybrid capability state
+and route scoring.
 
 `ray run "<prompt>"` executes a request through the same gateway-backed path
 as `brain infer`.
@@ -73,6 +74,7 @@ The current gateway and ray model supports:
 - direct short log preview through `kao gateway logs`
 - compact hybrid-readable operator reading through `ray status`
 - first deterministic hybrid scoring layer for route selection readability
+- explicit separation between runtime capacity and effective routing decision
 
 ## Gateway quick view
 
@@ -94,6 +96,7 @@ The current gateway behavior is:
 The current ray behavior is:
 
 - expose the selected route as `cloud`, `local` or `none`
+- expose the decision state
 - expose the route reason
 - expose the selected route score
 - expose per-family cloud and local scores
@@ -120,6 +123,7 @@ Typical operator reading now includes:
 - selected provider kind
 - selected provider health
 - selected provider note
+- decision state
 - route reason
 - route score
 - cloud score
@@ -155,6 +159,10 @@ Current provider state:
   - `local-stub-ready`
   - `local-real-backend-ready`
   - `local-real-ready`
+- ray decision states can be:
+  - `route-selected`
+  - `no-route-selected`
+  - `blocked-unsupported-forcing`
 - ray route reasons can be:
   - `cloud-priority-ready`
   - `local-only-available`
@@ -191,6 +199,23 @@ Current provider state:
   - `stub-only`
   - `unavailable`
 - fallback remains readable and operator-visible
+
+Decision reading doctrine:
+
+- `decision state` describes whether the router can actually retain a decision
+- `hybrid state` describes runtime capability across cloud and local families
+- `mode` gives the operator-facing effective reading of the current decision situation
+
+Important decision case:
+
+- an unsupported forced provider can block the decision
+- in that case:
+  - selected route can become `none`
+  - decision state can become `blocked-unsupported-forcing`
+  - mode can become `degraded`
+  - hybrid state can still remain `hybrid-ready`
+- this means runtime capacity is still present
+  but the effective routing decision is blocked by invalid forcing
 
 Current observability state:
 

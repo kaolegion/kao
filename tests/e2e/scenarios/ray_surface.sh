@@ -29,6 +29,14 @@ printf '%s\n' "${ray_status_output}" | grep -q "selected health   :" \
   && e2e_ok "ray selected health visible" \
   || e2e_error "ray selected health missing"
 
+printf '%s\n' "${ray_status_output}" | grep -q "decision state    :" \
+  && e2e_ok "ray decision state visible" \
+  || e2e_error "ray decision state missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "decision state    : (route-selected|no-route-selected|blocked-unsupported-forcing)" \
+  && e2e_ok "ray decision state readable" \
+  || e2e_error "ray decision state value missing"
+
 printf '%s\n' "${ray_status_output}" | grep -q "route reason      :" \
   && e2e_ok "ray route reason visible" \
   || e2e_error "ray route reason missing"
@@ -149,6 +157,10 @@ forced_local_status_output="$(
   KAO_GATEWAY_PROVIDER=ollama /home/kao/bin/ray status 2>&1
 )"
 
+printf '%s\n' "${forced_local_status_output}" | grep -q "decision state    : route-selected" \
+  && e2e_ok "ray forced local decision state visible" \
+  || e2e_error "ray forced local decision state missing"
+
 printf '%s\n' "${forced_local_status_output}" | grep -q "route reason      : forced-provider-ollama" \
   && e2e_ok "ray forced local reason visible" \
   || e2e_error "ray forced local reason missing"
@@ -157,6 +169,10 @@ forced_mistral_status_output="$(
   KAO_GATEWAY_PROVIDER=mistral /home/kao/bin/ray status 2>&1
 )"
 
+printf '%s\n' "${forced_mistral_status_output}" | grep -q "decision state    : route-selected" \
+  && e2e_ok "ray forced mistral decision state visible" \
+  || e2e_error "ray forced mistral decision state missing"
+
 printf '%s\n' "${forced_mistral_status_output}" | grep -q "route reason      : forced-provider-mistral" \
   && e2e_ok "ray forced mistral reason visible" \
   || e2e_error "ray forced mistral reason missing"
@@ -164,6 +180,26 @@ printf '%s\n' "${forced_mistral_status_output}" | grep -q "route reason      : f
 unsupported_forced_status_output="$(
   KAO_GATEWAY_PROVIDER=badvalue /home/kao/bin/ray status 2>&1
 )"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "decision state    : blocked-unsupported-forcing" \
+  && e2e_ok "ray unsupported forced decision state visible" \
+  || e2e_error "ray unsupported forced decision state missing"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "selected route    : none" \
+  && e2e_ok "ray unsupported forced selected route none visible" \
+  || e2e_error "ray unsupported forced selected route none missing"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "selected provider : none" \
+  && e2e_ok "ray unsupported forced selected provider none visible" \
+  || e2e_error "ray unsupported forced selected provider none missing"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "mode              : degraded" \
+  && e2e_ok "ray unsupported forced degraded mode visible" \
+  || e2e_error "ray unsupported forced degraded mode missing"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "hybrid state      : hybrid-ready" \
+  && e2e_ok "ray unsupported forced capacity still visible" \
+  || e2e_error "ray unsupported forced capacity reading missing"
 
 printf '%s\n' "${unsupported_forced_status_output}" | grep -q "route reason      : unsupported-forced-provider" \
   && e2e_ok "ray unsupported forced reason visible" \
