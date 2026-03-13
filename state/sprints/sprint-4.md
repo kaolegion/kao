@@ -567,3 +567,46 @@ Cela permet :
 - docs convergées
 - base prête pour extensions futures
 
+
+---
+
+## DEV 1.3 — Hybrid Router Provider Intent Readability
+
+### Mission
+
+Refine operator readability when a provider forcing is expressed.
+
+### Key evolution
+
+- introduction of `forced raw value` helper in gateway
+- distinction between:
+  - raw operator input
+  - normalized provider
+  - forcing validity state
+  - effective routing decision
+- ray surface extended accordingly
+
+### Operator impact
+
+An unsupported forcing now exposes:
+
+- forced raw value = invalid operator input
+- forced provider = none
+- forced state = unsupported
+- decision state = blocked-unsupported-forcing
+- mode = degraded
+- hybrid state can remain hybrid-ready
+
+This clarifies the difference between:
+
+- runtime capability
+- operator intent
+- effective routing decision
+
+### Validation
+
+- router syntax OK
+- ray syntax OK
+- ray_surface e2e OK
+- documentation converged
+- repo clean expected after commit

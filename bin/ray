@@ -23,7 +23,7 @@ ray_status() {
   local selected_provider selected_label selected_kind selected_health selected_note
   local selected_route decision_state cloud_readiness local_readiness hybrid_state operator_mode
   local route_reason route_score cloud_score local_score
-  local detected_provider forced_provider forced_state
+  local detected_provider forced_raw_value forced_provider forced_state
   local ollama_model ollama_model_state ollama_runtime ollama_real_calls ollama_real_state
 
   selected_provider="$(gateway_provider_select)"
@@ -44,6 +44,7 @@ ray_status() {
   local_score="$(gateway_local_score)"
 
   detected_provider="$(gateway_provider_detected)"
+  forced_raw_value="$(gateway_forced_provider_raw)"
   forced_provider="$(gateway_forced_provider)"
   forced_state="$(gateway_forced_provider_state)"
 
@@ -69,6 +70,7 @@ ray_status() {
   printf 'hybrid state      : %s\n' "${hybrid_state}"
   printf 'cloud readiness   : %s\n' "${cloud_readiness}"
   printf 'local readiness   : %s\n' "${local_readiness}"
+  printf 'forced raw value  : %s\n' "${forced_raw_value}"
   printf 'forced provider   : %s\n' "${forced_provider}"
   printf 'forced state      : %s\n' "${forced_state}"
   printf 'detected provider : %s\n' "${detected_provider}"

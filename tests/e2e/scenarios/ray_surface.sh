@@ -97,6 +97,14 @@ printf '%s\n' "${ray_status_output}" | grep -Eq "local readiness   : (local-stub
   && e2e_ok "ray local readiness readable" \
   || e2e_error "ray local readiness value missing"
 
+printf '%s\n' "${ray_status_output}" | grep -q "forced raw value  :" \
+  && e2e_ok "ray forced raw value visible" \
+  || e2e_error "ray forced raw value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "forced raw value  : (unset|mistral|ollama|[^[:space:]].*)" \
+  && e2e_ok "ray forced raw value readable" \
+  || e2e_error "ray forced raw value unreadable"
+
 printf '%s\n' "${ray_status_output}" | grep -q "detected provider :" \
   && e2e_ok "ray detected provider visible" \
   || e2e_error "ray detected provider missing"
@@ -200,6 +208,18 @@ printf '%s\n' "${unsupported_forced_status_output}" | grep -q "mode             
 printf '%s\n' "${unsupported_forced_status_output}" | grep -q "hybrid state      : hybrid-ready" \
   && e2e_ok "ray unsupported forced capacity still visible" \
   || e2e_error "ray unsupported forced capacity reading missing"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "forced raw value  : badvalue" \
+  && e2e_ok "ray unsupported forced raw value visible" \
+  || e2e_error "ray unsupported forced raw value missing"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "forced provider   : none" \
+  && e2e_ok "ray unsupported forced normalized provider visible" \
+  || e2e_error "ray unsupported forced normalized provider missing"
+
+printf '%s\n' "${unsupported_forced_status_output}" | grep -q "forced state      : unsupported" \
+  && e2e_ok "ray unsupported forced state visible" \
+  || e2e_error "ray unsupported forced state missing"
 
 printf '%s\n' "${unsupported_forced_status_output}" | grep -q "route reason      : unsupported-forced-provider" \
   && e2e_ok "ray unsupported forced reason visible" \

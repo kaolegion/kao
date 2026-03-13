@@ -132,7 +132,7 @@ Typical operator reading now includes:
 - hybrid state
 - cloud readiness
 - local readiness
-- forced provider and forced state
+- forced raw value, forced provider and forced state
 - detected provider
 - provider availability and health for mistral
 - provider availability, kind and health for ollama
@@ -202,6 +202,9 @@ Current provider state:
 
 Decision reading doctrine:
 
+- `forced raw value` exposes the operator input exactly as expressed
+- `forced provider` exposes the normalized supported provider retained by the router
+- `forced state` exposes whether the forcing expression is unset, supported or unsupported
 - `decision state` describes whether the router can actually retain a decision
 - `hybrid state` describes runtime capability across cloud and local families
 - `mode` gives the operator-facing effective reading of the current decision situation
@@ -210,6 +213,9 @@ Important decision case:
 
 - an unsupported forced provider can block the decision
 - in that case:
+  - forced raw value can remain the invalid operator input
+  - forced provider can remain `none`
+  - forced state can become `unsupported`
   - selected route can become `none`
   - decision state can become `blocked-unsupported-forcing`
   - mode can become `degraded`

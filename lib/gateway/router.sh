@@ -84,6 +84,15 @@ gateway_provider_kind() {
   esac
 }
 
+gateway_forced_provider_raw() {
+  if [ -z "${KAO_GATEWAY_PROVIDER:-}" ]; then
+    printf 'unset\n'
+    return 0
+  fi
+
+  printf '%s\n' "${KAO_GATEWAY_PROVIDER}"
+}
+
 gateway_forced_provider() {
   case "${KAO_GATEWAY_PROVIDER:-}" in
     mistral|ollama)

@@ -49,6 +49,15 @@ Ray exposes routing cognition,
 not only provider availability.
 
 ---
+Ray also distinguishes clearly between:
+
+- forced raw value (operator input exactly as expressed)
+- forced provider (normalized supported provider)
+- forced state (unset / supported / unsupported)
+- effective routing decision
+
+---
+
 
 ## Understand ray decision reading
 
@@ -65,6 +74,12 @@ Ray exposes:
 This describes whether the router
 can actually retain a routing decision.
 
+It is distinct from:
+
+- the raw forcing input
+- the normalized provider reading
+- the global runtime capability
+
 Possible values:
 
 - route-selected
@@ -73,7 +88,8 @@ Possible values:
 
 ### Route reason
 
-Explains *why* the route was selected.
+Explains *why* the route was selected
+or why the routing decision is blocked.
 
 Possible values:
 
@@ -148,6 +164,9 @@ Values:
 
 If the operator forces a provider that is not supported:
 
+- forced raw value keeps the operator input as expressed
+- forced provider remains the normalized supported reading
+- forced state becomes `unsupported`
 - routing decision can become blocked
 - selected route can become `none`
 - decision state becomes `blocked-unsupported-forcing`
@@ -160,7 +179,7 @@ However:
 
 This means:
 
-runtime capacity still exists  
+runtime capacity still exists
 but the effective routing decision is blocked
 by an invalid forcing configuration.
 

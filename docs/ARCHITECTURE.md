@@ -131,6 +131,9 @@ Ray agit comme :
 
 Ray distingue maintenant explicitement :
 
+- l’intention opérateur exprimée
+- le provider normalisé retenable
+- la validité de l’expression de forcing
 - la capacité runtime disponible
 - la décision effectivement retenue
 - l’impact opérateur d’un forcing invalide
@@ -180,6 +183,9 @@ Ray distingue maintenant explicitement :
 
 Doctrine de lecture :
 
+- `forced raw value` expose l’entrée opérateur telle qu’exprimée
+- `forced provider` expose le provider supporté normalisé retenable
+- `forced state` expose si le forcing est unset, supported ou unsupported
 - `decision state` décrit si une décision effective peut être retenue
 - `hybrid state` décrit la capacité runtime cloud/local
 - `mode` traduit la lecture opérateur effective de la situation
@@ -187,7 +193,11 @@ Doctrine de lecture :
 Cas important :
 
 - un forcing invalide peut bloquer la décision
-- dans ce cas, la capacité runtime peut rester favorable
+- dans ce cas :
+  - `forced raw value` peut conserver l’entrée invalide
+  - `forced provider` peut rester `none`
+  - `forced state` peut devenir `unsupported`
+- la capacité runtime peut néanmoins rester favorable
 - `hybrid state` peut donc rester `hybrid-ready`
 - pendant que `decision state` devient `blocked-unsupported-forcing`
 - et que `mode` devient `degraded`
