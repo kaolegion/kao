@@ -69,6 +69,10 @@ Ray now also exposes an
 intent-aware execution bridge
 through `ray bridge`.
 
+Ray now also exposes a first
+bounded local execution layer
+through `ray run`.
+
 ---
 
 ## Understand ray ask
@@ -109,6 +113,10 @@ It shows:
 - surface
 - provider
 - decision
+- path id
+- path label
+- path state
+- path sequence
 
 This command is useful to understand:
 
@@ -116,6 +124,8 @@ This command is useful to understand:
 - whether a bridgeable execution strategy exists
 - which provider would be used for inference-oriented tasks
 - which execution family is retained
+- whether a safe canonical local path exists already
+- whether the request remains pending or is directly executable
 
 Current execution mode values:
 
@@ -143,6 +153,19 @@ Current execution strategies:
 - local-inspect
 - unclassified
 
+Current path states:
+
+- path-ready
+- local-action-pending
+- local-inspection-pending
+- gateway-ready
+- unclassified
+
+Current canonical local paths:
+
+- path-open-directory
+- path-list-current-directory
+
 ---
 
 ## Understand ray run
@@ -154,16 +177,39 @@ single inference path.
 Current behavior:
 
 - gateway-oriented tasks are forwarded to `brain infer`
-- local file/system tasks are recognized and exposed through a readable operator surface
-- local direct execution is not yet enabled in this stage
+- recognized safe local file tasks are executed through bounded internal sequences
+- non-mapped local file or system tasks stay visible and pending
 
 So current `ray run` behaves as:
 
 - cognitive prompt → executed through gateway
-- local operator prompt → bridge-ready, local action pending
+- recognized safe local prompt → executed locally through a canonical internal path
+- non-recognized local operator prompt → explicit local pending state
+
+Current safe local execution doctrine:
+
+- no unrestricted shell execution
+- no free-form command pass-through
+- no destructive local path
+- explicit operator-visible path before action
+- bounded sequence only
+- workspace-scoped directory resolution for current implemented directory path
+
+Current implemented safe local paths are:
+
+- `path-open-directory`
+  - resolve target from prompt
+  - verify target exists under current workspace
+  - print resolved path
+  - list directory entries
+- `path-list-current-directory`
+  - resolve current workspace
+  - print resolved path
+  - list directory entries
 
 This keeps the system deterministic while preparing
-future direct local execution.
+future direct local execution growth through a
+controlled path library.
 
 ---
 
@@ -318,45 +364,3 @@ Ray also exposes:
 - registry runtime score
 - registry operator rank
 - registry maturity
-- scout strategic status
-
-Interpretation:
-
-- routing scores describe decision strength
-- registry score describes runtime-weighted registry value
-- registry operator rank describes comparative operator priority
-- registry maturity describes compact maturity reading
-- scout strategic status describes the comparative model landscape posture
-
-Registry and scout values do not change routing yet.
-
----
-
-## Operator mode reading
-
-Ray exposes:
-
-- online
-- offline
-- degraded
-- hybrid-ready
-
-Meaning:
-
-- online → effective decision uses cloud route
-- offline → effective decision uses local route
-- degraded → decision cannot be retained or routing unstable
-- hybrid-ready → both route families are operationally usable
-
----
-
-## Hybrid state reading
-
-Hybrid state describes **runtime capability**, not the decision.
-
-Values:
-
-- hybrid-ready
-- cloud-only
-- local-only
-- unavailable

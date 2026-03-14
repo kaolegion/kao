@@ -138,8 +138,13 @@ Responsabilités :
 - exposition d’une stratégie d’exécution dérivée du prompt
 - exposition d’une surface d’exécution retenue
 - exposition d’un mode d’exécution auto/local/cloud
-- exécution via le gateway existant
-- préparation d’une exécution locale future plus directe
+- exposition d’un identifiant de chemin local canonique
+- exposition d’un label de chemin local canonique
+- exposition d’un état de chemin exécutable ou en attente
+- exposition d’une séquence locale lisible avant action
+- exécution via le gateway existant pour les prompts cognitifs
+- exécution locale via séquences internes déterministes pour un premier sous-ensemble sûr
+- préparation d’une bibliothèque future de chemins et d’un registry d’actions
 
 Ray ne remplace pas :
 
@@ -155,6 +160,7 @@ Ray agit comme :
 - une première couche d’intelligence décisionnelle lisible
 - une première fenêtre vers le paysage vivant des modèles
 - un bridge explicable entre intention et exécution
+- une couche de séquençage local bornée pour actions sûres reconnues
 
 Ray distingue maintenant explicitement :
 
@@ -166,6 +172,10 @@ Ray distingue maintenant explicitement :
 - la surface d’exécution retenue
 - le mode d’exécution courant
 - la décision d’exécution retenue
+- l’identifiant de chemin local retenu
+- le label de chemin local retenu
+- l’état du chemin local retenu
+- la séquence opératoire lisible avant action
 - le provider normalisé retenable
 - la validité de l’expression de forcing
 - la capacité runtime disponible
@@ -241,6 +251,19 @@ Ray distingue maintenant explicitement :
 - local-inspect
 - unclassified
 
+### État de chemin local
+
+- path-ready
+- local-action-pending
+- local-inspection-pending
+- gateway-ready
+- unclassified
+
+### Chemins locaux canoniques actuels
+
+- path-open-directory
+- path-list-current-directory
+
 ### État hybride
 
 - hybrid-ready
@@ -258,43 +281,3 @@ Ray distingue maintenant explicitement :
 - registry declared
 - registry runtime
 - registry score
-- registry rank
-- registry maturity
-
-### Lecture scout
-
-- provider
-- model
-- family
-- maturity
-- rank
-- status
-- ordre comparatif par rang
-
-Doctrine de lecture :
-
-- `forced raw value` expose l’entrée opérateur telle qu’exprimée
-- `forced provider` expose le provider supporté normalisé retenable
-- `forced state` expose si le forcing est unset, supported ou unsupported
-- `decision state` décrit si une décision effective peut être retenue
-- `decision` décrit si le bridge d’exécution retient une stratégie exploitable
-- `execution mode` prépare une gouvernance future de l’exécution
-- `surface` expose la famille d’exécution actuellement retenue
-- `strategy` expose la stratégie dérivée de l’intention classifiée
-- `hybrid state` décrit la capacité runtime cloud/local
-- `mode` traduit la lecture opérateur effective de la situation
-- `registry declared` conserve l’état canonique déclaré dans le registry
-- `registry runtime` traduit la lecture runtime actuelle de cette entrée
-- `registry score` prépare une première pondération runtime lisible
-- `registry rank` prépare une comparaison opérateur entre entrées
-- `registry maturity` expose une synthèse courte de maturité
-- `status` expose une lecture stratégique dérivée de la maturité de chaque entrée visible
-- cette lecture enrichie n’altère pas encore la décision réelle du routeur
-
-Cas important :
-
-- un forcing invalide peut bloquer la décision
-- dans ce cas :
-  - `forced raw value` peut conserver l’entrée invalide
-  - `forced provider` peut rester `none`
-  - `forced state` peut devenir `unsupported`

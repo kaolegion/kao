@@ -997,3 +997,81 @@ A human operator can now understand:
 - whether the provider remains relevant for the retained task
 - whether a local task is recognized but intentionally pending
 - how future direct local execution can be introduced without breaking the current runtime model
+
+---
+
+## SPRINT DEV 2.1 — Execution Paths + Local Action Sequences
+
+## Mission
+
+Move from execution bridge reading to first controlled execution paths.
+
+## Goal
+
+Allow Kao to begin executing a first small set of canonical local paths safely,
+instead of only exposing local-action-pending.
+
+## Implemented real state
+
+The execution bridge now supports a first bounded local execution layer.
+
+Implemented real state now includes:
+
+- canonical local path identification derived from prompt
+- canonical local path labels
+- canonical local path states
+- canonical local path sequence exposure before action
+- bounded safe local execution through internal deterministic sequences
+- preserved gateway path for cognitive prompts
+- preserved explicit pending state for non-mapped local actions
+- preserved non-destructive doctrine
+- preserved workspace-bounded directory resolution
+
+Current canonical local safe paths include:
+
+- `path-open-directory`
+- `path-list-current-directory`
+
+Current local execution behavior is:
+
+- `ouvre dossier <target>` → resolve target under workspace and list entries
+- `liste fichiers` / `ls` → resolve current workspace and list entries
+- non-recognized local prompt → `local-action-pending`
+- cognitive prompt → gateway-backed inference path
+
+## Validation result
+
+Validation now confirms:
+
+- execution bridge shell syntax is valid
+- `ray` shell syntax remains valid
+- `ray_intent` E2E scenario remains valid
+- operator bridge surface exposes:
+  - path id
+  - path label
+  - path state
+  - path sequence
+- `ray run "ouvre dossier lib"` executes the canonical safe directory-open path
+- `ray run "liste fichiers"` executes the canonical safe current-workspace listing path
+- `ray run "rm tmp"` remains explicitly pending and non-destructive
+- gateway-backed cognitive execution remains preserved
+
+## Operator result
+
+A human operator can now:
+
+- read the retained execution path before action
+- see whether a request is executable immediately or still pending
+- execute a first bounded subset of safe local read actions
+- keep dangerous or non-mapped local intents outside unrestricted shell execution
+- preserve a visible bridge between intent classification and effective action
+
+## Next evolution path
+
+This stage prepares:
+
+- a dedicated local path library
+- an action registry
+- broader safe system inspection paths
+- richer workspace-aware path resolution
+- stricter operator policy layers before any destructive capability

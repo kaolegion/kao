@@ -208,6 +208,22 @@ ray_bridge() {
   execution_bridge_operator_surface "$@"
 }
 
+ray_run_gateway() {
+  local prompt
+  prompt="${*:-}"
+  exec "${KROOT}/bin/brain" infer "${prompt}"
+}
+
+ray_run_local() {
+  local prompt
+  prompt="${*:-}"
+
+  printf 'RAY RUN\n'
+  execution_bridge_operator_surface "${prompt}"
+  printf '\n'
+  execution_bridge_execute_prompt "${prompt}"
+}
+
 ray_run() {
   local prompt intent strategy surface
 
@@ -224,15 +240,10 @@ ray_run() {
 
   case "${surface}" in
     gateway)
-      exec "${KROOT}/bin/brain" infer "${prompt}"
+      ray_run_gateway "${prompt}"
       ;;
     shell|system)
-      printf 'RAY RUN\n'
-      printf 'prompt   : %s\n' "${prompt}"
-      printf 'intent   : %s\n' "${intent}"
-      printf 'strategy : %s\n' "${strategy}"
-      printf 'surface  : %s\n' "${surface}"
-      printf 'state    : bridge-ready-local-action-pending\n'
+      ray_run_local "${prompt}"
       ;;
     *)
       printf 'RAY_ERROR unsupported execution bridge\n' >&2
@@ -275,7 +286,7 @@ main() {
       shift
       ray_run "$@"
       ;;
-    help|-h|--help)
+    -h|--help|help)
       ray_usage
       ;;
     *)

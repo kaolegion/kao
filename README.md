@@ -42,6 +42,8 @@ The current canonical gateway and router entrypoints are:
 - `ray status`
 - `ray registry`
 - `ray scout`
+- `ray ask "<prompt>"`
+- `ray bridge "<prompt>"`
 - `ray run "<prompt>"`
 - `ray "<prompt>"`
 
@@ -69,8 +71,18 @@ maturity level.
 ranked registry entries, exposing provider, model, family, maturity,
 operator rank and mapped strategic status in a comparative ordered format.
 
-`ray run "<prompt>"` executes a request through the same gateway-backed path
-as `brain infer`.
+`ray ask "<prompt>"` classifies the operator prompt and exposes the
+intent class, route family, action label, execution mode, strategy,
+surface, decision and provider reading.
+
+`ray bridge "<prompt>"` exposes the same execution bridge with the
+operator-visible local path reading, including path id, path label,
+path state and path sequence when a safe canonical path exists.
+
+`ray run "<prompt>"` executes through the execution bridge:
+gateway prompts are forwarded to `brain infer`,
+while recognized local safe paths execute through explicit bounded
+non-destructive internal sequences.
 
 `ray "<prompt>"` is a direct shortcut for `ray run "<prompt>"`.
 
@@ -79,6 +91,7 @@ The current gateway and ray model supports:
 - cloud routing through Mistral when external secrets are available
 - local routing through Ollama with progressive readiness states
 - controlled real local execution behind explicit policy
+- first deterministic local action sequences for safe bounded read-only intents
 - explicit runtime log trace in `state/logs/gateway.log`
 - canonical human-readable inspection through `kao gateway`
 - direct health reading through `kao gateway health`
@@ -92,6 +105,7 @@ The current gateway and ray model supports:
 - explicit separation between runtime capacity and effective routing decision
 - explicit separation between provider routing and model registry reading
 - explicit separation between registry observability and real routing policy
+- explicit separation between operator-visible bridge reading and bounded local execution
 
 ## Gateway quick view
 
@@ -128,15 +142,22 @@ The current ray behavior is:
   - `cloud-only`
   - `local-only`
   - `unavailable`
-- expose cloud readiness
-- expose local readiness
 - expose a first readable model registry surface through `ray registry`
 - expose a first strategic multi-entry model landscape surface through `ray scout`
 - expose selected registry rank
 - expose selected registry maturity
 - expose mapped strategic status for ranked registry entries
+- expose the classified operator prompt through `ray ask`
+- expose the execution bridge through `ray bridge`
+- expose bounded local path metadata:
+  - `path id`
+  - `path label`
+  - `path state`
+  - `path sequence`
 - preserve the selected provider visibility
-- preserve the same execution path as `brain infer`
+- preserve the same gateway execution path as `brain infer` for cognitive prompts
+- execute only recognized safe canonical local read paths
+- keep non-mapped local intents in explicit `local-action-pending`
 
 Typical operator reading now includes:
 
@@ -173,6 +194,17 @@ Typical operator reading now includes:
 - strategic scout comparative maturity entries
 - strategic scout comparative rank entries
 - strategic scout comparative status entries
+- intent class
+- route family
+- action label
+- execution mode
+- execution strategy
+- execution surface
+- execution decision
+- path id
+- path label
+- path state
+- path sequence
 - provider availability and health for mistral
 - provider availability, kind and health for ollama
 - ollama model
@@ -240,6 +272,15 @@ Current provider state:
   - `cloud-only`
   - `local-only`
   - `unavailable`
+- ray execution path states can be:
+  - `path-ready`
+  - `local-action-pending`
+  - `local-inspection-pending`
+  - `gateway-ready`
+  - `unclassified`
+- current canonical local safe paths include:
+  - `path-open-directory`
+  - `path-list-current-directory`
 - ollama model state can be:
   - `unknown`
   - `missing`
@@ -258,56 +299,3 @@ Current provider state:
   - `blocked-no-model`
   - `stub-only`
   - `unavailable`
-- fallback remains readable and operator-visible
-
-Decision reading doctrine:
-
-- `forced raw value` exposes the operator input exactly as expressed
-- `forced provider` exposes the normalized supported provider retained by the router
-- `forced state` exposes whether the forcing expression is unset, supported or unsupported
-- `decision state` describes whether the router can actually retain a decision
-- `hybrid state` describes runtime capability across cloud and local families
-- `mode` gives the operator-facing effective reading of the current decision situation
-- `registry declared state` preserves the canonical registry declaration
-- `registry runtime state` reflects the current runtime reading of the registered entry
-- `registry score` preserves a first readable runtime-weighted value
-- `registry rank` exposes an operator-facing comparative score
-- `registry maturity` exposes a compact maturity level for the selected entry
-- registry reading remains informative and does not change routing yet
-
-Important decision case:
-
-- an unsupported forced provider can block the decision
-- in that case:
-  - forced raw value can remain the invalid operator input
-  - forced provider can remain `none`
-  - forced state can become `unsupported`
-  - selected route can become `none`
-  - decision state can become `blocked-unsupported-forcing`
-  - mode can become `degraded`
-  - hybrid state can still remain `hybrid-ready`
-  - registry provider can remain `none`
-- this means runtime capacity is still present
-  but the effective routing decision is blocked by invalid forcing
-
-Current observability state:
-
-- runtime inference events are written to `state/logs/gateway.log`
-- cockpit commands do not append diagnostic noise to the runtime log
-- fallback and inference traces remain visible in the runtime log
-- local runtime traces now distinguish:
-  - `ollama real inference attempt`
-  - `ollama target model: <model> (<state>)`
-  - `ollama real inference ok`
-  - `ollama stub inference ok`
-  - `ollama real fallback attempt`
-  - `ollama fallback target model: <model> (<state>)`
-  - `ollama real fallback response ok`
-  - `ollama stub fallback response ok`
-
-## Governance
-
-- CONTRIBUTING.md
-- ISSUES.md
-- PULL_REQUESTS.md
-- ROADMAP.md
