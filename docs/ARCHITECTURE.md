@@ -131,6 +131,9 @@ Responsabilités :
 - exposition d’un statut stratégique dérivé pour chaque entrée registry lue
 - exposition d’une vue registry dédiée
 - exposition d’une vue scout dédiée au paysage modèle multi-entrée ordonné
+- exposition d’une première couche de classification d’intention opérateur
+- exposition d’une famille de route cognitive avant exécution réelle
+- exposition d’une action opératoire lisible dérivée du prompt
 - exécution via le gateway existant
 
 Ray ne remplace pas :
@@ -150,6 +153,9 @@ Ray agit comme :
 Ray distingue maintenant explicitement :
 
 - l’intention opérateur exprimée
+- la classe cognitive dérivée du prompt
+- la famille de route cognitive associée
+- l’action opératoire lisible associée
 - le provider normalisé retenable
 - la validité de l’expression de forcing
 - la capacité runtime disponible
@@ -373,3 +379,29 @@ Responsabilités :
 - inference distante
 - monitoring
 - distribution Kao
+
+
+### Intentions opérateur
+
+Première classification heuristique actuellement exposée par `ray ask` :
+
+- file-op
+- system-op
+- cognitive-light
+- cognitive-heavy
+- unknown
+
+Familles de route cognitives actuellement exposées :
+
+- local-agent
+- llm-light
+- llm-heavy
+- unknown
+
+Cette couche est actuellement :
+
+- déterministe
+- heuristique
+- lisible terminalement
+- non-LLM pour la décision
+- préparatoire à une orchestration agentique future

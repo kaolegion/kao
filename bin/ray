@@ -6,16 +6,19 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # shellcheck disable=SC1091
 . "${KROOT}/lib/gateway/router.sh"
+# shellcheck disable=SC1091
+. "${KROOT}/lib/cognition/intent_router.sh"
 
 ray_usage() {
   cat <<'USAGE'
-USAGE: ray [status|registry|scout|run "<prompt>"]
+USAGE: ray [status|registry|scout|ask "<prompt>"|run "<prompt>"]
 
 COMMANDS
   ray                     show ray hybrid status
   ray status              show ray hybrid status
   ray registry            show live model registry reading
   ray scout               show strategic live model landscape reading
+  ray ask "<prompt>"      classify operator intent and show route family
   ray run "<prompt>"      run a prompt through the gateway
   ray "<prompt>"          shortcut for ray run "<prompt>"
 USAGE
@@ -152,6 +155,37 @@ ${ranked_dump}
 SCOUT_EOF
 }
 
+ray_ask() {
+  local prompt intent route action selected_provider
+
+  if [ "$#" -eq 0 ]; then
+    printf 'RAY_ERROR missing prompt\n' >&2
+    ray_usage >&2
+    return 1
+  fi
+
+  prompt="$*"
+  intent="$(intent_classify "${prompt}")"
+  route="$(intent_route_family "${intent}")"
+  action="$(intent_action_label "${intent}")"
+
+  printf 'RAY ASK\n'
+  printf 'prompt  : %s\n' "${prompt}"
+  printf 'INTENT  : %s\n' "${intent}"
+  printf 'ROUTE   : %s\n' "${route}"
+  printf 'ACTION  : %s\n' "${action}"
+
+  case "${route}" in
+    llm-light|llm-heavy)
+      selected_provider="$(gateway_provider_select)"
+      printf 'PROVIDER: %s\n' "${selected_provider}"
+      ;;
+    *)
+      printf 'PROVIDER: none\n'
+      ;;
+  esac
+}
+
 ray_run() {
   local prompt
   if [ "$#" -eq 0 ]; then
@@ -185,6 +219,10 @@ main() {
     scout)
       shift
       ray_scout "$@"
+      ;;
+    ask)
+      shift
+      ray_ask "$@"
       ;;
     run)
       shift

@@ -907,3 +907,45 @@ La notion de :
 - base prête pour ranking dynamique futur
 - cognition hybride progressivement observable
 
+
+
+---
+
+## DEV 1.9 intent router note
+
+A first cognitive intent layer now exists inside the Ray operator surface.
+
+Implemented real state now includes:
+
+- canonical `/home/kao/lib/cognition/intent_router.sh` library
+- canonical `ray ask "<prompt>"` command
+- deterministic prompt classification without LLM decision cost
+- visible intent class
+- visible cognitive route family
+- visible readable action label
+- provider exposure only when an LLM family is implied
+- dedicated E2E scenario for the intent reading surface
+
+## DEV 1.9 validation result
+
+Validation now confirms:
+
+- intent router shell syntax is valid
+- `ray` shell syntax remains valid
+- file-oriented prompt is classified as `file-op`
+- meeting summary prompt is classified as `cognitive-heavy`
+- local agent route is visible for file operations
+- heavy LLM route is visible for cognitive prompts
+- provider visibility remains coherent with LLM-intent prompts
+- `ray ask` help surface is documented in command usage
+- dedicated `ray_intent` scenario is present
+
+## DEV 1.9 operator result
+
+A human operator can now read before execution:
+
+- what kind of task was understood
+- whether the task is interpreted as local or LLM-oriented
+- which readable action category is associated
+- whether a provider is relevant for the current intent
+- how Kao begins to separate intent reading from inference execution

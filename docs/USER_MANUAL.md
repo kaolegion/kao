@@ -47,6 +47,7 @@ Commands:
 - ray status
 - ray registry
 - ray scout
+- ray ask "<prompt>"
 - ray run "<prompt>"
 
 Ray exposes routing cognition,
@@ -58,6 +59,10 @@ internal model registry.
 Ray also exposes a first strategic
 multi-entry model landscape reading
 for ranked registry entries.
+
+Ray now also exposes a first
+operator intent classification layer
+through `ray ask`.
 
 ---
 
@@ -354,3 +359,53 @@ Prepare Kao for:
 - agentic orchestration
 - ranking-aware routing
 - human-readable model landscape
+
+
+## Understand ray ask reading
+
+`ray ask "<prompt>"` classifies a prompt
+before real execution.
+
+It currently exposes:
+
+- prompt
+- intent
+- route family
+- action label
+- provider when an LLM family is implied
+
+Current intent classes are:
+
+- file-op
+- system-op
+- cognitive-light
+- cognitive-heavy
+- unknown
+
+Current route families are:
+
+- local-agent
+- llm-light
+- llm-heavy
+- unknown
+
+Current action labels are:
+
+- filesystem operator
+- system operator
+- light cognitive inference
+- deep cognitive inference
+- unclassified
+
+This layer is currently:
+
+- déterministe
+- heuristique
+- read-only
+- non-agentic in execution
+- designed to prepare future orchestration
+
+`ray ask` does not execute inference.
+
+It exposes a cognitive reading surface
+before `ray run` or `brain infer`.
