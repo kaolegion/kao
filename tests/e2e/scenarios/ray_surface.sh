@@ -78,6 +78,46 @@ printf '%s\n' "${ray_status_output}" | grep -Eq "mode              : (online|off
   && e2e_ok "ray operator mode readable" \
   || e2e_error "ray operator mode value missing"
 
+printf '%s\n' "${ray_status_output}" | grep -q "network state     :" \
+  && e2e_ok "ray network state visible" \
+  || e2e_error "ray network state missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "network state     : (online|offline)" \
+  && e2e_ok "ray network state readable" \
+  || e2e_error "ray network state value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -q "local llm state   :" \
+  && e2e_ok "ray local llm state visible" \
+  || e2e_error "ray local llm state missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "local llm state   : (on|off)" \
+  && e2e_ok "ray local llm state readable" \
+  || e2e_error "ray local llm state value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -q "cloud llm state   :" \
+  && e2e_ok "ray cloud llm state visible" \
+  || e2e_error "ray cloud llm state missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "cloud llm state   : (on|off)" \
+  && e2e_ok "ray cloud llm state readable" \
+  || e2e_error "ray cloud llm state value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -q "execution mode    :" \
+  && e2e_ok "ray execution mode visible" \
+  || e2e_error "ray execution mode missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "execution mode    : (os-core|local-cognitive|local-first-network-enabled|cloud-cognitive|hybrid-competitive|state-mixed)" \
+  && e2e_ok "ray execution mode readable" \
+  || e2e_error "ray execution mode value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -q "selection policy  :" \
+  && e2e_ok "ray selection policy visible" \
+  || e2e_error "ray selection policy missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "selection policy  : (best-available-by-state)" \
+  && e2e_ok "ray selection policy readable" \
+  || e2e_error "ray selection policy value missing"
+
 printf '%s\n' "${ray_status_output}" | grep -q "hybrid state      :" \
   && e2e_ok "ray hybrid state visible" \
   || e2e_error "ray hybrid state missing"

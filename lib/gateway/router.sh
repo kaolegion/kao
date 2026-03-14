@@ -473,6 +473,71 @@ gateway_hybrid_state() {
   printf 'unavailable\n'
 }
 
+gateway_network_state() {
+  if ping -c1 -W1 1.1.1.1 >/dev/null 2>&1; then
+    printf 'online\n'
+  else
+    printf 'offline\n'
+  fi
+}
+
+gateway_local_llm_state() {
+  case "$(gateway_local_readiness)" in
+    local-stub-ready|local-real-backend-ready|local-real-ready)
+      printf 'on\n'
+      ;;
+    *)
+      printf 'off\n'
+      ;;
+  esac
+}
+
+gateway_cloud_llm_state() {
+  if [ "$(gateway_cloud_readiness)" = "ready" ]; then
+    printf 'on\n'
+  else
+    printf 'off\n'
+  fi
+}
+
+gateway_execution_mode() {
+  local network_state local_llm_state cloud_llm_state
+  network_state="$(gateway_network_state)"
+  local_llm_state="$(gateway_local_llm_state)"
+  cloud_llm_state="$(gateway_cloud_llm_state)"
+
+  if [ "${local_llm_state}" = "off" ] && [ "${cloud_llm_state}" = "off" ]; then
+    printf 'os-core\n'
+    return 0
+  fi
+
+  if [ "${network_state}" = "offline" ] && [ "${local_llm_state}" = "on" ] && [ "${cloud_llm_state}" = "off" ]; then
+    printf 'local-cognitive\n'
+    return 0
+  fi
+
+  if [ "${network_state}" = "online" ] && [ "${local_llm_state}" = "on" ] && [ "${cloud_llm_state}" = "off" ]; then
+    printf 'local-first-network-enabled\n'
+    return 0
+  fi
+
+  if [ "${network_state}" = "online" ] && [ "${local_llm_state}" = "off" ] && [ "${cloud_llm_state}" = "on" ]; then
+    printf 'cloud-cognitive\n'
+    return 0
+  fi
+
+  if [ "${network_state}" = "online" ] && [ "${local_llm_state}" = "on" ] && [ "${cloud_llm_state}" = "on" ]; then
+    printf 'hybrid-competitive\n'
+    return 0
+  fi
+
+  printf 'state-mixed\n'
+}
+
+gateway_selection_policy() {
+  printf 'best-available-by-state\n'
+}
+
 gateway_decision_state() {
   local route forced_state
   route="$(gateway_selected_route)"
@@ -843,7 +908,7 @@ gateway_status() {
   log_line_count="$(gateway_log_lines)"
   last_log_event="$(gateway_last_log_event)"
 
-  fallback_policy="cloud-then-local"
+  fallback_policy="best-available-by-state"
   fallback_status="$(gateway_fallback_status)"
 
   diagnostic_hint="run 'kao gateway health' then 'kao gateway logs' for deeper diagnostics"

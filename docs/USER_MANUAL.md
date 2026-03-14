@@ -69,7 +69,55 @@ Main inspection commands:
 
 Ray exposes routing cognition, safe local inspection, and controlled local repair.
 
+### Understand ray status governance fields
+
+`ray status` now exposes a readable runtime governance layer.
+
+New visible fields include:
+
+- `network state`
+- `local llm state`
+- `cloud llm state`
+- `execution mode`
+- `selection policy`
+
+Reading rules:
+
+- `network state` tells whether Kao currently sees the machine as `online` or `offline`
+- `local llm state` tells whether a local LLM path is currently present in the runtime state
+- `cloud llm state` tells whether a cloud LLM path is currently available
+- `execution mode` summarizes the current operating situation
+- `selection policy` shows the current governance policy used for provider selection
+
+Current execution modes may include:
+
+- `os-core`
+- `local-cognitive`
+- `local-first-network-enabled`
+- `cloud-cognitive`
+- `hybrid-competitive`
+- `state-mixed`
+
+Current selection policy:
+
+- `best-available-by-state`
+
+Important reading note:
+
+- a provider such as `mistral` may appear as selected because it is the best currently available candidate
+- this does not mean that Kao defines a permanent cloud-first doctrine
+- the target model is state-aware selection based on current availability and, later, on task value
+
+Runtime expression currently used in design:
+
+- `(Device + kaoOS = on) + (LLM + @ = off) + moi`
+- `(Device + kaoOS = on) + (LLM local on + @ off) + moi`
+- `(Device + kaoOS = on) + (LLM local on + @ on) + moi`
+- `(Device + kaoOS = on) + (LLM local off & cloud on + @ on) + moi`
+- `(Device + kaoOS = on) + (LLM local & cloud + @ on) + moi`
+
 ---
+
 
 ## Understand ray system inspect
 

@@ -230,16 +230,51 @@ Entrée canonique actuelle :
 Responsabilités :
 
 - sélection dynamique de provider
+- lecture d’état runtime
 - routage cloud / local
-- gestion de fallback
 - journalisation runtime
 - cockpit diagnostic lisible
 
 Doctrine actuelle :
 
-- priorité cloud par défaut
-- fallback lisible vers local
-- montée progressive vers cognition offline
+- Kao ne fixe pas un provider prioritaire par principe
+- le système lit d’abord l’état courant
+- la politique visible actuelle est `best-available-by-state`
+- un provider peut être sélectionné parce qu’il est le meilleur candidat disponible à l’instant T
+- la gouvernance sépare explicitement réseau, cognition locale et cognition cloud
+
+Expression canonique actuelle des états de travail :
+
+- `(Device + kaoOS = on) + (LLM + @ = off) + moi`
+- `(Device + kaoOS = on) + (LLM local on + @ off) + moi`
+- `(Device + kaoOS = on) + (LLM local on + @ on) + moi`
+- `(Device + kaoOS = on) + (LLM local off & cloud on + @ on) + moi`
+- `(Device + kaoOS = on) + (LLM local & cloud + @ on) + moi`
+
+Lecture opératoire :
+
+- `@` représente l’état réseau
+- `LLM local` et `cloud` sont deux axes distincts
+- un accès réseau ne signifie pas qu’un cloud LLM doit être utilisé
+- une cognition locale peut exister en offline complet
+- Kao doit toujours vérifier la meilleure option disponible lors de l’interaction
+
+États de gouvernance désormais visibles dans les surfaces opérateur :
+
+- `network state`
+- `local llm state`
+- `cloud llm state`
+- `execution mode`
+- `selection policy`
+
+Modes d’exécution introduits :
+
+- `os-core`
+- `local-cognitive`
+- `local-first-network-enabled`
+- `cloud-cognitive`
+- `hybrid-competitive`
+- `state-mixed`
 
 ---
 
@@ -255,3 +290,20 @@ Il expose maintenant :
 - une détection de dérive structurée
 - une réparation réelle contrôlée
 - une maintenance locale registry-driven
+- une lecture de gouvernance runtime visible
+- une politique de sélection affichée
+
+La surface `ray status` rend maintenant lisibles :
+
+- la route actuellement sélectionnée
+- l’état réseau
+- l’état LLM local
+- l’état LLM cloud
+- le mode d’exécution courant
+- la politique de sélection `best-available-by-state`
+
+Important :
+
+- `mistral` peut être sélectionné parce qu’il est actuellement le meilleur candidat disponible
+- cela ne signifie pas qu’il soit prioritaire par doctrine
+- Kao vise une sélection future des meilleurs agents selon la valeur de la tâche et l’état réel du système

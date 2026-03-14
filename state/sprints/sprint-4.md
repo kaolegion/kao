@@ -1389,3 +1389,65 @@ A human operator can now understand immediately:
 - `docs/ARCHITECTURE.md`
 - `docs/USER_MANUAL.md`
 - `state/sprints/sprint-4.md`
+
+---
+
+## DEV 2.8B runtime governance layer note
+
+The ray and gateway surfaces now expose a first explicit Kao runtime governance layer.
+
+Implemented real state now includes:
+
+- visible `network state`
+- visible `local llm state`
+- visible `cloud llm state`
+- visible `execution mode`
+- visible `selection policy`
+- gateway fallback policy renamed to `best-available-by-state`
+- preserved current provider selection behavior
+- preserved current registry and scout surfaces
+- E2E lock extended for the new visible governance markers
+
+This sprint also clarified the product doctrine:
+
+- `mistral` is not considered inherently prioritary
+- a provider may be selected because it is the best currently available candidate
+- Kao should evaluate the best available option at interaction time according to current system state
+- local and cloud cognition remain distinct runtime dimensions
+- offline local cognition is a valid sovereign operating state
+
+Canonical runtime expressions discussed and documented:
+
+- `(Device + kaoOS = on) + (LLM + @ = off) + moi`
+- `(Device + kaoOS = on) + (LLM local on + @ off) + moi`
+- `(Device + kaoOS = on) + (LLM local on + @ on) + moi`
+- `(Device + kaoOS = on) + (LLM local off & cloud on + @ on) + moi`
+- `(Device + kaoOS = on) + (LLM local & cloud + @ on) + moi`
+
+## DEV 2.8B validation result
+
+Validation now confirms:
+
+- `router.sh` syntax remains valid
+- `ray` syntax remains valid
+- `ray_surface.sh` syntax remains valid
+- `ray status` exposes the new runtime governance fields
+- `ray status` now shows `best-available-by-state`
+- `ray scout` remains stable
+- the repository remains controlled and convergent during the sprint workflow
+
+## DEV 2.8B operator result
+
+A human operator can now read directly:
+
+- whether the machine is online or offline
+- whether a local llm path is visible in runtime state
+- whether a cloud llm path is visible in runtime state
+- which execution mode Kao currently reports
+- which visible policy currently governs provider selection
+
+## DEV 2.8B process note
+
+An initial DEV 2.8 attempt failed because the patch anchors did not match the real file contents.
+
+The sprint was then corrected through a precise re-inspection workflow and completed as DEV 2.8B using real insertion anchors taken from the inspected files themselves.

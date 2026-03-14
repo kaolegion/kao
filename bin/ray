@@ -38,6 +38,7 @@ ray_status() {
   local selected_provider selected_label selected_kind selected_health selected_note
   local selected_route decision_state cloud_readiness local_readiness hybrid_state operator_mode
   local route_reason route_score cloud_score local_score
+  local network_state local_llm_state cloud_llm_state execution_mode selection_policy
   local detected_provider forced_raw_value forced_provider forced_state
   local ollama_model ollama_model_state ollama_runtime ollama_real_calls ollama_real_state
   local registry_count registry_selected_provider registry_selected_model registry_selected_family
@@ -60,6 +61,11 @@ ray_status() {
   route_score="$(gateway_route_score)"
   cloud_score="$(gateway_cloud_score)"
   local_score="$(gateway_local_score)"
+  network_state="$(gateway_network_state)"
+  local_llm_state="$(gateway_local_llm_state)"
+  cloud_llm_state="$(gateway_cloud_llm_state)"
+  execution_mode="$(gateway_execution_mode)"
+  selection_policy="$(gateway_selection_policy)"
 
   detected_provider="$(gateway_provider_detected)"
   forced_raw_value="$(gateway_forced_provider_raw)"
@@ -96,6 +102,11 @@ ray_status() {
   printf 'cloud score       : %s\n' "${cloud_score}"
   printf 'local score       : %s\n' "${local_score}"
   printf 'mode              : %s\n' "${operator_mode}"
+  printf 'network state     : %s\n' "${network_state}"
+  printf 'local llm state   : %s\n' "${local_llm_state}"
+  printf 'cloud llm state   : %s\n' "${cloud_llm_state}"
+  printf 'execution mode    : %s\n' "${execution_mode}"
+  printf 'selection policy  : %s\n' "${selection_policy}"
   printf 'hybrid state      : %s\n' "${hybrid_state}"
   printf 'cloud readiness   : %s\n' "${cloud_readiness}"
   printf 'local readiness   : %s\n' "${local_readiness}"
