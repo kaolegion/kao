@@ -118,6 +118,131 @@ Future UX mapping idea:
 
 ---
 
+## Runtime transaction semantic layer
+
+Kao now introduces a local runtime transaction semantic layer.
+
+This layer does not replace session narrative events.
+
+It adds a second semantic reading for runtime safety mechanisms such as:
+
+- transaction begin
+- resource staging
+- WAL recording
+- apply execution
+- consistency verification
+- rollback
+- recovery confirmation
+
+This layer is intended for:
+
+- runtime diagnostics
+- future recovery timeline cards
+- system safety overlays
+- crash-safe operator replay
+
+---
+
+## Transaction state semantics
+
+The current runtime transaction model exposes two compact visible axes:
+
+- `STATE`
+- `BARRIER_STATE`
+
+Current transaction state meanings:
+
+- `open` → transaction created, not yet finalized
+- `committing` → apply phase entered
+- `committed` → commit completed
+- `rolled_back` → manual rollback completed
+- `aborted` → interrupted transaction reverted by safety flow
+
+Current barrier state meanings:
+
+- `none` → no transactional barrier reached yet
+- `staged` → resources copied and registered before apply
+- `apply-running` → apply barrier entered
+- `applied` → apply barrier completed
+- `reverted` → recovery or rollback returned the runtime to snapshot baseline
+
+UX reading intent:
+
+- `STATE` tells the lifecycle phase
+- `BARRIER_STATE` tells the safety position inside that phase
+
+Together, they prepare future UX surfaces such as:
+
+- transaction ladders
+- recovery badges
+- reliability heat markers
+- crash replay ribbons
+
+---
+
+## WAL and recovery event families
+
+The runtime semantic model can now represent system-safety events in addition to session events.
+
+Current or near-term transaction/recovery families include:
+
+- `runtime_transaction`
+- `runtime_recovery`
+- `runtime_consistency`
+
+Representative actions may include:
+
+- `transaction-begin`
+- `transaction-stage`
+- `transaction-apply`
+- `transaction-commit`
+- `transaction-rollback`
+- `transaction-consistency-check`
+- `recovery-detected`
+- `recovery-rollback`
+- `recovery-confirm`
+- `recovery-skip-terminal`
+
+Suggested semantic reading:
+
+- family = `runtime_transaction` for mutation lifecycle
+- family = `runtime_consistency` for integrity verification
+- family = `runtime_recovery` for boot-time repair and stabilization
+
+Suggested scope mapping:
+
+- `system` → local runtime safety mechanism
+- `environment` → broader runtime stabilization context
+- `operator` → explicitly requested recovery or rollback surface
+
+Suggested intensity mapping:
+
+- `passive` → regular transaction begin/status
+- `active` → stage/apply/commit flow
+- `critical` → rollback, inconsistency, orphan-lock repair, crash recovery
+- `narrative` → final stabilized runtime transition worth replaying
+
+---
+
+## UX doctrine for reliability events
+
+Reliability events must remain readable without overwhelming the operator.
+
+The rule is:
+
+- keep session timeline as the narrative source for operator activity
+- expose transaction safety as system runtime semantics
+- allow recovery events to be replayed when needed
+- avoid polluting normal interaction with excessive low-level noise
+
+This prepares future UX surfaces such as:
+
+- runtime safety strips
+- rollback incident cards
+- recovery timeline reconstruction
+- transaction consistency warnings
+- differential snapshot previews
+
 ## KSL dashboard semantic layer
 
 KSL now exposes a dashboard-oriented semantic layer in addition to the canonical runtime timeline.
@@ -220,34 +345,42 @@ This prepares future UX surfaces such as:
 - dashboard semantic grouping
 
 
+
 ## Agent field surface
 
-- gateway = centre
-- agents = satellites runtime
-- observer = monitoring cognitif
-
+- gateway = centre cockpit
+- agents = satellites runtime actifs
+- observer = monitoring cognitif passif
 
 ## Temporal dashboard navigation
 
-Le dashboard KSL peut exposer une navigation temporelle minimale pilotée par un curseur.
+Navigation minimale :
 
-Principes :
+- curseur focalise un événement
+- fenêtre locale autour du focus
+- marquage >> pour l’événement actif
 
-- un curseur temporel sélectionne un événement actif dans la timeline
-- une fenêtre locale affiche les événements autour du curseur
-- l’événement focalisé est préfixé par `>>`
-- la navigation prépare trois plans UX :
-  - passé consultable
-  - présent actif
-  - futur projeté
+Contrôles :
 
-Contrôles minimaux :
+- a = précédent
+- d = suivant
+- 0 = début
+- $ = fin
 
-a = reculer d’un événement
-d = avancer d’un événement
-0 = aller au début
-$ = aller à la fin
+Statut :
 
-Format de statut :
+cursor=X window=Y total=Z
 
-cursor=9 window=5 total=10
+## Canonical vs lab surfaces
+
+Canonique :
+
+- moteur temporal
+- grammaire agent field
+- rendu dashboard
+
+Lab :
+
+- seeds timeline
+- démos cockpit
+- simulations UX rapides

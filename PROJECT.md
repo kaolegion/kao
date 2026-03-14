@@ -104,6 +104,48 @@ Its long-term direction is aligned with KaoBox / Brain / Kao-Ray.
 
 ---
 
+## Runtime reliability orientation
+
+Kao now includes an explicit runtime reliability kernel.
+
+This layer is responsible for protecting local runtime mutation.
+
+Current runtime reliability surfaces include:
+
+- `lib/runtime/runtime_lock.sh`
+- `lib/runtime/snapshot_manager.sh`
+- `lib/runtime/runtime_transaction.sh`
+- `lib/runtime/runtime_recovery.sh`
+- `tests/e2e/scenarios/runtime_surface.sh`
+
+Current runtime reliability model includes:
+
+- orphan-safe runtime lock
+- pre-mutation snapshot capture
+- multi-resource staging
+- WAL-backed transaction intent
+- resource manifest tracking
+- consistency checking before commit
+- state-aware rollback and recovery
+
+This kernel exists to support:
+
+- safer runtime transitions
+- future agent-safe mutation
+- deterministic boot stabilization
+- future reliability UX and replay surfaces
+- stronger foundations for cognitive runtime orchestration
+
+The runtime reliability trajectory now points toward:
+
+- stronger commit barriers
+- differential snapshots
+- concurrency-safe mutation discipline
+- deep consistency inspection
+- distributed runtime reliability later
+
+---
+
 ## Gateway orientation
 
 The gateway layer provides:
@@ -208,4 +250,3 @@ Ray prepares Kao for:
 - future model ranking and route ranking
 - future agent-oriented operator selection
 - a more living cloud/local cognition layer
-

@@ -258,3 +258,97 @@ Validation result:
 - dashboard demo renders temporal focus window with status line
 - dashboard agent field reflects temporal phase
 - projection signal remains visible in the cockpit surface
+
+## STRUCTURE 1.1 — Demo extraction from canonical KSL surfaces
+
+Result:
+
+- canonical KSL files now keep runtime-facing logic only
+- demo helpers were extracted into `lib/ksl/lab/`
+- canonical dashboard and agent field files remain executable
+- lab area now hosts isolated demo scripts without polluting the canonical layer
+
+## STRUCTURE 1.2 — Docs convergence for canonical vs lab separation
+
+Result:
+
+- architecture documentation now distinguishes canonical KSL surfaces from lab surfaces
+- UX event documentation now reflects the separation between stable cockpit logic and demo experimentation
+- sprint log records the structural cleanup as part of Kao maturation
+
+# SPRINT RELIABILITY 1.2 — Runtime WAL + Multi-Resource Transaction Engine
+
+## Mission
+
+Transform the runtime mutation layer into a crash-safe transactional engine.
+
+## Goal
+
+Allow Kao to:
+
+- stage multiple runtime resources safely
+- journal mutation intent before apply
+- validate consistency before commit
+- recover deterministically after crash or power loss
+- expose reliability semantics for future UX surfaces
+
+## Scope
+
+Versioned implementation includes:
+
+- `lib/runtime/runtime_lock.sh`
+- `lib/runtime/snapshot_manager.sh`
+- `lib/runtime/runtime_transaction.sh`
+- `lib/runtime/runtime_recovery.sh`
+- `tests/e2e/scenarios/runtime_surface.sh`
+- runtime extensions in `bin/kao`
+
+## Reliability mechanisms introduced
+
+The runtime engine now provides:
+
+- single mutation lock with orphan detection
+- pre-transaction snapshot capture
+- multi-resource staging directory
+- per-transaction WAL file
+- compact resource manifest
+- consistency checker before commit barrier
+- state-aware boot recovery logic
+- recovery timeline journaling
+
+## Transaction state model
+
+Transactions now expose:
+
+- lifecycle state (`open`, `committing`, `committed`, `rolled_back`, `aborted`)
+- barrier state (`none`, `staged`, `apply-running`, `applied`, `reverted`)
+- resource counter for staged mutation scope
+
+## Recovery doctrine
+
+Boot recovery now:
+
+- inspects orphan locks
+- detects incomplete transactions
+- rolls back to snapshot baseline when required
+- marks reverted transactions explicitly
+- journals recovery timeline actions
+
+## Operator result
+
+The operator can now rely on:
+
+- deterministic runtime stabilization after interruption
+- visible mutation intent through WAL traces
+- safer multi-file runtime transitions
+- future UX reliability visualization potential
+
+## Product impact
+
+This sprint establishes:
+
+- the first kernel-grade reliability layer of Kao runtime
+- a foundation for differential snapshot strategies
+- a base for recovery timeline navigation
+- a prerequisite for concurrent agent mutation control
+

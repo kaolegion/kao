@@ -175,6 +175,133 @@ Doctrine de sécurité :
 
 ---
 
+## Runtime transaction engine — crash-safe local mutation layer
+
+Kao introduit maintenant une couche transactionnelle runtime explicite
+pour les mutations locales critiques.
+
+Objectif :
+
+- rendre les mutations runtime crash-safe
+- permettre un staging multi-ressources
+- journaliser avant application
+- rendre le recovery déterministe au boot
+- conserver la séparation stricte entre source versionnée et état local
+
+Composants versionnés :
+
+- `lib/runtime/runtime_lock.sh`
+- `lib/runtime/snapshot_manager.sh`
+- `lib/runtime/runtime_transaction.sh`
+- `lib/runtime/runtime_recovery.sh`
+- `bin/kao`
+- `tests/e2e/scenarios/runtime_surface.sh`
+
+Artefacts runtime locaux associés :
+
+- `state/runtime/.lock/`
+- `state/runtime/.tx/`
+- `state/runtime/runtime.journal`
+- `state/sessions/runtime-*`
+
+Structure transactionnelle canonique :
+
+- une transaction possède un `TX_ID`
+- un snapshot préalable capture le runtime restaurable
+- les ressources mutées sont copiées dans `stage/`
+- chaque ressource stagée est enregistrée dans `wal/runtime.wal`
+- un manifest compact liste les ressources touchées
+- l’application finale est guidée par le WAL et non par un scan implicite
+
+Fichiers transactionnels canoniques par transaction :
+
+- `state/runtime/.tx/<txid>/transaction.env`
+- `state/runtime/.tx/<txid>/resources.manifest`
+- `state/runtime/.tx/<txid>/stage/...`
+- `state/runtime/.tx/<txid>/wal/runtime.wal`
+
+Champs transactionnels visibles :
+
+- `STATE`
+- `BARRIER_STATE`
+- `RESOURCE_COUNT`
+- `SNAPSHOT_ID`
+- `STARTED_AT`
+- `COMMITTED_AT`
+- `ABORTED_AT`
+
+États actuellement introduits :
+
+- `open`
+- `committing`
+- `committed`
+- `rolled_back`
+- `aborted`
+
+Barrier states actuellement introduits :
+
+- `none`
+- `staged`
+- `apply-running`
+- `applied`
+- `reverted`
+
+Doctrine WAL :
+
+- WAL = write-ahead local runtime log de transaction
+- une ressource est enregistrée dans le WAL avant d’être appliquée au runtime cible
+- le WAL enregistre au minimum :
+  - la cible relative runtime
+  - le chemin du fichier stagé
+  - le checksum `sha256`
+  - le temps de staging
+
+Checker de cohérence minimal :
+
+- vérifie la présence des fichiers transactionnels attendus
+- relit les entrées `WAL_STAGE`
+- revalide le checksum de chaque ressource stagée
+- bloque le commit si une incohérence est détectée
+
+Recovery piloté par état :
+
+- au boot, Kao inspecte d’abord les locks orphelins
+- si une transaction incomplète est détectée, le recovery lit `STATE` et `BARRIER_STATE`
+- les états `open:*`, `committing:*` et `committed:apply-running` sont traités comme incomplets
+- ces états déclenchent un rollback vers le snapshot préalable
+- la transaction est ensuite marquée `aborted` avec barrière `reverted`
+- une transaction déjà `committed:applied` peut être confirmée sans rollback
+- les états terminaux `rolled_back:*` et `aborted:*` sont ignorés en réparation active
+
+Lecture opératoire :
+
+- le lock protège l’unicité de mutation runtime
+- le snapshot protège la restaurabilité
+- le WAL protège l’intention d’application
+- le manifest protège la lecture compacte des ressources touchées
+- le checker protège le commit contre une corruption de staging
+- le recovery protège le boot contre une transaction laissée ouverte
+
+Doctrine de gouvernance :
+
+- cette couche reste strictement locale au runtime
+- aucun artefact transactionnel ne devient source canonique
+- les journaux et transactions servent la sûreté opératoire, pas la version du produit
+- la source versionnée décrit le moteur ; le runtime local contient les exécutions concrètes
+
+Validation actuellement verrouillée :
+
+- transaction `begin / stage / commit / rollback`
+- lock orphelin récupérable
+- WAL écrit au stage
+- `BARRIER_STATE=staged` après staging
+- `RESOURCE_COUNT` maintenu dans `transaction.env`
+- apply guidé par WAL avec vérification checksum
+- recovery boot piloté par `STATE/BARRIER_STATE`
+- rollback de recovery validé par E2E reliability
+
+---
+
 ## KSL — Kao Signal Language
 
 Kao introduit maintenant un langage de signal natif pour exposer l’état runtime
@@ -550,16 +677,34 @@ Operator outcome:
 - future compatibility with Kao world UX timeline navigation  
 
 
+
 ## KSL dashboard temporal navigation
 
-Le dashboard KSL peut agréger trois surfaces complémentaires :
+Le dashboard KSL agrège trois surfaces cockpit :
 
-- une fenêtre temporelle pilotée par curseur
-- un champ d’agents synchronisé avec la position temporelle
-- une projection future exposée par signal KSL
+- fenêtre temporelle pilotée par curseur
+- champ d’agents synchronisé
+- projection future
 
-La logique reste séparée :
+Responsabilités séparées :
 
-- `lib/ksl/nav/ksl_temporal_nav.sh` pour le moteur temporel
-- `lib/ksl/ksl_agent_field.sh` pour la sémantique champ d’agents
-- `lib/ksl/ksl_dashboard.sh` pour le rendu cockpit terminal et la boucle interactive
+- lib/ksl/nav/ksl_temporal_nav.sh
+- lib/ksl/ksl_agent_field.sh
+- lib/ksl/ksl_dashboard.sh
+
+## KSL canonical vs lab separation
+
+Surfaces canoniques :
+
+- lib/ksl/
+- lib/ksl/nav/
+
+Surfaces lab :
+
+- lib/ksl/lab/
+
+Doctrine :
+
+- le canonique contient la logique runtime stable
+- le lab contient les seeds UX et démos jetables
+- le lab dépend du canonique mais jamais l’inverse

@@ -6,6 +6,9 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 mode="${1:-root}"
 
+. "${KROOT}/lib/runtime/runtime_recovery.sh"
+kao_runtime_recovery_run || true
+
 runtime_dispatch() {
   local subcommand target
   subcommand="${1:-status}"
@@ -49,6 +52,87 @@ runtime_dispatch() {
   esac
 }
 
+snapshot_dispatch() {
+  local subcommand snapshot_id
+  subcommand="${1:-create}"
+  snapshot_id="${2:-}"
+
+  . "${KROOT}/lib/runtime/snapshot_manager.sh"
+
+  case "${subcommand}" in
+    create)
+      kao_snapshot_create
+      ;;
+    list)
+      kao_snapshot_list
+      ;;
+    restore)
+      if [ -z "${snapshot_id}" ]; then
+        printf 'ERROR: snapshot id required\n' >&2
+        printf 'USAGE: kao snapshot restore <snapshot-id>\n' >&2
+        return 1
+      fi
+      kao_snapshot_restore "${snapshot_id}"
+      ;;
+    gc)
+      kao_snapshot_gc
+      ;;
+    *)
+      printf 'ERROR: unknown snapshot subcommand: %s\n' "${subcommand}" >&2
+      printf 'USAGE: kao snapshot [create|list|restore <snapshot-id>|gc]\n' >&2
+      return 1
+      ;;
+  esac
+}
+
+transaction_dispatch() {
+  local subcommand txid target source_file
+  subcommand="${1:-status}"
+  txid="${2:-}"
+  target="${3:-}"
+  source_file="${4:-}"
+
+  . "${KROOT}/lib/runtime/runtime_transaction.sh"
+
+  case "${subcommand}" in
+    begin)
+      kao_runtime_tx_begin
+      ;;
+    stage)
+      if [ -z "${txid}" ] || [ -z "${target}" ] || [ -z "${source_file}" ]; then
+        printf 'ERROR: transaction id, target and source file required\n' >&2
+        printf 'USAGE: kao transaction stage <txid> <target> <source-file>\n' >&2
+        return 1
+      fi
+      kao_runtime_tx_stage_file "${txid}" "${target}" "${source_file}"
+      ;;
+    commit)
+      if [ -z "${txid}" ]; then
+        printf 'ERROR: transaction id required\n' >&2
+        printf 'USAGE: kao transaction commit <txid>\n' >&2
+        return 1
+      fi
+      kao_runtime_tx_commit "${txid}"
+      ;;
+    rollback)
+      if [ -z "${txid}" ]; then
+        printf 'ERROR: transaction id required\n' >&2
+        printf 'USAGE: kao transaction rollback <txid>\n' >&2
+        return 1
+      fi
+      kao_runtime_tx_rollback "${txid}"
+      ;;
+    status|"")
+      kao_runtime_tx_status
+      ;;
+    *)
+      printf 'ERROR: unknown transaction subcommand: %s\n' "${subcommand}" >&2
+      printf 'USAGE: kao transaction [begin|stage <txid> <target> <source-file>|commit <txid>|rollback <txid>|status]\n' >&2
+      return 1
+      ;;
+  esac
+}
+
 gateway_dispatch() {
   . "${KROOT}/lib/gateway/router.sh"
   gateway_cli "${1:-status}"
@@ -87,6 +171,16 @@ case "${mode}" in
   runtime)
     shift || true
     runtime_dispatch "${1:-status}" "${2:-}"
+    ;;
+
+  snapshot)
+    shift || true
+    snapshot_dispatch "${1:-create}" "${2:-}"
+    ;;
+
+  transaction)
+    shift || true
+    transaction_dispatch "${1:-status}" "${2:-}"
     ;;
 
   gateway)
