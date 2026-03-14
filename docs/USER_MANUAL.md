@@ -18,6 +18,44 @@ This manual describes an operable cognitive system.
 
 ---
 
+## Runtime hygiene doctrine
+
+Kao distinguishes clearly between:
+
+- versioned source
+- ephemeral runtime state
+
+Versioned source includes:
+
+- code
+- libraries
+- documentation
+- E2E scenarios
+- sprint logs
+
+Ephemeral runtime state includes:
+
+- execution logs
+- runtime snapshots
+- temporary validation state
+- local diagnostic traces
+
+Operator rule:
+
+- runtime may mutate during validation and normal usage
+- runtime mutation is not a source change
+- a runtime artifact should not pollute `git status`
+- the repository must end clean after sprint validation
+
+Current governance lock:
+
+- `state/runtime/runtime.snapshot` is treated as ephemeral runtime state and ignored by Git
+
+This keeps runtime validations operable
+without forcing a manual restore at the end of every sprint.
+
+---
+
 ## Canonical inference command
 
 Main inference entrypoint:
@@ -257,164 +295,3 @@ Current behavior:
 - paths declared in `lib/system/local_paths_registry.sh`
 - states computed in `lib/system/system_inspector.sh`
 - rendered through `ray system inspect`
-
-This command is useful to:
-
-- validate the local Kao structure quickly
-- detect missing expected directories
-- inspect local readiness without reading library code directly
-- prepare future local doctor and capability scans
-
----
-
-## Understand ray scout reading
-
-`ray scout` shows the ranked
-model landscape in a compact
-operator format.
-
-It exposes:
-
-- provider
-- model
-- family
-- maturity
-- rank
-- status
-
-This view is:
-
-- deterministic
-- read-only
-- comparative across ranked registry entries
-- ordered by registry rank
-- independent from routing mutation
-
-Strategic status is currently mapped as:
-
-- elite → dominant
-- high → competitive
-- medium → viable
-- low → incubating
-- unknown → experimental
-
-This mapping is informational only.
-
-It does not change routing yet.
-
----
-
-## Understand ray registry reading
-
-`ray registry` shows the internal canonical model registry.
-
-This registry is:
-
-- deterministic
-- local to Kao runtime
-- independent from real routing decision
-- designed to prepare future ranking logic
-
-Each entry exposes:
-
-- provider
-- model
-- family (cloud / local)
-- base score
-- declared state
-- runtime state
-- runtime score
-- operator rank
-- maturity level
-
-Declared state reflects
-the canonical registry declaration.
-
-Runtime state reflects
-the actual runtime situation.
-
-Runtime score is derived from:
-
-- base score
-- runtime readiness
-
-Operator rank is derived from:
-
-- runtime score
-- declared registry posture
-
-Maturity level gives a compact operator reading such as:
-
-- low
-- medium
-- high
-- elite
-
-These values are **informational only** at this stage.
-
-Routing still follows gateway policy.
-
----
-
-## Understand ray decision reading
-
-Ray exposes:
-
-### Selected route
-
-- cloud
-- local
-- none
-
-### Decision state
-
-This describes whether the router
-can actually retain a routing decision.
-
-It is distinct from:
-
-- the raw forcing input
-- the normalized provider reading
-- the global runtime capability
-- the registry reading
-
-Possible values:
-
-- route-selected
-- no-route-selected
-- blocked-unsupported-forcing
-
----
-
-## Route reason
-
-Explains *why* the route was selected
-or why the routing decision is blocked.
-
-Possible values:
-
-- cloud-priority-ready
-- local-only-available
-- forced-provider-mistral
-- forced-provider-ollama
-- unsupported-forced-provider
-- no-provider-ready
-
-This is the first human-readable decision layer.
-
----
-
-## Understand routing scores
-
-Ray exposes three compact routing scores:
-
-- cloud score
-- local score
-- route score
-
-Ray also exposes:
-
-- registry base score
-- registry runtime score
-- registry operator rank
-- registry maturity

@@ -5,3 +5,6 @@
 .profile
 
 *.log
+
+# runtime state artifacts
+state/runtime/runtime.snapshot

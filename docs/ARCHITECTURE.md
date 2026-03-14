@@ -9,6 +9,57 @@ et contribue à un runtime opératoire cohérent.
 
 ---
 
+## Gouvernance source vs runtime
+
+Kao distingue explicitement deux domaines :
+
+### Source versionnée
+
+La source versionnée contient :
+
+- le code shell
+- les bibliothèques
+- les entrées CLI
+- la documentation
+- les scénarios E2E
+- les journaux de sprint
+
+Cette couche doit rester :
+
+- relisible
+- diffable
+- stable
+- commitable
+
+### État runtime éphémère
+
+L’état runtime contient :
+
+- logs d’exécution
+- snapshots runtime
+- états temporaires produits par validation
+- traces locales de diagnostic
+
+Cette couche peut muter librement pendant :
+
+- une exécution opérateur
+- une validation
+- un E2E
+- une inspection système
+
+Doctrine :
+
+- le runtime n’est pas une source canonique
+- un artefact runtime ne doit pas polluer le contrôle de version
+- une mutation runtime ne doit pas imposer de restauration manuelle permanente
+- la gouvernance Git doit distinguer clairement source et état éphémère
+
+Règle actuellement verrouillée :
+
+- `state/runtime/runtime.snapshot` est un artefact runtime éphémère ignoré par Git
+
+---
+
 ## Layer 0 — Machine Host
 
 Responsabilités :
@@ -258,67 +309,3 @@ Ray distingue maintenant explicitement :
 ### État de chemin local
 
 - path-ready
-- local-action-pending
-- local-inspection-pending
-- gateway-ready
-- unclassified
-
-### État d’inspection système locale
-
-- OK
-- MISSING
-- TYPE-MISMATCH
-- UNREADABLE
-
----
-
-## Layer 6 — Local System Path Registry + Safe Inspection
-
-Cette couche introduit une cartographie locale canonique minimale.
-
-Responsabilités :
-
-- déclaration des chemins locaux officiels
-- normalisation de la nomenclature de chemins
-- lecture déterministe des surfaces locales attendues
-- inspection read-only de l’état réel des chemins
-- rendu opérateur stable et diffable
-- préparation de futures surfaces doctor / scan / capabilities
-
-Bibliothèques canoniques :
-
-- `lib/system/local_paths_registry.sh`
-- `lib/system/system_inspector.sh`
-
-Doctrine actuelle :
-
-- registry séparé de l’inspection
-- aucun effet de bord
-- aucune auto-réparation
-- aucune écriture système
-- aucun secret exposé
-- lecture locale sûre avant extension des capacités
-
-Surface opérateur actuelle :
-
-- `ray system inspect`
-
-Chemins canoniques actuellement suivis :
-
-- root path
-- bin directory
-- library root
-- cognition libs
-- system libs
-- state directory
-- logs directory
-- runtime state
-- e2e scenarios
-- agent registry
-
-Cette couche prépare :
-
-- doctor local
-- scan de capacités
-- lecture locale plus riche
-- évolution vers runtime awareness étendue

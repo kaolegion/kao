@@ -1150,3 +1150,34 @@ The local inspection layer now stays:
 - non-destructive
 - secret-safe
 - ready for future local doctor and capability expansion
+
+---
+
+## DEV 2.3 runtime snapshot governance note
+
+A dedicated runtime hygiene rule is now locked for the repository.
+
+Implemented real state now includes:
+
+- explicit Git ignore rule for `state/runtime/runtime.snapshot`
+- explicit architecture distinction between versioned source and ephemeral runtime state
+- explicit operator manual doctrine for runtime mutation during validation
+- sprint convergence documenting the governance decision
+
+## DEV 2.3 validation result
+
+Validation now confirms:
+
+- `state/runtime/runtime.snapshot` is governed as runtime state, not source
+- runtime snapshot mutation no longer needs a final manual restore to keep the repository clean
+- repository hygiene doctrine is now documented in architecture and user-facing operator guidance
+- sprint documentation is aligned with the current runtime governance rule
+
+## DEV 2.3 operator result
+
+A human operator can now understand immediately:
+
+- why runtime snapshot mutations may happen during validation
+- why those mutations are not source changes
+- how Git hygiene distinguishes source from runtime
+- why end-of-sprint repository cleanliness is easier to preserve going forward
