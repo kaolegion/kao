@@ -318,6 +318,7 @@ Artefacts runtime :
 
 - `state/runtime/session.current`
 - `state/runtime/session.history`
+- `state/runtime/session.timeline`
 - `state/sessions/`
 
 Bibliothèque canonique :
@@ -331,6 +332,7 @@ Cette couche expose :
 - respiration visible pendant `ray run`
 - fermeture de session avec archivage lisible
 - historique local des sessions fermées
+- timeline canonique des événements de session
 - snapshot dédié pour chaque session clôturée
 
 Les attributs actuellement gouvernés sont :
@@ -346,6 +348,7 @@ Les attributs actuellement gouvernés sont :
 - gateway principal
 - agents secondaires appelés
 - dernier événement visible sur la session active
+- détail opératoire d’événement pour la timeline
 
 Surface opérateur associée :
 
@@ -353,15 +356,17 @@ Surface opérateur associée :
 - `ray session open`
 - `ray session close`
 - `ray session history`
+- `ray session timeline`
 
 Doctrine :
 
 - `session.current` est mutable et locale
 - `session.history` est une trace runtime locale compacte
+- `session.timeline` est la ligne canonique d’événements de session
 - `state/sessions/` contient les snapshots fermés par session
 - cette couche ne remplace pas la gouvernance source Git
 - elle rend visible la respiration de Kao au niveau session
-- elle améliore la fidélité historique sans transformer le runtime en source versionnée
+- elle prépare une future UX timeline sans transformer le runtime en source versionnée
 
 Lecture opératoire :
 
@@ -369,7 +374,20 @@ Lecture opératoire :
 - le gateway visible représente l’agent principal au moment courant
 - la liste `agents` représente les surfaces ou sous-agents activés pendant la session
 - `session.history` agit comme un index lisible des sessions clôturées
+- `session.timeline` agit comme une séquence canonique grep-friendly des événements runtime
 - chaque snapshot de `state/sessions/` préserve l’état fermé complet d’une session
+
+Format canonique timeline :
+
+- une ligne = un événement
+- préfixe canonique : `SESSION_EVENT`
+- structure : `SESSION_EVENT|at=...|session_id=...|type=...|machine=...|user=...|internet=...|llm=...|gateway=...|agents=...|detail=...`
+
+Types minimaux introduits dans ce sprint :
+
+- `session-open`
+- `session-touch`
+- `session-close`
 
 ### Git hygiene note
 
@@ -377,4 +395,5 @@ Les artefacts suivants sont explicitement traités comme runtime local éphémè
 
 - `state/runtime/session.current`
 - `state/runtime/session.history`
+- `state/runtime/session.timeline`
 - `state/sessions/`

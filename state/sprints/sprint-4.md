@@ -1555,3 +1555,41 @@ A human operator can now:
 - observe continuity of cognitive presence across work cycles
 - reason about temporal behavior of Kao as a living system
 
+---
+
+## DEV 3.0 session timeline canonization note
+
+A canonical runtime timeline layer now exists for session cognition.
+
+Implemented real state now includes:
+
+- canonical `state/runtime/session.timeline` artifact
+- canonical `ray session timeline` operator surface
+- canonical `SESSION_EVENT` line prefix
+- stable event nomenclature with shell-readable key-value fields
+- timeline emission on session open
+- timeline emission on session touch
+- timeline emission on session close
+- dedicated E2E coverage for the timeline surface
+
+## DEV 3.0 validation target
+
+Validation must confirm:
+
+- `ray session timeline` banner visibility
+- `session.timeline` file creation
+- visible `session-open` event
+- visible `session-touch` event
+- visible `session-close` event
+- visible operator detail trace in timeline events
+
+## DEV 3.0 operator result
+
+A human operator can now read:
+
+- when a session opened
+- which gateway context was active
+- which surfaces touched the session
+- when a session closed
+- a canonical event stream ready for future Kao UX timeline mapping
+

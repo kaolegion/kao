@@ -243,6 +243,7 @@ Main commands:
 - `ray session open`
 - `ray session close`
 - `ray session history`
+- `ray session timeline`
 
 Reading rules:
 
@@ -250,6 +251,7 @@ Reading rules:
 - `ray session open` ensures that a session exists and starts duration tracking
 - `ray session close` archives the current session into history and closes it
 - `ray session history` shows recent closed sessions
+- `ray session timeline` shows the canonical event stream for session activity
 
 Visible fields include:
 
@@ -279,10 +281,24 @@ Session closure behavior:
 - `ray session close` also writes a dedicated closed snapshot into `state/sessions/`
 - the runtime history remains readable in one place while each closed session keeps its own preserved state file
 
+Timeline behavior:
+
+- `ray session timeline` reads `state/runtime/session.timeline`
+- timeline lines use the canonical prefix `SESSION_EVENT`
+- each event keeps a stable nomenclature: `at`, `session_id`, `type`, `machine`, `user`, `internet`, `llm`, `gateway`, `agents`, `detail`
+- this format is optimized for shell inspection, grep, tail, and future UX timeline mapping
+
+Types currently emitted:
+
+- `session-open`
+- `session-touch`
+- `session-close`
+
 During `ray run`, Kao now renders a small breathing block before execution so the operator can read the current runtime cognitive state directly in the terminal.
 
 Runtime hygiene extension:
 
 - `state/runtime/session.current` is treated as ephemeral local runtime state and ignored by Git
 - `state/runtime/session.history` is treated as ephemeral local runtime state and ignored by Git
+- `state/runtime/session.timeline` is treated as ephemeral local runtime state and ignored by Git
 - `state/sessions/` is treated as ephemeral local runtime state and ignored by Git

@@ -16,6 +16,10 @@ kao_session_history_file() {
   printf '%s/session.history\n' "$(kao_session_runtime_dir)"
 }
 
+kao_session_timeline_file() {
+  printf '%s/session.timeline\n' "$(kao_session_runtime_dir)"
+}
+
 kao_session_now() {
   date '+%Y-%m-%d %H:%M:%S'
 }
@@ -79,6 +83,10 @@ kao_session_llm_state() {
 
 kao_session_escape_csv() {
   printf '%s' "${1:-}" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//; s/,/;/g'
+}
+
+kao_session_escape_field() {
+  printf '%s' "${1:-}" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//; s/|/\//g'
 }
 
 kao_session_value() {
@@ -165,6 +173,30 @@ kao_session_merge_agents() {
   printf '%s\n' "${merged}"
 }
 
+kao_session_append_timeline_event() {
+  local event_type session_id machine_name user_name internet_state llm_state gateway_agent agents detail
+  local file at
+
+  event_type="${1}"
+  session_id="${2}"
+  machine_name="${3}"
+  user_name="${4}"
+  internet_state="${5}"
+  llm_state="${6}"
+  gateway_agent="${7}"
+  agents="${8}"
+  detail="${9:-none}"
+
+  kao_session_ensure_dirs
+  file="$(kao_session_timeline_file)"
+  at="$(kao_session_now)"
+  touch "${file}"
+
+  printf '%s\n' \
+    "SESSION_EVENT|at=$(kao_session_escape_field "${at}")|session_id=$(kao_session_escape_field "${session_id}")|type=$(kao_session_escape_field "${event_type}")|machine=$(kao_session_escape_field "${machine_name}")|user=$(kao_session_escape_field "${user_name}")|internet=$(kao_session_escape_field "${internet_state}")|llm=$(kao_session_escape_field "${llm_state}")|gateway=$(kao_session_escape_field "${gateway_agent}")|agents=$(kao_session_escape_field "${agents}")|detail=$(kao_session_escape_field "${detail}")" \
+    >> "${file}"
+}
+
 kao_session_ensure_active() {
   local file session_id start_at start_epoch machine_name user_name internet_state llm_state gateway_agent secondary_agents
 
@@ -194,14 +226,26 @@ kao_session_ensure_active() {
     "${llm_state}" \
     "${gateway_agent}" \
     "${secondary_agents}"
+
+  kao_session_append_timeline_event \
+    "session-open" \
+    "${session_id}" \
+    "${machine_name}" \
+    "${user_name}" \
+    "${internet_state}" \
+    "${llm_state}" \
+    "${gateway_agent}" \
+    "${secondary_agents}" \
+    "opened-by-ensure-active"
 }
 
 kao_session_touch() {
-  local gateway_agent secondary_agents
+  local gateway_agent secondary_agents detail
   local file session_id start_at start_epoch machine_name user_name internet_state llm_state existing_agents merged_agents
 
   gateway_agent="${1:-$(kao_session_selected_provider)}"
   secondary_agents="${2:-}"
+  detail="${3:-touch}"
 
   kao_session_ensure_active
 
@@ -230,6 +274,17 @@ kao_session_touch() {
     "${llm_state}" \
     "${gateway_agent}" \
     "${merged_agents}"
+
+  kao_session_append_timeline_event \
+    "session-touch" \
+    "${session_id}" \
+    "${machine_name}" \
+    "${user_name}" \
+    "${internet_state}" \
+    "${llm_state}" \
+    "${gateway_agent}" \
+    "${merged_agents}" \
+    "${detail}"
 }
 
 kao_session_duration_seconds() {
@@ -395,6 +450,17 @@ kao_session_close() {
     "${agents}" \
     "${archive_file}"
 
+  kao_session_append_timeline_event \
+    "session-close" \
+    "${session_id}" \
+    "${machine_name}" \
+    "${user_name}" \
+    "${internet_state}" \
+    "${llm_state}" \
+    "${gateway_agent}" \
+    "${agents}" \
+    "duration=${duration_human};archive=${archive_file}"
+
   rm -f "${file}"
 
   printf 'RAY SESSION CLOSED\n'
@@ -460,6 +526,20 @@ kao_session_render_history() {
   fi
 
   tail -n 10 "${file}"
+}
+
+kao_session_render_timeline() {
+  local file
+
+  file="$(kao_session_timeline_file)"
+  printf 'RAY SESSION TIMELINE\n'
+
+  if [ ! -f "${file}" ] || [ ! -s "${file}" ]; then
+    printf 'none\n'
+    return 0
+  fi
+
+  tail -n 20 "${file}"
 }
 
 kao_session_render_breathing() {
