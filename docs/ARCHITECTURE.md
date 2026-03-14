@@ -134,7 +134,12 @@ Responsabilités :
 - exposition d’une première couche de classification d’intention opérateur
 - exposition d’une famille de route cognitive avant exécution réelle
 - exposition d’une action opératoire lisible dérivée du prompt
+- exposition d’un pont d’exécution conscient de l’intention
+- exposition d’une stratégie d’exécution dérivée du prompt
+- exposition d’une surface d’exécution retenue
+- exposition d’un mode d’exécution auto/local/cloud
 - exécution via le gateway existant
+- préparation d’une exécution locale future plus directe
 
 Ray ne remplace pas :
 
@@ -149,6 +154,7 @@ Ray agit comme :
 - une abstraction du routage réel
 - une première couche d’intelligence décisionnelle lisible
 - une première fenêtre vers le paysage vivant des modèles
+- un bridge explicable entre intention et exécution
 
 Ray distingue maintenant explicitement :
 
@@ -156,6 +162,10 @@ Ray distingue maintenant explicitement :
 - la classe cognitive dérivée du prompt
 - la famille de route cognitive associée
 - l’action opératoire lisible associée
+- la stratégie d’exécution dérivée
+- la surface d’exécution retenue
+- le mode d’exécution courant
+- la décision d’exécution retenue
 - le provider normalisé retenable
 - la validité de l’expression de forcing
 - la capacité runtime disponible
@@ -183,6 +193,11 @@ Ray distingue maintenant explicitement :
 - no-route-selected
 - blocked-unsupported-forcing
 
+### Decision d’exécution
+
+- routed-execution
+- no-execution-bridge
+
 ### Reason opérateur
 
 - cloud-priority-ready
@@ -204,6 +219,27 @@ Ray distingue maintenant explicitement :
 - offline
 - degraded
 - hybrid-ready
+
+### Mode d’exécution
+
+- auto
+- local
+- cloud
+
+### Surface d’exécution
+
+- gateway
+- shell
+- system
+- none
+
+### Stratégie d’exécution
+
+- gateway-light
+- gateway-heavy
+- local-exec
+- local-inspect
+- unclassified
 
 ### État hybride
 
@@ -241,6 +277,10 @@ Doctrine de lecture :
 - `forced provider` expose le provider supporté normalisé retenable
 - `forced state` expose si le forcing est unset, supported ou unsupported
 - `decision state` décrit si une décision effective peut être retenue
+- `decision` décrit si le bridge d’exécution retient une stratégie exploitable
+- `execution mode` prépare une gouvernance future de l’exécution
+- `surface` expose la famille d’exécution actuellement retenue
+- `strategy` expose la stratégie dérivée de l’intention classifiée
 - `hybrid state` décrit la capacité runtime cloud/local
 - `mode` traduit la lecture opérateur effective de la situation
 - `registry declared` conserve l’état canonique déclaré dans le registry
@@ -258,150 +298,3 @@ Cas important :
   - `forced raw value` peut conserver l’entrée invalide
   - `forced provider` peut rester `none`
   - `forced state` peut devenir `unsupported`
-- la capacité runtime peut néanmoins rester favorable
-- `hybrid state` peut donc rester `hybrid-ready`
-- pendant que `decision state` devient `blocked-unsupported-forcing`
-- et que `mode` devient `degraded`
-- la lecture registry sélectionnée peut rester `none`
-
-Finalité :
-
-préparer Kao à :
-
-- un routeur multi-LLM vivant
-- une cognition hybride dynamique
-- une orchestration agentique future
-- une priorisation adaptative des modèles
-- une lecture humaine de la décision avant automatisation plus lourde
-- un futur classement vivant des modèles/providers
-- un futur pilotage plus intelligent fondé sur la maturité runtime
-- un futur paysage vivant des modèles lisible par statut stratégique
-
----
-
-## Layer 6 — Provider Layer
-
-Chaque provider expose :
-
-- availability
-- health
-- note opérateur
-- capacité réelle d’inférence
-- policy locale si applicable
-
-### Mistral
-
-- provider cloud principal
-- nécessite secret externe
-- inference HTTP déterministe
-- priorité de routage par défaut
-- score fort quand prêt
-- entrée canonique dans le registry
-
-### Ollama
-
-- provider local évolutif
-- stub opératoire disponible
-- backend réel détectable
-- modèle cible explicite
-- appels réels activables par policy
-- journalisation distinguant tentative, stub et real
-- score progressif selon maturité locale réelle
-- entrée canonique dans le registry
-
-But :
-
-préparer Kao à :
-
-- inference offline
-- autonomie cognitive machine
-- orchestration hybride cloud/local
-- classement lisible des capacités disponibles
-
----
-
-## Layer 7 — Agent Orchestration
-
-Responsabilités :
-
-- planification
-- supervision
-- pipeline exécution
-
----
-
-## Layer 8 — Dev Intelligence
-
-Responsabilités :
-
-- compréhension repository
-- assistance refactor
-- stratégie sprint
-
----
-
-## Layer 9 — Terminal Cognitive UX
-
-Responsabilités :
-
-- scènes opératoires
-- narration runtime
-- visibilité décisions gateway
-- lecture directe des états cognitifs
-- visibilité du passage cloud → local
-- visibilité du modèle local ciblé
-- visibilité du mode stub / backend / model-ready
-- visibilité synthétique via ray
-- visibilité de la raison de sélection
-- visibilité du différentiel de score cloud/local
-- visibilité de la différence entre capacité et décision
-- visibilité du registry vivant
-- visibilité du modèle actuellement retenu dans le registry
-
----
-
-## Layer 10 — Communication
-
-Canaux :
-
-- terminal
-- chat
-- stream
-- logs enrichis
-
----
-
-## Layer 11 — Infra
-
-Responsabilités :
-
-- cluster
-- inference distante
-- monitoring
-- distribution Kao
-
-
-### Intentions opérateur
-
-Première classification heuristique actuellement exposée par `ray ask` :
-
-- file-op
-- system-op
-- cognitive-light
-- cognitive-heavy
-- unknown
-
-Familles de route cognitives actuellement exposées :
-
-- local-agent
-- llm-light
-- llm-heavy
-- unknown
-
-Cette couche est actuellement :
-
-- déterministe
-- heuristique
-- lisible terminalement
-- non-LLM pour la décision
-- préparatoire à une orchestration agentique future

@@ -949,3 +949,51 @@ A human operator can now read before execution:
 - which readable action category is associated
 - whether a provider is relevant for the current intent
 - how Kao begins to separate intent reading from inference execution
+
+---
+
+## DEV 2.0 intent-aware execution bridge note
+
+Ray now exposes a first explicit bridge between
+operator intent and retained execution strategy.
+
+Implemented real state now includes:
+
+- canonical `ray bridge "<prompt>"` command
+- enriched `ray ask "<prompt>"` reading
+- visible execution mode
+- visible execution strategy
+- visible execution surface
+- visible execution decision
+- first bridge between intent classification and retained execution family
+- gateway execution retained for cognitive prompts
+- deterministic local-action-pending state for file/system prompts
+- canonical execution bridge library in `lib/cognition/execution_bridge.sh`
+- E2E lock for ask / bridge / local pending state
+
+## DEV 2.0 validation result
+
+Validation now confirms:
+
+- canonical execution bridge library syntax
+- canonical `ray` syntax remains valid
+- `ray ask` exposes intent + execution bridge reading
+- `ray bridge` exposes compact execution bridge state
+- cognitive-heavy prompts retain gateway execution posture
+- local file prompts retain shell bridge posture
+- local execution remains intentionally non-destructive at this stage
+- E2E scenario locks the operator-visible behavior
+
+## DEV 2.0 operator result
+
+A human operator can now understand:
+
+- how Kao classifies the prompt
+- which route family is associated with the prompt
+- which action label is associated with the prompt
+- which execution strategy is retained
+- which execution surface is currently selected
+- whether execution is bridgeable
+- whether the provider remains relevant for the retained task
+- whether a local task is recognized but intentionally pending
+- how future direct local execution can be introduced without breaking the current runtime model

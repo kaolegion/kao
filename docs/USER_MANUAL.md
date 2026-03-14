@@ -48,6 +48,7 @@ Commands:
 - ray registry
 - ray scout
 - ray ask "<prompt>"
+- ray bridge "<prompt>"
 - ray run "<prompt>"
 
 Ray exposes routing cognition,
@@ -63,6 +64,106 @@ for ranked registry entries.
 Ray now also exposes a first
 operator intent classification layer
 through `ray ask`.
+
+Ray now also exposes an
+intent-aware execution bridge
+through `ray bridge`.
+
+---
+
+## Understand ray ask
+
+`ray ask "<prompt>"` now exposes:
+
+- prompt
+- intent class
+- route family
+- action
+- execution mode
+- strategy
+- surface
+- decision
+- provider
+
+This command is informational.
+
+It does not directly execute the task.
+
+It classifies the operator expression
+and shows the current execution bridge reading.
+
+---
+
+## Understand ray bridge
+
+`ray bridge "<prompt>"` exposes the
+compact execution bridge state.
+
+It shows:
+
+- intent class
+- route family
+- action
+- execution mode
+- strategy
+- surface
+- provider
+- decision
+
+This command is useful to understand:
+
+- whether Kao sees the prompt as local or gateway-oriented
+- whether a bridgeable execution strategy exists
+- which provider would be used for inference-oriented tasks
+- which execution family is retained
+
+Current execution mode values:
+
+- auto
+- local
+- cloud
+
+Current decision values:
+
+- routed-execution
+- no-execution-bridge
+
+Current execution surfaces:
+
+- gateway
+- shell
+- system
+- none
+
+Current execution strategies:
+
+- gateway-light
+- gateway-heavy
+- local-exec
+- local-inspect
+- unclassified
+
+---
+
+## Understand ray run
+
+`ray run "<prompt>"` now runs through the
+execution bridge instead of using a blind
+single inference path.
+
+Current behavior:
+
+- gateway-oriented tasks are forwarded to `brain infer`
+- local file/system tasks are recognized and exposed through a readable operator surface
+- local direct execution is not yet enabled in this stage
+
+So current `ray run` behaves as:
+
+- cognitive prompt → executed through gateway
+- local operator prompt → bridge-ready, local action pending
+
+This keeps the system deterministic while preparing
+future direct local execution.
 
 ---
 
@@ -259,153 +360,3 @@ Values:
 - cloud-only
 - local-only
 - unavailable
-
----
-
-## Important decision case — unsupported forcing
-
-If the operator forces a provider that is not supported:
-
-- forced raw value keeps the operator input as expressed
-- forced provider remains the normalized supported reading
-- forced state becomes `unsupported`
-- routing decision can become blocked
-- selected route can become `none`
-- decision state becomes `blocked-unsupported-forcing`
-- operator mode becomes `degraded`
-
-However:
-
-- hybrid state can still be `hybrid-ready`
-- registry reading still exists
-- runtime capacity still exists
-
-This means:
-
-routing cognition is blocked,
-not runtime capability.
-
----
-
-## Recommended operator workflow
-
-Before running inference:
-
-1. read ray status
-2. read ray registry
-3. read ray scout
-4. understand decision state
-5. understand route reason
-6. evaluate routing scores
-7. evaluate registry and scout reading
-8. decide whether to force a provider
-9. run inference
-
-If deeper diagnosis is needed:
-
-- read kao gateway
-- read kao gateway logs
-
----
-
-## Routing doctrine
-
-Priority order:
-
-1. forced provider
-2. cloud ready route
-3. local ready route
-4. degraded state
-
-Registry reading does not override routing policy yet.
-
-Cloud remains default production route.
-
-Local evolves progressively toward autonomy.
-
-Registry prepares:
-
-- ranking logic
-- runtime maturity reading
-- future comparative provider/model evolution
-- multi-LLM cognition
-- adaptive routing intelligence
-
----
-
-## Runtime logs
-
-Runtime events are written in:
-
-- state/logs/gateway.log
-
-Logs show:
-
-- route attempts
-- real vs stub execution
-- fallback events
-- target model states
-
-Cockpit commands must not pollute runtime logs.
-
----
-
-## Goal of the hybrid router
-
-Prepare Kao for:
-
-- adaptive multi-LLM routing
-- autonomous offline cognition
-- agentic orchestration
-- ranking-aware routing
-- human-readable model landscape
-
-
-## Understand ray ask reading
-
-`ray ask "<prompt>"` classifies a prompt
-before real execution.
-
-It currently exposes:
-
-- prompt
-- intent
-- route family
-- action label
-- provider when an LLM family is implied
-
-Current intent classes are:
-
-- file-op
-- system-op
-- cognitive-light
-- cognitive-heavy
-- unknown
-
-Current route families are:
-
-- local-agent
-- llm-light
-- llm-heavy
-- unknown
-
-Current action labels are:
-
-- filesystem operator
-- system operator
-- light cognitive inference
-- deep cognitive inference
-- unclassified
-
-This layer is currently:
-
-- déterministe
-- heuristique
-- read-only
-- non-agentic in execution
-- designed to prepare future orchestration
-
-`ray ask` does not execute inference.
-
-It exposes a cognitive reading surface
-before `ray run` or `brain infer`.

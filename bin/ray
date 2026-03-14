@@ -8,10 +8,12 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 . "${KROOT}/lib/gateway/router.sh"
 # shellcheck disable=SC1091
 . "${KROOT}/lib/cognition/intent_router.sh"
+# shellcheck disable=SC1091
+. "${KROOT}/lib/cognition/execution_bridge.sh"
 
 ray_usage() {
   cat <<'USAGE'
-USAGE: ray [status|registry|scout|ask "<prompt>"|run "<prompt>"]
+USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"]
 
 COMMANDS
   ray                     show ray hybrid status
@@ -19,7 +21,8 @@ COMMANDS
   ray registry            show live model registry reading
   ray scout               show strategic live model landscape reading
   ray ask "<prompt>"      classify operator intent and show route family
-  ray run "<prompt>"      run a prompt through the gateway
+  ray bridge "<prompt>"   show intent-aware execution bridge reading
+  ray run "<prompt>"      run a prompt through the execution bridge
   ray "<prompt>"          shortcut for ray run "<prompt>"
 USAGE
 }
@@ -157,6 +160,7 @@ SCOUT_EOF
 
 ray_ask() {
   local prompt intent route action selected_provider
+  local strategy surface execution_mode decision
 
   if [ "$#" -eq 0 ]; then
     printf 'RAY_ERROR missing prompt\n' >&2
@@ -168,12 +172,20 @@ ray_ask() {
   intent="$(intent_classify "${prompt}")"
   route="$(intent_route_family "${intent}")"
   action="$(intent_action_label "${intent}")"
+  execution_mode="$(execution_mode_resolve)"
+  strategy="$(execution_strategy_for_intent "${intent}")"
+  surface="$(execution_surface_for_strategy "${strategy}")"
+  decision="$(execution_decision_label "${strategy}" "${surface}")"
 
   printf 'RAY ASK\n'
   printf 'prompt  : %s\n' "${prompt}"
   printf 'INTENT  : %s\n' "${intent}"
   printf 'ROUTE   : %s\n' "${route}"
   printf 'ACTION  : %s\n' "${action}"
+  printf 'MODE    : %s\n' "${execution_mode}"
+  printf 'STRATEGY: %s\n' "${strategy}"
+  printf 'SURFACE : %s\n' "${surface}"
+  printf 'DECISION: %s\n' "${decision}"
 
   case "${route}" in
     llm-light|llm-heavy)
@@ -186,8 +198,19 @@ ray_ask() {
   esac
 }
 
+ray_bridge() {
+  if [ "$#" -eq 0 ]; then
+    printf 'RAY_ERROR missing prompt\n' >&2
+    ray_usage >&2
+    return 1
+  fi
+
+  execution_bridge_operator_surface "$@"
+}
+
 ray_run() {
-  local prompt
+  local prompt intent strategy surface
+
   if [ "$#" -eq 0 ]; then
     printf 'RAY_ERROR missing prompt\n' >&2
     ray_usage >&2
@@ -195,7 +218,27 @@ ray_run() {
   fi
 
   prompt="$*"
-  exec "${KROOT}/bin/brain" infer "${prompt}"
+  intent="$(intent_classify "${prompt}")"
+  strategy="$(execution_strategy_for_intent "${intent}")"
+  surface="$(execution_surface_for_strategy "${strategy}")"
+
+  case "${surface}" in
+    gateway)
+      exec "${KROOT}/bin/brain" infer "${prompt}"
+      ;;
+    shell|system)
+      printf 'RAY RUN\n'
+      printf 'prompt   : %s\n' "${prompt}"
+      printf 'intent   : %s\n' "${intent}"
+      printf 'strategy : %s\n' "${strategy}"
+      printf 'surface  : %s\n' "${surface}"
+      printf 'state    : bridge-ready-local-action-pending\n'
+      ;;
+    *)
+      printf 'RAY_ERROR unsupported execution bridge\n' >&2
+      return 1
+      ;;
+  esac
 }
 
 main() {
@@ -223,6 +266,10 @@ main() {
     ask)
       shift
       ray_ask "$@"
+      ;;
+    bridge)
+      shift
+      ray_bridge "$@"
       ;;
     run)
       shift
