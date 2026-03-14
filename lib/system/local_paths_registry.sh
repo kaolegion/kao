@@ -29,3 +29,20 @@ e2e scenarios|dir|${KAO_TESTS_E2E_DIR}
 agent registry|dir|${KAO_AGENT_REGISTRY_DIR}
 EOF_PATHS
 }
+
+kao_local_paths_expected_metadata_list() {
+  kao_local_paths_load
+
+  cat <<EOF_PATHS
+root path|dir|${KAO_ROOT}|kao|kao|750
+bin directory|dir|${KAO_BIN_DIR}|kao|kao|750
+library root|dir|${KAO_LIB_DIR}|kao|kao|750
+cognition libs|dir|${KAO_LIB_COGNITION_DIR}|kao|kao|750
+system libs|dir|${KAO_LIB_SYSTEM_DIR}|kao|kao|750
+state directory|dir|${KAO_STATE_DIR}|kao|kao|750
+logs directory|dir|${KAO_STATE_LOGS_DIR}|kao|kao|750
+runtime state|dir|${KAO_STATE_RUNTIME_DIR}|kao|kao|750
+e2e scenarios|dir|${KAO_TESTS_E2E_DIR}|kao|kao|750
+agent registry|dir|${KAO_AGENT_REGISTRY_DIR}|kao|kao|750
+EOF_PATHS
+}

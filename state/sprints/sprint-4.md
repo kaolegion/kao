@@ -1227,3 +1227,55 @@ A human operator can now understand immediately:
 - which real path is being inspected
 - whether a missing path is absent cleanly without fake metadata
 - where root-managed and operator-managed areas diverge
+
+---
+
+## DEV 2.5 ownership drift diagnostic surface note
+
+A canonical ownership drift diagnostic surface now exists for local system inspection.
+
+Implemented real state now includes:
+
+- canonical expected metadata baseline for inspected local paths
+- expected owner per canonical path
+- expected group per canonical path
+- expected mode per canonical path
+- drift computation against the expected metadata baseline
+- compact drift signal exposure in `ray system inspect`
+- preserved missing path fallback with `n/a` metadata
+- E2E lock for expected metadata and drift visibility
+
+The canonical baseline is now defined in:
+
+- `lib/system/local_paths_registry.sh`
+
+The drift computation is now implemented in:
+
+- `lib/system/system_inspector.sh`
+
+## DEV 2.5 validation result
+
+Validation now confirms:
+
+- expected metadata list syntax is valid
+- system inspector syntax remains valid
+- `ray system inspect` now exposes expected metadata
+- `ray system inspect` now exposes drift state
+- root path drift can be reported as `OK`
+- real drift can be reported on owned or permission-shifted paths
+- missing path fallback remains readable with expected metadata preserved
+- targeted E2E harness validation is green for the drift surface
+
+## DEV 2.5 operator result
+
+A human operator can now understand immediately:
+
+- which canonical local path is compliant
+- which path has an ownership drift
+- which path has a group drift
+- which path has a mode drift
+- which path combines multiple drifts
+- what metadata was expected for each inspected path
+- whether a missing path still belongs to the governed baseline
+- where future controlled repair should target first
+

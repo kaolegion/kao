@@ -49,6 +49,18 @@ printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.
   && e2e_ok "root path mode visible" \
   || e2e_error "root path mode missing"
 
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*expected[[:space:]]+[A-Za-z0-9_-]+:[A-Za-z0-9_-]+[[:space:]]+[0-9]{3,4}" \
+  && e2e_ok "root path expected metadata visible" \
+  || e2e_error "root path expected metadata missing"
+
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*drift[[:space:]]+OK" \
+  && e2e_ok "root path drift state visible" \
+  || e2e_error "root path drift state missing"
+
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "system libs[[:space:]]*:.*drift[[:space:]]+DRIFT:(owner|group|mode|owner,group|owner,mode|group,mode|owner,group,mode)" \
+  && e2e_ok "system libs drift signal visible" \
+  || e2e_error "system libs drift signal missing"
+
 printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*path[[:space:]]+/home/kao" \
   && e2e_ok "root path path visible" \
   || e2e_error "root path path missing"
@@ -60,6 +72,14 @@ printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:
 printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*mode[[:space:]]+n/a" \
   && e2e_ok "missing path mode fallback visible" \
   || e2e_error "missing path mode fallback missing"
+
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*expected[[:space:]]+kao:kao[[:space:]]+750" \
+  && e2e_ok "missing path expected metadata visible" \
+  || e2e_error "missing path expected metadata missing"
+
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*drift[[:space:]]+n/a" \
+  && e2e_ok "missing path drift fallback visible" \
+  || e2e_error "missing path drift fallback missing"
 
 printf 'OK ray_system_inspect\n'
 }

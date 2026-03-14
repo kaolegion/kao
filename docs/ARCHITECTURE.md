@@ -60,6 +60,68 @@ Règle actuellement verrouillée :
 
 ---
 
+## Gouvernance locale des chemins système
+
+Kao introduit une **gouvernance canonique des chemins locaux critiques**.
+
+Chaque chemin local enregistré possède :
+
+- un type attendu (dir ou file)
+- un owner attendu
+- un group attendu
+- un mode attendu
+
+Cette baseline est définie dans un registry canonique :
+
+- `lib/system/local_paths_registry.sh`
+
+Elle constitue :
+
+- une référence de conformité locale
+- une source de diagnostic opérateur
+- une base future de réparation automatisée
+
+---
+
+## Diagnostic de dérive d’ownership
+
+La surface :
+
+- `ray system inspect`
+
+expose maintenant pour chaque chemin :
+
+- état réel (OK / MISSING / TYPE-MISMATCH / UNREADABLE)
+- owner réel
+- group réel
+- mode réel
+- owner attendu
+- group attendu
+- mode attendu
+- signal de dérive
+
+Un signal de dérive peut être :
+
+- `OK`
+- `DRIFT:owner`
+- `DRIFT:group`
+- `DRIFT:mode`
+- combinaisons compactes
+
+Si le chemin est absent :
+
+- owner réel = `n/a`
+- mode réel = `n/a`
+- drift = `n/a`
+
+Cette surface permet :
+
+- une lecture rapide d’un système incohérent
+- une détection de dérive après installation ou manipulation root
+- une future intégration d’outils de réparation contrôlée
+
+---
+
 ## Layer 0 — Machine Host
 
 Responsabilités :
@@ -125,40 +187,12 @@ Responsabilités :
 - gestion de fallback
 - journalisation runtime
 - cockpit diagnostic lisible
-- exposition de readiness locale progressive
-- exposition du modèle local cible
-- exposition de l’état runtime local
-- exposition de la policy d’inférence locale réelle
-- exposition de l’état réel callable ou bloqué
-- exposition de score cloud déterministe
-- exposition de score local déterministe
-- exposition du score de route retenue
-- exposition d’une raison compacte de sélection
-- lecture du modèle sélectionné dans un registry canonique
-- exposition d’un premier score registry indépendant du routage
-- exposition d’un score runtime registry pondéré par l’état réel
-- exposition d’un rang opérateur comparatif
-- exposition d’un niveau de maturité par entrée registry
-- exposition d’un statut stratégique dérivé pour chaque entrée registry lue
 
 Doctrine actuelle :
 
 - priorité cloud par défaut
 - fallback lisible vers local
 - montée progressive vers cognition offline
-- intelligence opérateur simple avant orchestration avancée
-- registry lisible avant ranking dynamique réel
-- intelligence de maturité lisible avant pilotage réel du routage
-- première lecture stratégique du paysage modèle avant classement vivant complet
-
-Objectifs d’évolution :
-
-- inference locale réellement autonome
-- continuité cognitive offline
-- policy adaptative cloud/local
-- stabilité agentique
-- ranking vivant des modèles
-- sélection provider plus intelligente
 
 ---
 
@@ -166,148 +200,11 @@ Objectifs d’évolution :
 
 Ray constitue la première surface opérateur du routeur hybride.
 
-Responsabilités :
+Il expose maintenant :
 
-- lecture compacte du routage réel
-- synthèse cloud/local readiness
-- synthèse du mode opératoire courant
-- exposition de l’état hybride global
-- exposition de l’état de décision effectif
-- exposition de la raison de sélection de route
-- exposition d’un score compact par famille de route
-- exposition du score de la route retenue
-- exposition d’une lecture compacte du registry actif
-- exposition du rang opérateur de l’entrée sélectionnée
-- exposition de la maturité de l’entrée sélectionnée
-- exposition d’un statut stratégique dérivé pour chaque entrée registry lue
-- exposition d’une vue registry dédiée
-- exposition d’une vue scout dédiée au paysage modèle multi-entrée ordonné
-- exposition d’une première couche de classification d’intention opérateur
-- exposition d’une famille de route cognitive avant exécution réelle
-- exposition d’une action opératoire lisible dérivée du prompt
-- exposition d’un pont d’exécution conscient de l’intention
-- exposition d’une stratégie d’exécution dérivée du prompt
-- exposition d’une surface d’exécution retenue
-- exposition d’un mode d’exécution auto/local/cloud
-- exposition d’un identifiant de chemin local canonique
-- exposition d’un label de chemin local canonique
-- exposition d’un état de chemin exécutable ou en attente
-- exposition d’une séquence locale lisible avant action
-- exposition d’une surface d’inspection système locale sûre
-- exposition de métadonnées d’ownership lisibles pour chaque chemin inspecté
-- exécution via le gateway existant pour les prompts cognitifs
-- exécution locale via séquences internes déterministes pour un premier sous-ensemble sûr
-- inspection locale read-only via registry canonique de chemins
-- préparation d’une bibliothèque future de chemins et d’un registry d’actions
+- une lecture cognitive du routage
+- une inspection locale sûre
+- une lecture d’ownership système
+- une détection de dérive structurée
+- une base future de maintenance automatisée
 
-Ray ne remplace pas :
-
-- la couche gateway
-- la logique provider
-- la journalisation runtime
-
-Ray agit comme :
-
-- une couche de lecture cognitive
-- une surface de pilotage humain
-- une abstraction du routage réel
-- une première couche d’intelligence décisionnelle lisible
-- une première fenêtre vers le paysage vivant des modèles
-- un bridge explicable entre intention et exécution
-- une couche de séquençage local bornée pour actions sûres reconnues
-- une première couche d’inspection locale sûre et canonique
-
-Ray distingue maintenant explicitement :
-
-- l’intention opérateur exprimée
-- la classe cognitive dérivée du prompt
-- la famille de route cognitive associée
-- l’action opératoire lisible associée
-- la stratégie d’exécution dérivée
-- la surface d’exécution retenue
-- le mode d’exécution courant
-- la décision d’exécution retenue
-- l’identifiant de chemin local retenu
-- le label de chemin local retenu
-- l’état du chemin local retenu
-- la séquence opératoire lisible avant action
-- le provider normalisé retenable
-- la validité de l’expression de forcing
-- la capacité runtime disponible
-- la décision effectivement retenue
-- l’impact opérateur d’un forcing invalide
-- la lecture registry sélectionnée
-- le score runtime de l’entrée sélectionnée
-- le rang opérateur de l’entrée sélectionnée
-- la maturité de l’entrée sélectionnée
-- le statut stratégique dérivé des entrées visibles
-- la vue complète des entrées registry
-- la vue scout du paysage modèle multi-entrée ordonné
-- une vue locale d’inspection système dérivée d’un registry canonique de chemins
-- une vue locale incluant état, owner, group, mode et chemin réel
-
-États exposés :
-
-### Route sélectionnée
-
-- cloud
-- local
-- none
-
-### État de décision
-
-- route-selected
-- no-route-selected
-- blocked-unsupported-forcing
-
-### Decision d’exécution
-
-- routed-execution
-- no-execution-bridge
-
-### Reason opérateur
-
-- cloud-priority-ready
-- local-only-available
-- forced-provider-mistral
-- forced-provider-ollama
-- unsupported-forced-provider
-- no-provider-ready
-
-### Score opérateur
-
-- cloud score
-- local score
-- route score
-
-### Mode opérateur
-
-- online
-- offline
-- degraded
-- hybrid-ready
-
-### Mode d’exécution
-
-- auto
-- local
-- cloud
-
-### Surface d’exécution
-
-- gateway
-- shell
-- system
-- none
-
-### Stratégie d’exécution
-
-- gateway-light
-- gateway-heavy
-- local-exec
-- local-inspect
-- unclassified
-
-### État de chemin local
-
-- path-ready
