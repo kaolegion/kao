@@ -47,9 +47,15 @@ Operator rule:
 - a runtime artifact should not pollute git status
 - the repository must end clean after sprint validation
 
-Current governance lock:
+Current governance locks:
 
 - state/runtime/runtime.snapshot is treated as ephemeral runtime state and ignored by Git
+- state/runtime/session.current is treated as ephemeral runtime state and ignored by Git
+- state/runtime/session.history is treated as ephemeral runtime state and ignored by Git
+- state/runtime/session.timeline is treated as ephemeral runtime state and ignored by Git
+- board/runtime/ is treated as ephemeral KSL runtime output and ignored by Git
+- board/health/ and board/id/ are treated as ephemeral local runtime output and ignored by Git
+- state/e2e/ is treated as local validation log output and ignored by Git
 
 ---
 
@@ -233,6 +239,39 @@ Inspection output shape example:
 
 ---
 
+## Understand kao status and kao hud
+
+Kao now exposes direct KSL operator surfaces from the main `kao` entrypoint.
+
+Main commands:
+
+- `kao status`
+- `kao hud`
+
+Reading rules:
+
+- `kao status` renders the compact KSL bar for the current runtime state
+- `kao hud` renders the live KSL stream derived from runtime events
+- these commands read derived KSL state, they do not replace the canonical session timeline
+- these commands are intended for immediate operator perception
+
+Visible KSL domains include:
+
+- session lifecycle
+- network state
+- router selection
+- agent execution
+- memory heat
+
+Important governance note:
+
+- `board/runtime/ksl-timeline.log`
+- `board/runtime/ksl-hud.stream`
+- `board/runtime/ksl-cognitive.state`
+
+are derived local runtime artifacts and are not treated as canonical versioned source.
+
+---
 ## Understand ray session
 
 Kao now exposes a readable runtime session surface.

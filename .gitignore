@@ -10,4 +10,12 @@
 state/runtime/runtime.snapshot
 state/runtime/session.current
 state/runtime/session.history
+state/runtime/session.timeline
 state/sessions/
+
+# KSL / board runtime artifacts
+board/runtime/
+board/health/
+board/id/
+state/e2e/
+state/ksl/

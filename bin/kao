@@ -94,6 +94,16 @@ case "${mode}" in
     gateway_dispatch "${1:-status}"
     ;;
 
+  hud)
+    shift || true
+    exec "${KROOT}/bin/kao-hud" "$@"
+    ;;
+
+  status)
+    shift || true
+    exec "${KROOT}/bin/kao-status" "$@"
+    ;;
+
   new)
     exec python3 "${KROOT}/runtime/kao_cli.py" "$@"
     ;;

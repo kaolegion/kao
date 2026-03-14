@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source /home/kao/lib/ksl/ksl_engine.sh
+
+kao_ksl_ensure_runtime_paths
+
+printf "KAO HUD STREAM\n"
+printf "stream : %s\n" "$KSL_STREAM_FILE"
+printf "state  : %s\n" "$KSL_STATE_FILE"
+printf "%s\n" "------------------------------------------------------------"
+
+kao_ksl_hud_stream

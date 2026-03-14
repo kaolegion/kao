@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source /home/kao/lib/ksl/ksl_bar.sh
+
+kao_ksl_ensure_runtime_paths
+kao_ksl_bar_render

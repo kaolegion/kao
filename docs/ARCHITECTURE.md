@@ -54,9 +54,15 @@ Doctrine :
 - une mutation runtime ne doit pas imposer de restauration manuelle permanente
 - la gouvernance Git doit distinguer clairement source et état éphémère
 
-Règle actuellement verrouillée :
+Règles actuellement verrouillées :
 
 - `state/runtime/runtime.snapshot` est un artefact runtime éphémère ignoré par Git
+- `state/runtime/session.current` est un artefact runtime éphémère ignoré par Git
+- `state/runtime/session.history` est un artefact runtime éphémère ignoré par Git
+- `state/runtime/session.timeline` est un artefact runtime éphémère ignoré par Git
+- `board/runtime/` contient des surfaces KSL dérivées et reste hors source canonique
+- `board/health/` et `board/id/` restent des zones de runtime local éphémère
+- `state/e2e/` reste une zone de logs de validation locale
 
 ---
 
@@ -169,6 +175,59 @@ Doctrine de sécurité :
 
 ---
 
+## KSL — Kao Signal Language
+
+Kao introduit maintenant un langage de signal natif pour exposer l’état runtime
+sous une forme compacte, lisible et UX-compatible.
+
+Rôle de KSL :
+
+- encoder les événements runtime dans une forme stable
+- exposer une lecture signalétique des transitions système
+- préparer une HUD locale et une future surface visuelle plus riche
+- relier cognition, réseau, agent et mémoire dans un même protocole visible
+
+Composants versionnés :
+
+- `lib/ksl/ksl_engine.sh`
+- `lib/ksl/ksl_render.sh`
+- `lib/ksl/ksl_timeline.sh`
+- `lib/ksl/ksl_mapping.env`
+- `lib/ksl/ksl_priority.sh`
+- `lib/ksl/ksl_hierarchy.sh`
+- `lib/ksl/ksl_bar.sh`
+- `lib/runtime/ksl_hook.sh`
+- `bin/kao-hud`
+- `bin/kao-status`
+
+Surfaces runtime dérivées :
+
+- `board/runtime/ksl-timeline.log`
+- `board/runtime/ksl-hud.stream`
+- `board/runtime/ksl-cognitive.state`
+
+Lecture opératoire :
+
+- KSL n’est pas une décoration
+- KSL agit comme une couche de traduction entre événement runtime et état visible
+- la timeline session reste la source narrative canonique grep-friendly
+- les surfaces `board/runtime/*` sont des dérivés de lecture locale non versionnés
+
+Exemples de signaux :
+
+- `•/SYS/active/i2/blink-triple/session`
+- `⌁/NET/active/i2/pulse-slow/network`
+- `◆/NET/success/i2/hold/router:cloud`
+- `▮/ACT/success/i1/fade/agent`
+
+Couplage actuel :
+
+- `ray session` écrit la timeline narrative canonique
+- `lib/runtime/ksl_hook.sh` dérive des événements KSL depuis les événements de session
+- `kao status` expose la barre KSL synthétique
+- `kao hud` expose le flux HUD KSL en continu
+
+---
 ## Layer 0 — Machine Host
 
 Responsabilités :
