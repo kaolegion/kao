@@ -549,3 +549,17 @@ Operator outcome:
 - ability to identify gateway and agent presence patterns  
 - future compatibility with Kao world UX timeline navigation  
 
+
+## KSL dashboard temporal navigation
+
+Le dashboard KSL peut agréger trois surfaces complémentaires :
+
+- une fenêtre temporelle pilotée par curseur
+- un champ d’agents synchronisé avec la position temporelle
+- une projection future exposée par signal KSL
+
+La logique reste séparée :
+
+- `lib/ksl/nav/ksl_temporal_nav.sh` pour le moteur temporel
+- `lib/ksl/ksl_agent_field.sh` pour la sémantique champ d’agents
+- `lib/ksl/ksl_dashboard.sh` pour le rendu cockpit terminal et la boucle interactive

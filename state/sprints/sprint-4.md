@@ -241,3 +241,20 @@ Kao now moves one step closer to a true cognitive dashboard language:
 - semantic enough for future HUD/TUI
 - structured enough for replay, grouping and visual navigation
 - still grounded in the canonical session runtime doctrine
+
+## UX/KSL 1.8 — Dashboard temporal navigation + agent field surface
+
+Sprint result:
+
+- canonical temporal navigation engine with cursor and focus window
+- canonical agent field engine with role/state/slot/signal grammar
+- terminal dashboard surface merging temporal window, agent field, and projection
+- interactive keyboard loop for temporal navigation
+- dynamic synchronization between temporal cursor and agent field phase (`past`, `present`, `future`)
+
+Validation result:
+
+- shell syntax valid for temporal navigation, agent field, and dashboard surfaces
+- dashboard demo renders temporal focus window with status line
+- dashboard agent field reflects temporal phase
+- projection signal remains visible in the cockpit surface

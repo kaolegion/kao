@@ -218,3 +218,36 @@ This prepares future UX surfaces such as:
 - session replay navigation
 - agent constellation views
 - dashboard semantic grouping
+
+
+## Agent field surface
+
+- gateway = centre
+- agents = satellites runtime
+- observer = monitoring cognitif
+
+
+## Temporal dashboard navigation
+
+Le dashboard KSL peut exposer une navigation temporelle minimale pilotée par un curseur.
+
+Principes :
+
+- un curseur temporel sélectionne un événement actif dans la timeline
+- une fenêtre locale affiche les événements autour du curseur
+- l’événement focalisé est préfixé par `>>`
+- la navigation prépare trois plans UX :
+  - passé consultable
+  - présent actif
+  - futur projeté
+
+Contrôles minimaux :
+
+a = reculer d’un événement
+d = avancer d’un événement
+0 = aller au début
+$ = aller à la fin
+
+Format de statut :
+
+cursor=9 window=5 total=10
