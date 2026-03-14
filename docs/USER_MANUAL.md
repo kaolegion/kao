@@ -76,6 +76,8 @@ Each entry exposes:
 - declared state
 - runtime state
 - runtime score
+- operator rank
+- maturity level
 
 Declared state reflects
 the canonical registry declaration.
@@ -88,7 +90,19 @@ Runtime score is derived from:
 - base score
 - runtime readiness
 
-This score is **informational only** at this stage.
+Operator rank is derived from:
+
+- runtime score
+- declared registry posture
+
+Maturity level gives a compact operator reading such as:
+
+- low
+- medium
+- high
+- elite
+
+These values are **informational only** at this stage.
 
 Routing still follows gateway policy.
 
@@ -154,13 +168,17 @@ Ray also exposes:
 
 - registry base score
 - registry runtime score
+- registry operator rank
+- registry maturity
 
 Interpretation:
 
 - routing scores describe decision strength
-- registry scores describe model ranking potential
+- registry score describes runtime-weighted registry value
+- registry operator rank describes comparative operator priority
+- registry maturity describes compact maturity reading
 
-Registry scores do not change routing yet.
+Registry values do not change routing yet.
 
 ---
 
@@ -258,6 +276,8 @@ Local evolves progressively toward autonomy.
 Registry prepares:
 
 - ranking logic
+- runtime maturity reading
+- future comparative provider/model evolution
 - multi-LLM cognition
 - adaptive routing intelligence
 

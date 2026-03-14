@@ -170,6 +170,22 @@ printf '%s\n' "${ray_status_output}" | grep -Eq "registry score    : [0-9][0-9]*
   && e2e_ok "ray registry score readable" \
   || e2e_error "ray registry score value missing"
 
+printf '%s\n' "${ray_status_output}" | grep -q "registry rank     :" \
+  && e2e_ok "ray registry rank visible" \
+  || e2e_error "ray registry rank missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "registry rank     : [0-9][0-9]*" \
+  && e2e_ok "ray registry rank readable" \
+  || e2e_error "ray registry rank value missing"
+
+printf '%s\n' "${ray_status_output}" | grep -q "registry maturity :" \
+  && e2e_ok "ray registry maturity visible" \
+  || e2e_error "ray registry maturity missing"
+
+printf '%s\n' "${ray_status_output}" | grep -Eq "registry maturity : (unknown|low|medium|high|elite)" \
+  && e2e_ok "ray registry maturity readable" \
+  || e2e_error "ray registry maturity value missing"
+
 printf '%s\n' "${ray_status_output}" | grep -q "ollama model      :" \
   && e2e_ok "ray ollama model visible" \
   || e2e_error "ray ollama model missing"
@@ -198,13 +214,21 @@ printf '%s\n' "${ray_registry_output}" | grep -q "MODEL REGISTRY" \
   && e2e_ok "ray registry banner visible" \
   || e2e_error "ray registry banner missing"
 
-printf '%s\n' "${ray_registry_output}" | grep -q "mistral | mistral-medium-latest | family cloud | base 80" \
+printf '%s\n' "${ray_registry_output}" | grep -q "mistral | mistral-medium-latest | family cloud | base 80 | declared ready | runtime" \
   && e2e_ok "ray registry mistral entry visible" \
   || e2e_error "ray registry mistral entry missing"
 
-printf '%s\n' "${ray_registry_output}" | grep -q "ollama | llama3.2 | family local | base 40" \
+printf '%s\n' "${ray_registry_output}" | grep -q "rank 90 | maturity elite" \
+  && e2e_ok "ray registry mistral rank visible" \
+  || e2e_error "ray registry mistral rank missing"
+
+printf '%s\n' "${ray_registry_output}" | grep -q "ollama | llama3.2 | family local | base 40 | declared degraded | runtime" \
   && e2e_ok "ray registry ollama entry visible" \
   || e2e_error "ray registry ollama entry missing"
+
+printf '%s\n' "${ray_registry_output}" | grep -q "rank 35 | maturity low" \
+  && e2e_ok "ray registry ollama rank visible" \
+  || e2e_error "ray registry ollama rank missing"
 
 ray_default_output="$(
   /home/kao/bin/ray 2>&1

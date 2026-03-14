@@ -85,6 +85,9 @@ Responsabilités :
 - exposition d’une raison compacte de sélection
 - lecture du modèle sélectionné dans un registry canonique
 - exposition d’un premier score registry indépendant du routage
+- exposition d’un score runtime registry pondéré par l’état réel
+- exposition d’un rang opérateur comparatif
+- exposition d’un niveau de maturité par entrée registry
 
 Doctrine actuelle :
 
@@ -93,6 +96,7 @@ Doctrine actuelle :
 - montée progressive vers cognition offline
 - intelligence opérateur simple avant orchestration avancée
 - registry lisible avant ranking dynamique réel
+- intelligence de maturité lisible avant pilotage réel du routage
 
 Objectifs d’évolution :
 
@@ -120,6 +124,8 @@ Responsabilités :
 - exposition d’un score compact par famille de route
 - exposition du score de la route retenue
 - exposition d’une lecture compacte du registry actif
+- exposition du rang opérateur de l’entrée sélectionnée
+- exposition de la maturité de l’entrée sélectionnée
 - exposition d’une vue registry dédiée
 - exécution via le gateway existant
 
@@ -146,6 +152,9 @@ Ray distingue maintenant explicitement :
 - la décision effectivement retenue
 - l’impact opérateur d’un forcing invalide
 - la lecture registry sélectionnée
+- le score runtime de l’entrée sélectionnée
+- le rang opérateur de l’entrée sélectionnée
+- la maturité de l’entrée sélectionnée
 - la vue complète des entrées registry
 
 États exposés :
@@ -201,6 +210,8 @@ Ray distingue maintenant explicitement :
 - registry declared
 - registry runtime
 - registry score
+- registry rank
+- registry maturity
 
 Doctrine de lecture :
 
@@ -212,7 +223,10 @@ Doctrine de lecture :
 - `mode` traduit la lecture opérateur effective de la situation
 - `registry declared` conserve l’état canonique déclaré dans le registry
 - `registry runtime` traduit la lecture runtime actuelle de cette entrée
-- `registry score` prépare une couche de ranking lisible sans modifier la décision réelle
+- `registry score` prépare une première pondération runtime lisible
+- `registry rank` prépare une comparaison opérateur entre entrées
+- `registry maturity` expose une synthèse courte de maturité
+- cette lecture enrichie n’altère pas encore la décision réelle du routeur
 
 Cas important :
 
@@ -237,6 +251,7 @@ préparer Kao à :
 - une priorisation adaptative des modèles
 - une lecture humaine de la décision avant automatisation plus lourde
 - un futur classement vivant des modèles/providers
+- un futur pilotage plus intelligent fondé sur la maturité runtime
 
 ---
 

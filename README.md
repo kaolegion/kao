@@ -57,10 +57,12 @@ without requiring inspection of shell libraries.
 
 `ray status` gives a compact human-readable reading of the selected route,
 decision state, route reason, operator mode, hybrid capability state,
-route scoring and selected registry reading.
+route scoring, selected registry reading, selected registry rank and
+selected registry maturity.
 
-`ray registry` gives a first stable readable surface of the live internal
-model registry.
+`ray registry` gives a stable readable comparative surface of the live
+internal model registry, including runtime score, operator rank and
+maturity level.
 
 `ray run "<prompt>"` executes a request through the same gateway-backed path
 as `brain infer`.
@@ -79,8 +81,11 @@ The current gateway and ray model supports:
 - compact hybrid-readable operator reading through `ray status`
 - first deterministic hybrid scoring layer for route selection readability
 - first internal live model registry layer
+- first runtime maturity reading layer inside the registry
+- first operator rank and maturity reading for registered entries
 - explicit separation between runtime capacity and effective routing decision
 - explicit separation between provider routing and model registry reading
+- explicit separation between registry observability and real routing policy
 
 ## Gateway quick view
 
@@ -94,7 +99,7 @@ The current gateway behavior is:
 - preserve a readable fallback model
 - expose a direct operator diagnostic surface
 - expose provider kind, provider health, target model, runtime state, real-call policy and real-call state
-- expose selected registry provider, model, family, declared state, runtime state and registry score
+- expose selected registry provider, model, family, declared state, runtime state, registry score, registry rank and registry maturity
 - expose a short readable log preview
 - keep cockpit inspection out of runtime log pollution
 
@@ -120,6 +125,8 @@ The current ray behavior is:
 - expose cloud readiness
 - expose local readiness
 - expose a first readable model registry surface through `ray registry`
+- expose selected registry rank
+- expose selected registry maturity
 - preserve the selected provider visibility
 - preserve the same execution path as `brain infer`
 
@@ -150,6 +157,8 @@ Typical operator reading now includes:
 - registry declared state
 - registry runtime state
 - registry score
+- registry rank
+- registry maturity
 - provider availability and health for mistral
 - provider availability, kind and health for ollama
 - ollama model
@@ -178,10 +187,18 @@ Current provider state:
   - `local-real-ready`
 - registry declared state can currently be:
   - `unknown`
+  - `ready`
+  - `degraded`
 - registry runtime state can be:
   - `unknown`
   - `ready`
   - `degraded`
+- registry maturity can be:
+  - `unknown`
+  - `low`
+  - `medium`
+  - `high`
+  - `elite`
 - ray decision states can be:
   - `route-selected`
   - `no-route-selected`
@@ -233,7 +250,10 @@ Decision reading doctrine:
 - `mode` gives the operator-facing effective reading of the current decision situation
 - `registry declared state` preserves the canonical registry declaration
 - `registry runtime state` reflects the current runtime reading of the registered entry
-- `registry score` preserves a first readable ranking-ready value without changing routing
+- `registry score` preserves a first readable runtime-weighted value
+- `registry rank` exposes an operator-facing comparative score
+- `registry maturity` exposes a compact maturity level for the selected entry
+- registry reading remains informative and does not change routing yet
 
 Important decision case:
 

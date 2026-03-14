@@ -676,3 +676,87 @@ Un opérateur peut maintenant :
 - registry lisible
 - documentation convergente
 
+
+---
+
+# SPRINT DEV 1.5 — Registry Runtime Intelligence & Ranked Provider Evolution
+
+## Mission
+
+Faire évoluer le registry Kao d’un simple inventaire lisible
+vers une lecture de maturité runtime plus intelligente,
+sans modifier la décision réelle du routeur.
+
+## Résultats obtenus
+
+### Registry enrichi
+
+Le registry expose désormais pour chaque entrée :
+
+- provider
+- model
+- family
+- base score
+- declared state
+- runtime state
+- runtime score
+- operator rank score
+- maturity level
+
+### Bridge router stabilisé
+
+Le pont `router -> registry` a été stabilisé pour éviter
+les collisions de symboles entre wrappers publics du routeur
+et fonctions internes du registry.
+
+Le routeur expose maintenant proprement :
+
+- registry count
+- registry selected provider/model/family
+- registry selected base score
+- registry selected declared state
+- registry selected runtime state
+- registry selected runtime score
+- registry selected operator rank score
+- registry selected maturity level
+
+### Surface ray enrichie
+
+`ray status` expose désormais :
+
+- registry score
+- registry rank
+- registry maturity
+
+`ray registry` expose maintenant une vue comparative enrichie,
+triée par rang opérateur lisible.
+
+### Doctrine validée
+
+Cette évolution :
+
+- n’altère pas la policy cloud-first
+- ne modifie pas la décision réelle du routeur
+- n’introduit aucun appel API externe
+- prépare la future logique de ranking vivant
+
+## Validation obtenue
+
+Validation locale confirme :
+
+- syntaxe registry OK
+- syntaxe router OK
+- syntaxe ray OK
+- syntaxe ray_surface OK
+- `ray status` expose score, rank et maturity
+- `ray registry` expose la vue comparative enrichie
+- E2E aligné sur les nouveaux champs
+
+## Effet architecture
+
+Kao dispose maintenant :
+
+- d’un registry runtime plus intelligent
+- d’une première lecture de maturité comparative
+- d’une base stable pour une future couche de ranking dynamique
+- d’une fondation propre pour un futur routeur vivant sans casser le présent

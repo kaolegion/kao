@@ -27,9 +27,42 @@ gateway_require_providers() {
   . "${KAO_GATEWAY_ROOT}/lib/gateway/providers/ollama.sh"
 }
 
+gateway_model_registry_bridge_aliases() {
+  if [ -n "${KAO_GATEWAY_MODEL_REGISTRY_BRIDGED:-}" ]; then
+    return 0
+  fi
+
+  eval "$(declare -f gateway_model_registry_has_provider | sed '1s/gateway_model_registry_has_provider/gateway_registry_has_provider_impl/')"
+  eval "$(declare -f gateway_model_registry_provider | sed '1s/gateway_model_registry_provider/gateway_registry_provider_impl/')"
+  eval "$(declare -f gateway_model_registry_model | sed '1s/gateway_model_registry_model/gateway_registry_model_impl/')"
+  eval "$(declare -f gateway_model_registry_family | sed '1s/gateway_model_registry_family/gateway_registry_family_impl/')"
+  eval "$(declare -f gateway_model_registry_base_score | sed '1s/gateway_model_registry_base_score/gateway_registry_base_score_impl/')"
+  eval "$(declare -f gateway_model_registry_declared_state | sed '1s/gateway_model_registry_declared_state/gateway_registry_declared_state_impl/')"
+  eval "$(declare -f gateway_model_registry_runtime_state | sed '1s/gateway_model_registry_runtime_state/gateway_registry_runtime_state_impl/')"
+  eval "$(declare -f gateway_model_registry_runtime_score | sed '1s/gateway_model_registry_runtime_score/gateway_registry_runtime_score_impl/')"
+  eval "$(declare -f gateway_model_registry_operator_rank_score | sed '1s/gateway_model_registry_operator_rank_score/gateway_registry_operator_rank_score_impl/')"
+  eval "$(declare -f gateway_model_registry_maturity_level | sed '1s/gateway_model_registry_maturity_level/gateway_registry_maturity_level_impl/')"
+  eval "$(declare -f gateway_model_registry_count | sed '1s/gateway_model_registry_count/gateway_registry_count_impl/')"
+  eval "$(declare -f gateway_model_registry_dump | sed '1s/gateway_model_registry_dump/gateway_registry_dump_impl/')"
+  eval "$(declare -f gateway_model_registry_ranked_dump | sed '1s/gateway_model_registry_ranked_dump/gateway_registry_ranked_dump_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_provider | sed '1s/gateway_model_registry_selected_provider/gateway_registry_selected_provider_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_model | sed '1s/gateway_model_registry_selected_model/gateway_registry_selected_model_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_family | sed '1s/gateway_model_registry_selected_family/gateway_registry_selected_family_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_base_score | sed '1s/gateway_model_registry_selected_base_score/gateway_registry_selected_base_score_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_declared_state | sed '1s/gateway_model_registry_selected_declared_state/gateway_registry_selected_declared_state_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_runtime_state | sed '1s/gateway_model_registry_selected_runtime_state/gateway_registry_selected_runtime_state_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_runtime_score | sed '1s/gateway_model_registry_selected_runtime_score/gateway_registry_selected_runtime_score_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_operator_rank_score | sed '1s/gateway_model_registry_selected_operator_rank_score/gateway_registry_selected_operator_rank_score_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_maturity_level | sed '1s/gateway_model_registry_selected_maturity_level/gateway_registry_selected_maturity_level_impl/')"
+  eval "$(declare -f gateway_model_registry_operator_surface | sed '1s/gateway_model_registry_operator_surface/gateway_registry_operator_surface_impl/')"
+
+  KAO_GATEWAY_MODEL_REGISTRY_BRIDGED=1
+}
+
 gateway_require_model_registry() {
   # shellcheck disable=SC1091
   . "${KAO_GATEWAY_ROOT}/lib/gateway/model_registry.sh"
+  gateway_model_registry_bridge_aliases
 }
 
 gateway_load_secrets() {
@@ -516,102 +549,57 @@ gateway_operator_mode() {
 
 gateway_model_registry_count() {
   gateway_require_model_registry
-  gateway_model_registry_count
+  gateway_registry_count_impl
 }
 
 gateway_model_registry_selected_provider() {
-  local selected_provider
   gateway_require_model_registry
-  selected_provider="$(gateway_provider_select)"
-
-  if gateway_model_registry_has_provider "${selected_provider}"; then
-    printf '%s\n' "${selected_provider}"
-  else
-    printf 'none\n'
-  fi
+  gateway_registry_selected_provider_impl
 }
 
 gateway_model_registry_selected_model() {
-  local selected_provider
   gateway_require_model_registry
-  selected_provider="$(gateway_model_registry_selected_provider)"
-
-  if [ "${selected_provider}" = "none" ]; then
-    printf 'none\n'
-    return 0
-  fi
-
-  gateway_model_registry_model "${selected_provider}"
+  gateway_registry_selected_model_impl
 }
 
 gateway_model_registry_selected_family() {
-  local selected_provider
   gateway_require_model_registry
-  selected_provider="$(gateway_model_registry_selected_provider)"
-
-  if [ "${selected_provider}" = "none" ]; then
-    printf 'none\n'
-    return 0
-  fi
-
-  gateway_model_registry_family "${selected_provider}"
+  gateway_registry_selected_family_impl
 }
 
 gateway_model_registry_selected_base_score() {
-  local selected_provider
   gateway_require_model_registry
-  selected_provider="$(gateway_model_registry_selected_provider)"
-
-  if [ "${selected_provider}" = "none" ]; then
-    printf '0\n'
-    return 0
-  fi
-
-  gateway_model_registry_base_score "${selected_provider}"
+  gateway_registry_selected_base_score_impl
 }
 
 gateway_model_registry_selected_declared_state() {
-  local selected_provider
   gateway_require_model_registry
-  selected_provider="$(gateway_model_registry_selected_provider)"
-
-  if [ "${selected_provider}" = "none" ]; then
-    printf 'unknown\n'
-    return 0
-  fi
-
-  gateway_model_registry_declared_state "${selected_provider}"
+  gateway_registry_selected_declared_state_impl
 }
 
 gateway_model_registry_selected_runtime_state() {
-  local selected_provider
   gateway_require_model_registry
-  selected_provider="$(gateway_model_registry_selected_provider)"
-
-  if [ "${selected_provider}" = "none" ]; then
-    printf 'unknown\n'
-    return 0
-  fi
-
-  gateway_model_registry_runtime_state "${selected_provider}"
+  gateway_registry_selected_runtime_state_impl
 }
 
 gateway_model_registry_selected_runtime_score() {
-  local selected_provider
   gateway_require_model_registry
-  selected_provider="$(gateway_model_registry_selected_provider)"
+  gateway_registry_selected_runtime_score_impl
+}
 
-  if [ "${selected_provider}" = "none" ]; then
-    printf '0\n'
-    return 0
-  fi
+gateway_model_registry_selected_operator_rank_score() {
+  gateway_require_model_registry
+  gateway_registry_selected_operator_rank_score_impl
+}
 
-  gateway_model_registry_runtime_score "${selected_provider}"
+gateway_model_registry_selected_maturity_level() {
+  gateway_require_model_registry
+  gateway_registry_selected_maturity_level_impl
 }
 
 gateway_model_registry_operator_surface() {
   gateway_require_model_registry
-  gateway_model_registry_operator_surface
+  gateway_registry_operator_surface_impl
 }
 
 gateway_log_lines() {

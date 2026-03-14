@@ -28,6 +28,7 @@ ray_status() {
   local ollama_model ollama_model_state ollama_runtime ollama_real_calls ollama_real_state
   local registry_count registry_selected_provider registry_selected_model registry_selected_family
   local registry_selected_base registry_selected_declared registry_selected_runtime registry_selected_score
+  local registry_selected_rank registry_selected_maturity
 
   selected_provider="$(gateway_provider_select)"
   selected_label="$(gateway_provider_label "${selected_provider}")"
@@ -65,6 +66,8 @@ ray_status() {
   registry_selected_declared="$(gateway_model_registry_selected_declared_state)"
   registry_selected_runtime="$(gateway_model_registry_selected_runtime_state)"
   registry_selected_score="$(gateway_model_registry_selected_runtime_score)"
+  registry_selected_rank="$(gateway_model_registry_selected_operator_rank_score)"
+  registry_selected_maturity="$(gateway_model_registry_selected_maturity_level)"
 
   printf 'RAY STATUS\n'
   printf 'selected route    : %s\n' "${selected_route}"
@@ -94,6 +97,8 @@ ray_status() {
   printf 'registry declared : %s\n' "${registry_selected_declared}"
   printf 'registry runtime  : %s\n' "${registry_selected_runtime}"
   printf 'registry score    : %s\n' "${registry_selected_score}"
+  printf 'registry rank     : %s\n' "${registry_selected_rank}"
+  printf 'registry maturity : %s\n' "${registry_selected_maturity}"
   printf 'ollama model      : %s\n' "${ollama_model}"
   printf 'ollama model state: %s\n' "${ollama_model_state}"
   printf 'ollama runtime    : %s\n' "${ollama_runtime}"
