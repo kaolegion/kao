@@ -1333,3 +1333,59 @@ A human operator can now understand immediately:
 - which path combines multiple metadata repair actions
 - which missing path remains intentionally excluded from repair
 - how a future real repair command should behave before enabling it
+
+---
+
+## DEV 2.7 controlled real ownership repair note
+
+The ownership governance layer now progresses from preview-only repair to controlled real repair.
+
+Implemented real state now includes:
+
+- canonical `ray system repair` command performing real metadata repair
+- preserved `ray system repair --dry-run` preview behavior
+- repair limited to canonical registry-driven local paths
+- repair limited to paths already in `OK` state
+- repair limited to `owner`, `group`, and `mode`
+- visible `NOOP`, `DRY-RUN`, `REPAIRED`, and `SKIP` operator states
+- visible `post-drift` confirmation after repair computation
+- preserved exclusion of `MISSING`, `TYPE-MISMATCH`, and `UNREADABLE` paths
+- targeted E2E lock for dry-run preview, real repair, and post-repair alignment
+
+The repair layer remains conservative by design:
+
+- it never creates missing paths
+- it never changes paths outside the canonical registry
+- it never repairs non-readable or structurally invalid targets
+- it keeps excluded targets visible instead of hiding them
+
+## DEV 2.7 validation result
+
+Validation now confirms:
+
+- `ray system repair --dry-run` still previews exact metadata actions without mutating paths
+- `ray system repair` applies real ownership and mode corrections on eligible targets
+- repaired paths converge to `post-drift OK`
+- `ray system inspect` confirms alignment after real repair
+- missing paths remain intentionally skipped
+- unsupported repair options still fail explicitly
+- dedicated E2E scenario now covers preview, repair, and post-repair verification
+- targeted E2E score remains `100`
+
+## DEV 2.7 operator result
+
+A human operator can now understand immediately:
+
+- which path is already aligned
+- which path would be repaired in preview mode
+- which path has been repaired for real
+- which path remains excluded and why
+- whether the post-repair state is now compliant with the local registry baseline
+
+## DEV 2.7 touched files
+
+- `lib/system/system_inspector.sh`
+- `tests/e2e/scenarios/ray_system_inspect.sh`
+- `docs/ARCHITECTURE.md`
+- `docs/USER_MANUAL.md`
+- `state/sprints/sprint-4.md`

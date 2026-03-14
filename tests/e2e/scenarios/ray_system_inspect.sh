@@ -1,9 +1,33 @@
 #!/usr/bin/env bash
-scenario_ray_system_inspect() {
+set -euo pipefail
+
+# shellcheck disable=SC1091
+. /home/kao/tests/e2e/lib_e2e.sh
+
+e2e_init
 
 [ -x /home/kao/bin/ray ] && e2e_ok "ray entrypoint executable for system inspect" || e2e_error "ray entrypoint missing for system inspect"
 [ -f /home/kao/lib/system/local_paths_registry.sh ] && e2e_ok "local paths registry present" || e2e_error "local paths registry missing"
 [ -f /home/kao/lib/system/system_inspector.sh ] && e2e_ok "system inspector present" || e2e_error "system inspector missing"
+
+ORIGINAL_BIN_MODE="$(stat -c '%a' /home/kao/bin)"
+ORIGINAL_LIB_OWNER="$(stat -c '%U' /home/kao/lib)"
+ORIGINAL_LIB_GROUP="$(stat -c '%G' /home/kao/lib)"
+ORIGINAL_LIB_MODE="$(stat -c '%a' /home/kao/lib)"
+
+restore_baseline() {
+  chmod "${ORIGINAL_BIN_MODE}" /home/kao/bin
+  chown "${ORIGINAL_LIB_OWNER}" /home/kao/lib
+  chgrp "${ORIGINAL_LIB_GROUP}" /home/kao/lib
+  chmod "${ORIGINAL_LIB_MODE}" /home/kao/lib
+}
+
+trap restore_baseline EXIT
+
+chmod 755 /home/kao/bin
+chown root /home/kao/lib
+chgrp root /home/kao/lib
+chmod 755 /home/kao/lib
 
 ray_system_inspect_output="$(
   /home/kao/bin/ray system inspect 2>&1
@@ -13,73 +37,21 @@ printf '%s\n' "${ray_system_inspect_output}" | grep -q "LOCAL SYSTEM INSPECTION"
   && e2e_ok "ray system inspect banner visible" \
   || e2e_error "ray system inspect banner missing"
 
-printf '%s\n' "${ray_system_inspect_output}" | grep -q "root path" \
-  && e2e_ok "root path line visible" \
-  || e2e_error "root path line missing"
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*: OK \| owner kao:kao \| mode 750 \| expected kao:kao 750 \| drift OK \| path /home/kao" \
+  && e2e_ok "root path aligned state visible" \
+  || e2e_error "root path aligned state missing"
 
-printf '%s\n' "${ray_system_inspect_output}" | grep -q "bin directory" \
-  && e2e_ok "bin directory line visible" \
-  || e2e_error "bin directory line missing"
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "bin directory[[:space:]]*: OK \| owner kao:kao \| mode 755 \| expected kao:kao 750 \| drift DRIFT:mode \| path /home/kao/bin" \
+  && e2e_ok "bin directory drift visible" \
+  || e2e_error "bin directory drift missing"
 
-printf '%s\n' "${ray_system_inspect_output}" | grep -q "system libs" \
-  && e2e_ok "system libs line visible" \
-  || e2e_error "system libs line missing"
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "library root[[:space:]]*: OK \| owner root:root \| mode 755 \| expected kao:kao 750 \| drift DRIFT:(owner,group,mode|owner,mode,group|group,owner,mode|group,mode,owner|mode,owner,group|mode,group,owner) \| path /home/kao/lib" \
+  && e2e_ok "library root full drift visible" \
+  || e2e_error "library root full drift missing"
 
-printf '%s\n' "${ray_system_inspect_output}" | grep -q "runtime state" \
-  && e2e_ok "runtime state line visible" \
-  || e2e_error "runtime state line missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:[[:space:]]*OK" \
-  && e2e_ok "root path state readable" \
-  || e2e_error "root path state unreadable"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "system libs[[:space:]]*:[[:space:]]*OK" \
-  && e2e_ok "system libs state readable" \
-  || e2e_error "system libs state unreadable"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:[[:space:]]*(OK|MISSING|TYPE-MISMATCH|UNREADABLE)" \
-  && e2e_ok "agent registry state readable" \
-  || e2e_error "agent registry state unreadable"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*owner[[:space:]]+[A-Za-z0-9_-]+:[A-Za-z0-9_-]+" \
-  && e2e_ok "root path owner visible" \
-  || e2e_error "root path owner missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*mode[[:space:]]+[0-9]{3,4}" \
-  && e2e_ok "root path mode visible" \
-  || e2e_error "root path mode missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*expected[[:space:]]+[A-Za-z0-9_-]+:[A-Za-z0-9_-]+[[:space:]]+[0-9]{3,4}" \
-  && e2e_ok "root path expected metadata visible" \
-  || e2e_error "root path expected metadata missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*drift[[:space:]]+OK" \
-  && e2e_ok "root path drift state visible" \
-  || e2e_error "root path drift state missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "system libs[[:space:]]*:.*drift[[:space:]]+DRIFT:(owner|group|mode|owner,group|owner,mode|group,mode|owner,group,mode)" \
-  && e2e_ok "system libs drift signal visible" \
-  || e2e_error "system libs drift signal missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*path[[:space:]]+/home/kao" \
-  && e2e_ok "root path path visible" \
-  || e2e_error "root path path missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*owner[[:space:]]+n/a:n/a" \
-  && e2e_ok "missing path ownership fallback visible" \
-  || e2e_error "missing path ownership fallback missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*mode[[:space:]]+n/a" \
-  && e2e_ok "missing path mode fallback visible" \
-  || e2e_error "missing path mode fallback missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*expected[[:space:]]+kao:kao[[:space:]]+750" \
-  && e2e_ok "missing path expected metadata visible" \
-  || e2e_error "missing path expected metadata missing"
-
-printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*drift[[:space:]]+n/a" \
-  && e2e_ok "missing path drift fallback visible" \
-  || e2e_error "missing path drift fallback missing"
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*: MISSING \| owner n/a:n/a \| mode n/a \| expected kao:kao 750 \| drift n/a \| path /home/kao/lib/agents" \
+  && e2e_ok "missing path is visible as non-repairable inventory" \
+  || e2e_error "missing path visibility missing"
 
 ray_system_repair_dry_run_output="$(
   /home/kao/bin/ray system repair --dry-run 2>&1
@@ -93,17 +65,49 @@ printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "root path[[:spac
   && e2e_ok "repair dry-run noop visible on aligned path" \
   || e2e_error "repair dry-run noop missing on aligned path"
 
-printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "bin directory[[:space:]]*: DRY-RUN \| state OK \| drift DRIFT:mode \| APPLY\|owner=no\|group=no\|mode=would-fix" \
+printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "bin directory[[:space:]]*: DRY-RUN \| state OK \| drift DRIFT:mode \| APPLY\|owner=no\|group=no\|mode=would-fix \| expected kao:kao 750 \| current kao:kao 755 \| post-drift DRIFT:mode \| path /home/kao/bin" \
   && e2e_ok "repair dry-run mode-only action visible" \
   || e2e_error "repair dry-run mode-only action missing"
 
-printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "system libs[[:space:]]*: DRY-RUN \| state OK \| drift DRIFT:(owner,group,mode|owner,mode,group|group,owner,mode|group,mode,owner|mode,owner,group|mode,group,owner) \| APPLY\|owner=would-fix\|group=would-fix\|mode=would-fix" \
+printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "library root[[:space:]]*: DRY-RUN \| state OK \| drift DRIFT:(owner,group,mode|owner,mode,group|group,owner,mode|group,mode,owner|mode,owner,group|mode,group,owner) \| APPLY\|owner=would-fix\|group=would-fix\|mode=would-fix \| expected kao:kao 750 \| current root:root 755 \| post-drift DRIFT:(owner,group,mode|owner,mode,group|group,owner,mode|group,mode,owner|mode,owner,group|mode,group,owner) \| path /home/kao/lib" \
   && e2e_ok "repair dry-run full metadata action visible" \
   || e2e_error "repair dry-run full metadata action missing"
 
 printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "agent registry[[:space:]]*: SKIP \| state MISSING \| drift n/a \| reason non-repairable-state \| path /home/kao/lib/agents" \
   && e2e_ok "repair dry-run missing path skip visible" \
   || e2e_error "repair dry-run missing path skip missing"
+
+ray_system_repair_output="$(
+  /home/kao/bin/ray system repair 2>&1
+)"
+
+printf '%s\n' "${ray_system_repair_output}" | grep -q "LOCAL SYSTEM REPAIR" \
+  && e2e_ok "ray system repair banner visible" \
+  || e2e_error "ray system repair banner missing"
+
+printf '%s\n' "${ray_system_repair_output}" | grep -Eq "bin directory[[:space:]]*: REPAIRED \| state OK \| drift DRIFT:mode \| APPLY\|owner=no\|group=no\|mode=fixed \| expected kao:kao 750 \| current kao:kao 750 \| post-drift OK \| path /home/kao/bin" \
+  && e2e_ok "real repair fixes mode-only drift" \
+  || e2e_error "real repair mode-only result missing"
+
+printf '%s\n' "${ray_system_repair_output}" | grep -Eq "library root[[:space:]]*: REPAIRED \| state OK \| drift DRIFT:(owner,group,mode|owner,mode,group|group,owner,mode|group,mode,owner|mode,owner,group|mode,group,owner) \| APPLY\|owner=fixed\|group=fixed\|mode=fixed \| expected kao:kao 750 \| current kao:kao 750 \| post-drift OK \| path /home/kao/lib" \
+  && e2e_ok "real repair fixes full metadata drift" \
+  || e2e_error "real repair full metadata result missing"
+
+printf '%s\n' "${ray_system_repair_output}" | grep -Eq "agent registry[[:space:]]*: SKIP \| state MISSING \| drift n/a \| reason non-repairable-state \| path /home/kao/lib/agents" \
+  && e2e_ok "real repair still skips missing path" \
+  || e2e_error "real repair missing path skip missing"
+
+ray_system_post_repair_inspect_output="$(
+  /home/kao/bin/ray system inspect 2>&1
+)"
+
+printf '%s\n' "${ray_system_post_repair_inspect_output}" | grep -Eq "bin directory[[:space:]]*: OK \| owner kao:kao \| mode 750 \| expected kao:kao 750 \| drift OK \| path /home/kao/bin" \
+  && e2e_ok "post-repair inspect confirms bin directory alignment" \
+  || e2e_error "post-repair bin directory alignment missing"
+
+printf '%s\n' "${ray_system_post_repair_inspect_output}" | grep -Eq "library root[[:space:]]*: OK \| owner kao:kao \| mode 750 \| expected kao:kao 750 \| drift OK \| path /home/kao/lib" \
+  && e2e_ok "post-repair inspect confirms library root alignment" \
+  || e2e_error "post-repair library root alignment missing"
 
 ray_system_repair_bad_option_output="$(
   /home/kao/bin/ray system repair --bad-option 2>&1 || true
@@ -114,4 +118,4 @@ printf '%s\n' "${ray_system_repair_bad_option_output}" | grep -q "RAY_ERROR unkn
   || e2e_error "repair option guard missing"
 
 printf 'OK ray_system_inspect\n'
-}
+e2e_finalize

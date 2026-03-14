@@ -79,7 +79,7 @@ Elle constitue :
 
 - une référence de conformité locale
 - une source de diagnostic opérateur
-- une base future de réparation automatisée
+- une base de réparation automatisée contrôlée
 
 ---
 
@@ -118,22 +118,54 @@ Cette surface permet :
 
 - une lecture rapide d’un système incohérent
 - une détection de dérive après installation ou manipulation root
-- une future intégration d’outils de réparation contrôlée
+- une intégration de réparation contrôlée directement depuis la surface opérateur
 
-Une première action opératoire existe maintenant :
+Les actions opératoires disponibles sont maintenant :
 
 - `ray system repair --dry-run`
+- `ray system repair`
 
-Cette commande :
+Ces commandes :
 
-- reste registry-driven
-- ne crée aucun chemin manquant
-- ne répare que les chemins en état `OK`
-- signale `NOOP`, `DRY-RUN` ou `SKIP`
-- prévisualise les corrections `owner`, `group` et `mode`
+- restent registry-driven
+- ne créent aucun chemin manquant
+- ne réparent que les chemins en état `OK`
+- excluent les chemins `MISSING`, `TYPE-MISMATCH` ou `UNREADABLE`
+- opèrent sur `owner`, `group` et `mode`
 
-Cette première brique prépare la future réparation réelle
-sans casser la lisibilité actuelle du diagnostic.
+La surface de réparation expose les états suivants :
+
+- `NOOP`
+- `DRY-RUN`
+- `REPAIRED`
+- `SKIP`
+
+Lecture opératoire :
+
+- `NOOP` = chemin déjà aligné
+- `DRY-RUN` = correction prévisualisée sans mutation
+- `REPAIRED` = correction réellement appliquée
+- `SKIP` = chemin non réparable dans son état courant
+
+La réparation réelle recalcule ensuite l’état visible :
+
+- owner courant
+- group courant
+- mode courant
+- `post-drift`
+
+Cela permet à l’opérateur de confirmer immédiatement :
+
+- ce qui allait être corrigé
+- ce qui a réellement été corrigé
+- ce qui reste exclu volontairement
+
+Doctrine de sécurité :
+
+- aucune création implicite de chemin
+- aucune réparation hors état `OK`
+- aucune décision cachée hors registry canonique
+- visibilité complète avant et après action
 
 ---
 
@@ -221,5 +253,5 @@ Il expose maintenant :
 - une inspection locale sûre
 - une lecture d’ownership système
 - une détection de dérive structurée
-- une base future de maintenance automatisée
-
+- une réparation réelle contrôlée
+- une maintenance locale registry-driven

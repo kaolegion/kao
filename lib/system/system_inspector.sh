@@ -184,7 +184,7 @@ kao_system_repair_path_metadata() {
   dry_run="${5:-0}"
 
   if [ ! -e "${path}" ]; then
-    printf 'SKIP|missing-path\n'
+    printf 'APPLY|owner=skip|group=skip|mode=skip\n'
     return 0
   fi
 
@@ -232,7 +232,7 @@ kao_system_repair_path_metadata() {
 kao_system_repair_local_paths() {
   local dry_run
   local label expected_type path expected_owner expected_group expected_mode
-  local state drift apply_result post_owner post_group post_mode post_drift
+  local state drift apply_result post_owner post_group post_mode post_drift action_label
 
   dry_run="${1:-0}"
 
@@ -269,27 +269,25 @@ kao_system_repair_local_paths() {
     post_drift="$(kao_system_check_metadata_drift "${path}" "${expected_owner}" "${expected_group}" "${expected_mode}")"
 
     if [ "${dry_run}" = "1" ]; then
-      printf '%-16s : DRY-RUN | state %s | drift %s | %s | expected %s:%s %s | current %s:%s %s | path %s\n' \
-        "${label}" \
-        "${state}" \
-        "${drift}" \
-        "${apply_result}" \
-        "${expected_owner}" \
-        "${expected_group}" \
-        "${expected_mode}" \
-        "${post_owner}" \
-        "${post_group}" \
-        "${post_mode}" \
-        "${path}"
+      action_label="DRY-RUN"
     else
-      printf '%-16s : REPAIRED | state %s | before %s | after %s | %s | path %s\n' \
-        "${label}" \
-        "${state}" \
-        "${drift}" \
-        "${post_drift}" \
-        "${apply_result}" \
-        "${path}"
+      action_label="REPAIRED"
     fi
+
+    printf '%-16s : %s | state %s | drift %s | %s | expected %s:%s %s | current %s:%s %s | post-drift %s | path %s\n' \
+      "${label}" \
+      "${action_label}" \
+      "${state}" \
+      "${drift}" \
+      "${apply_result}" \
+      "${expected_owner}" \
+      "${expected_group}" \
+      "${expected_mode}" \
+      "${post_owner}" \
+      "${post_group}" \
+      "${post_mode}" \
+      "${post_drift}" \
+      "${path}"
   done <<EOF_PATHS
 $(kao_local_paths_expected_metadata_list)
 EOF_PATHS

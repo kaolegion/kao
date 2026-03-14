@@ -64,8 +64,10 @@ Main inspection commands:
 - ray bridge "<prompt>"
 - ray run "<prompt>"
 - ray system inspect
+- ray system repair --dry-run
+- ray system repair
 
-Ray exposes routing cognition and safe local inspection.
+Ray exposes routing cognition, safe local inspection, and controlled local repair.
 
 ---
 
@@ -79,7 +81,7 @@ It is:
 - read-only
 - safe for operator use
 - designed for drift detection
-- designed for future controlled repair tooling
+- directly aligned with controlled repair actions
 
 The inspection is based on:
 
@@ -124,12 +126,14 @@ Operator usage goals:
 - detect installation ownership inconsistencies
 - detect permission drift after root operations
 - validate filesystem governance baseline
-- prepare a future runtime repair action
+- prepare and confirm a controlled metadata repair
 - understand system integrity without reading shell libraries
 
-A first controlled repair preview now exists:
+---
 
-- `ray system repair --dry-run`
+## Understand ray system repair --dry-run
+
+ray system repair --dry-run previews a controlled metadata repair without mutating the filesystem.
 
 This command:
 
@@ -137,16 +141,45 @@ This command:
 - previews metadata repair only on paths already in `OK` state
 - never creates missing paths
 - never attempts repair on `MISSING`, `TYPE-MISMATCH` or `UNREADABLE` paths
-- exposes three operator outcomes:
+- exposes these operator outcomes:
   - `NOOP`
   - `DRY-RUN`
   - `SKIP`
 
-Dry-run output shape example:
+Dry-run output shape:
 
-<label> : DRY-RUN | state <state> | drift <drift_signal> | APPLY|owner=<action>|group=<action>|mode=<action> | expected <expected_user>:<expected_group> <expected_mode> | current <real_user>:<real_group> <real_mode> | path <real_path>
+<label> : DRY-RUN | state <state> | drift <drift_signal> | APPLY|owner=<action>|group=<action>|mode=<action> | expected <expected_user>:<expected_group> <expected_mode> | current <real_user>:<real_group> <real_mode> | post-drift <post_drift_signal> | path <real_path>
+
+Reading rule:
+
+- `NOOP` means the path is already aligned
+- `DRY-RUN` means a repair would be applied if the real command is executed
+- `SKIP` means the path is intentionally excluded in its current state
+
+---
+
+## Understand ray system repair
+
+ray system repair applies the controlled metadata repair for eligible paths.
+
+This command:
+
+- uses the same canonical registry
+- acts only on paths already in `OK` state
+- repairs only `owner`, `group`, and `mode`
+- leaves missing or unreadable targets untouched
+- keeps excluded paths visible with `SKIP`
+
+Real repair output shape:
+
+<label> : REPAIRED | state <state> | drift <drift_signal> | APPLY|owner=<action>|group=<action>|mode=<action> | expected <expected_user>:<expected_group> <expected_mode> | current <real_user>:<real_group> <real_mode> | post-drift <post_drift_signal> | path <real_path>
+
+Reading rule:
+
+- `REPAIRED` means a real correction has been applied
+- `current` shows the state after the repair action
+- `post-drift OK` confirms that the path is now aligned with the registry baseline
 
 Inspection output shape example:
 
 <label> : <state> | owner <real_user>:<real_group> | mode <real_mode> | expected <expected_user>:<expected_group> <expected_mode> | drift <drift_signal> | path <real_path>
-
