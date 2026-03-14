@@ -16,10 +16,12 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 . "${KROOT}/lib/system/system_inspector.sh"
 # shellcheck disable=SC1091
 . "${KROOT}/lib/runtime/session_manager.sh"
+# shellcheck disable=SC1091
+. "${KROOT}/lib/runtime/timeline_query.sh"
 
 ray_usage() {
   cat <<'USAGE'
-USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"|session [open|close|history|timeline]|system inspect|system repair [--dry-run]]
+USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"|timeline <subcommand>|session [open|close|history|timeline]|system inspect|system repair [--dry-run]]
 
 COMMANDS
   ray                          show ray hybrid status
@@ -34,6 +36,7 @@ COMMANDS
   ray session close            close current runtime session and archive it
   ray session history          show recent closed sessions
   ray session timeline         show canonical session event timeline
+  ray timeline <subcommand>    query canonical session timeline with cognitive filters
   ray system inspect           inspect canonical local system paths safely
   ray system repair            repair ownership and mode drift on canonical local paths
   ray system repair --dry-run  preview ownership and mode repair actions safely
@@ -324,6 +327,69 @@ ray_session() {
   esac
 }
 
+
+ray_timeline_usage() {
+  cat <<'EOF'
+RAY TIMELINE
+ray timeline last [count]
+ray timeline grep <text>
+ray timeline sessions
+ray timeline agents
+ray timeline events
+ray timeline cognitive
+ray timeline providers
+ray timeline filter <field> <value>
+EOF
+}
+
+ray_timeline_command() {
+  local subcommand="${1:-}"
+  shift || true
+
+  case "${subcommand}" in
+    ""|-h|--help|help)
+      ray_timeline_usage
+      ;;
+    last)
+      ray_timeline_query_last "${1:-20}"
+      ;;
+    grep|search)
+      if [ -z "${1:-}" ]; then
+        printf 'RAY_ERROR missing timeline search text\n' >&2
+        return 1
+      fi
+      ray_timeline_query_search_text "$1"
+      ;;
+    sessions)
+      ray_timeline_query_sessions
+      ;;
+    agents)
+      ray_timeline_query_agents
+      ;;
+    events|event-types)
+      ray_timeline_query_event_types
+      ;;
+    cognitive|levels)
+      ray_timeline_query_cognitive_levels
+      ;;
+    providers)
+      ray_timeline_query_providers
+      ;;
+    filter|match)
+      if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
+        printf 'RAY_ERROR usage: ray timeline filter <field> <value>\n' >&2
+        return 1
+      fi
+      ray_timeline_query_match_field "$1" "$2"
+      ;;
+    *)
+      printf 'RAY_ERROR unknown timeline subcommand: %s\n' "${subcommand}" >&2
+      ray_timeline_usage >&2
+      return 1
+      ;;
+  esac
+}
+
 ray_system_inspect() {
   kao_session_touch "$(gateway_provider_select)" "gateway-router,system-inspector" "action=operator-system-inspect"
   kao_system_inspect_operator_surface "$@"
@@ -370,6 +436,10 @@ main() {
     session)
       shift
       ray_session "$@"
+      ;;
+    timeline)
+      shift
+      ray_timeline_command "$@"
       ;;
     system)
       shift

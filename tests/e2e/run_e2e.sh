@@ -12,6 +12,7 @@
 . /home/kao/tests/e2e/scenarios/ray_system_inspect.sh
 . /home/kao/tests/e2e/scenarios/ray_timeline.sh
 . /home/kao/tests/e2e/scenarios/ray_session_timeline_v2.sh
+. /home/kao/tests/e2e/scenarios/ray_timeline_query.sh
 . /home/kao/tests/e2e/scenarios/runtime_surface.sh
 
 e2e_init
@@ -27,6 +28,7 @@ scenario_ray_surface
 scenario_ray_system_inspect
 scenario_ray_timeline
 scenario_ray_session_timeline_v2
+scenario_ray_timeline_query
 scenario_runtime_surface
 
 e2e_finalize

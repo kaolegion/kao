@@ -434,3 +434,45 @@ Les artefacts suivants sont explicitement traités comme runtime local éphémè
 - `state/runtime/session.history`
 - `state/runtime/session.timeline`
 - `state/sessions/`
+
+### Timeline Query Engine — cognitive runtime reading layer
+
+Kao now introduces an explicit timeline query layer.
+
+This layer transforms the canonical session timeline from:
+
+- chronological event trace  
+into:
+
+- operator-readable cognitive exploration surface  
+
+New canonical library:
+
+- lib/runtime/timeline_query.sh
+
+New operator surface:
+
+- ray timeline last  
+- ray timeline grep  
+- ray timeline sessions  
+- ray timeline agents  
+- ray timeline events  
+- ray timeline cognitive  
+- ray timeline providers  
+- ray timeline filter  
+
+Design doctrine:
+
+- timeline query must remain shell-native  
+- no database abstraction  
+- no destructive mutation of runtime artifacts  
+- timeline remains the canonical runtime narrative source  
+- query layer acts as a cognitive filter over the narrative  
+
+Operator outcome:
+
+- fast mental reconstruction of session history  
+- ability to identify cognitive intensity zones  
+- ability to identify gateway and agent presence patterns  
+- future compatibility with Kao world UX timeline navigation  
+

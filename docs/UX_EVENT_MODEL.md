@@ -139,3 +139,22 @@ Validation surfaces:
 - `ray session timeline`
 - `tests/e2e/scenarios/ray_timeline.sh`
 - `tests/e2e/scenarios/ray_session_timeline_v2.sh`
+
+## Timeline cognitive query intent
+
+The runtime semantic model now supports operator cognitive filtering.
+
+The query layer enables:
+
+- session clustering  
+- agent presence mapping  
+- cognitive intensity reading  
+- provider distribution inspection  
+
+This prepares future UX surfaces such as:
+
+- timeline heat maps  
+- cognitive workload overlays  
+- session replay navigation  
+- agent constellation views  
+

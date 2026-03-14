@@ -302,3 +302,32 @@ Runtime hygiene extension:
 - `state/runtime/session.history` is treated as ephemeral local runtime state and ignored by Git
 - `state/runtime/session.timeline` is treated as ephemeral local runtime state and ignored by Git
 - `state/sessions/` is treated as ephemeral local runtime state and ignored by Git
+
+## Understand ray timeline query
+
+Kao now exposes a cognitive timeline query surface.
+
+Main commands:
+
+- ray timeline last  
+- ray timeline grep <text>  
+- ray timeline sessions  
+- ray timeline agents  
+- ray timeline events  
+- ray timeline cognitive  
+- ray timeline providers  
+- ray timeline filter <field> <value>  
+
+Reading rule:
+
+- this surface does not mutate runtime  
+- it acts as an exploration tool over canonical timeline events  
+- it helps the operator reconstruct cognitive flow  
+
+Typical operator usage:
+
+- identify which agents were active in a work cycle  
+- detect heavy reasoning phases  
+- inspect provider usage patterns  
+- isolate a specific session narrative  
+

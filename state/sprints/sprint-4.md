@@ -1649,3 +1649,29 @@ A human operator can now read:
 - semantic operator actions without losing chronological simplicity
 - a runtime foundation directly preparatory for future Kao UX cards, HUD, replay, and world timeline nodes
 
+
+## DEV 3.2 timeline query engine + operator cognitive filters note
+
+The runtime session timeline has evolved into an explorable cognitive surface.
+
+Implemented real state now includes:
+
+- canonical timeline query library  
+- canonical ray timeline operator family  
+- session clustering capability  
+- agent presence exploration capability  
+- cognitive signal filtering capability  
+- provider usage exploration capability  
+- dedicated E2E validation scenario  
+
+Operator outcome:
+
+A human operator can now:
+
+- reconstruct the cognitive rhythm of a work session  
+- identify reasoning intensity zones  
+- observe agent constellation dynamics  
+- explore runtime narrative without reading raw timeline lines  
+
+This sprint establishes the first operational step toward Kao timeline UX navigation.
+
