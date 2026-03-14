@@ -2,6 +2,13 @@
 set -euo pipefail
 
 source /home/kao/lib/ksl/ksl_bar.sh
+source /home/kao/lib/ksl/ksl_engine.sh
 
 kao_ksl_ensure_runtime_paths
 kao_ksl_bar_render
+
+printf '\n'
+printf 'ROLE    : %s\n' "$(kao_ksl_get_state "LAST_ROLE" "unknown")"
+printf 'SCOPE   : %s\n' "$(kao_ksl_get_state "LAST_SCOPE" "unknown")"
+printf 'PATTERN : %s\n' "$(kao_ksl_get_state "LAST_PATTERN" "unknown")"
+printf 'OBJECT  : %s\n' "$(kao_ksl_get_state "LAST_OBJECT" "unknown")"

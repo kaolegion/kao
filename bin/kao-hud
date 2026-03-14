@@ -2,12 +2,15 @@
 set -euo pipefail
 
 source /home/kao/lib/ksl/ksl_engine.sh
+source /home/kao/lib/ksl/ksl_render.sh
 
 kao_ksl_ensure_runtime_paths
 
 printf "KAO HUD STREAM\n"
 printf "stream : %s\n" "$KSL_STREAM_FILE"
 printf "state  : %s\n" "$KSL_STATE_FILE"
-printf "%s\n" "------------------------------------------------------------"
+printf "%s\n" "--------------------------------------------------------------------------------------------------------------"
 
-kao_ksl_hud_stream
+tail -n 20 -f "$KSL_STREAM_FILE" 2>/dev/null | while IFS='|' read -r ts layer priority event signal symbol intensity state pattern object role scope; do
+  kao_ksl_render_hud_line "$ts" "$layer" "$priority" "$event" "$signal" "$symbol" "$intensity" "$state" "$pattern" "$object" "$role" "$scope"
+done

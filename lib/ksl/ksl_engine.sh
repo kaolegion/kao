@@ -40,24 +40,112 @@ kao_ksl_event_layer_name() {
     */ACT/*) printf "ACT" ;;
     */MEM/*) printf "MEM" ;;
     */RSN/*) printf "RSN" ;;
+    */USR/*) printf "USR" ;;
+    */TMP/*) printf "TMP" ;;
     */ALT/*) printf "ALT" ;;
     *)       printf "UNK" ;;
   esac
 }
 
+kao_ksl_extract_segment() {
+  local signal="$1"
+  local index="$2"
+  printf "%s\n" "$signal" | awk -F'/' -v idx="$index" '{ print $idx }'
+}
+
+kao_ksl_extract_state() {
+  local signal="$1"
+  local value
+  value="$(kao_ksl_extract_segment "$signal" 3)"
+  [ -n "$value" ] && printf "%s\n" "$value" || printf "unknown\n"
+}
+
 kao_ksl_extract_intensity() {
   local signal="$1"
-  local part
+  local value
+  value="$(kao_ksl_extract_segment "$signal" 4)"
 
-  IFS='/' read -r _ _ _ part _ _ <<EOF2
-$signal
-EOF2
-
-  if printf "%s" "$part" | grep -Eq '^i[0-9]+$'; then
-    printf "%s\n" "$part"
+  if printf "%s" "$value" | grep -Eq '^i[0-9]+$'; then
+    printf "%s\n" "$value"
   else
     printf "i1\n"
   fi
+}
+
+kao_ksl_extract_pattern() {
+  local signal="$1"
+  local value
+  value="$(kao_ksl_extract_segment "$signal" 5)"
+  [ -n "$value" ] && printf "%s\n" "$value" || printf "steady\n"
+}
+
+kao_ksl_extract_object() {
+  local signal="$1"
+  local value
+  value="$(kao_ksl_extract_segment "$signal" 6)"
+  [ -n "$value" ] && printf "%s\n" "$value" || printf "object\n"
+}
+
+kao_ksl_semantic_role_from_event() {
+  local event="$1"
+
+  case "$event" in
+    session.start|session.steady|session.end)
+      printf "presence\n"
+      ;;
+    network.online|network.offline|network.lost)
+      printf "context\n"
+      ;;
+    router.evaluate|router.local_selected|router.cloud_selected|router.fallback_local)
+      printf "decision\n"
+      ;;
+    agent.spawn|agent.active|agent.done)
+      printf "execution\n"
+      ;;
+    memory.recall|memory.hot)
+      printf "memory\n"
+      ;;
+    *)
+      printf "state\n"
+      ;;
+  esac
+}
+
+kao_ksl_scope_from_event() {
+  local event="$1"
+
+  case "$event" in
+    session.start|session.steady|session.end)
+      printf "session\n"
+      ;;
+    network.online|network.offline|network.lost)
+      printf "global\n"
+      ;;
+    router.evaluate|router.local_selected|router.cloud_selected|router.fallback_local)
+      printf "session\n"
+      ;;
+    agent.spawn|agent.active|agent.done)
+      printf "local\n"
+      ;;
+    memory.recall|memory.hot)
+      printf "session\n"
+      ;;
+    *)
+      printf "local\n"
+      ;;
+  esac
+}
+
+kao_ksl_compose_surface_signal() {
+  local signal="$1"
+  local event="$2"
+  local role
+  local scope
+
+  role="$(kao_ksl_semantic_role_from_event "$event")"
+  scope="$(kao_ksl_scope_from_event "$event")"
+
+  printf "%s@%s#%s\n" "$signal" "$scope" "$role"
 }
 
 kao_ksl_set_state() {
@@ -142,6 +230,17 @@ kao_ksl_refresh_state_from_event() {
   local event="$1"
   local signal="$2"
   local intensity="$3"
+  local role
+  local scope
+  local pattern
+  local object
+  local surface_signal
+
+  role="$(kao_ksl_semantic_role_from_event "$event")"
+  scope="$(kao_ksl_scope_from_event "$event")"
+  pattern="$(kao_ksl_extract_pattern "$signal")"
+  object="$(kao_ksl_extract_object "$signal")"
+  surface_signal="$(kao_ksl_compose_surface_signal "$signal" "$event")"
 
   case "$event" in
     session.start|session.steady)
@@ -206,7 +305,11 @@ kao_ksl_refresh_state_from_event() {
 
   kao_ksl_set_state "LOAD" "$intensity"
   kao_ksl_set_state "LAST_EVENT" "$event"
-  kao_ksl_set_state "LAST_SIGNAL" "$signal"
+  kao_ksl_set_state "LAST_SIGNAL" "$surface_signal"
+  kao_ksl_set_state "LAST_ROLE" "$role"
+  kao_ksl_set_state "LAST_SCOPE" "$scope"
+  kao_ksl_set_state "LAST_PATTERN" "$pattern"
+  kao_ksl_set_state "LAST_OBJECT" "$object"
   kao_ksl_refresh_mode
 }
 
@@ -218,6 +321,11 @@ kao_runtime_emit_event() {
   local ts
   local symbol
   local intensity
+  local state
+  local pattern
+  local object
+  local role
+  local scope
 
   kao_ksl_ensure_runtime_paths
 
@@ -232,40 +340,26 @@ kao_runtime_emit_event() {
 
   symbol="$(kao_ksl_event_symbol "$signal")"
   intensity="$(kao_ksl_extract_intensity "$signal")"
+  state="$(kao_ksl_extract_state "$signal")"
+  pattern="$(kao_ksl_extract_pattern "$signal")"
+  object="$(kao_ksl_extract_object "$signal")"
+  role="$(kao_ksl_semantic_role_from_event "$event")"
+  scope="$(kao_ksl_scope_from_event "$event")"
 
-  printf "%s | LAYER=%s | PRIORITY=%s | EVENT=%s | SIGNAL=%s\n" \
-    "$ts" "$layer" "$priority" "$event" "$signal" >> "$KSL_TIMELINE_FILE"
+  printf "%s | LAYER=%s | PRIORITY=%s | EVENT=%s | SIGNAL=%s | ROLE=%s | SCOPE=%s | PATTERN=%s | OBJECT=%s\n" \
+    "$ts" "$layer" "$priority" "$event" "$signal" "$role" "$scope" "$pattern" "$object" >> "$KSL_TIMELINE_FILE"
 
-  printf "%s|%s|%s|%s|%s|%s|%s\n" \
-    "$ts" "$layer" "$priority" "$event" "$signal" "$symbol" "$intensity" >> "$KSL_STREAM_FILE"
+  printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" \
+    "$ts" "$layer" "$priority" "$event" "$signal" "$symbol" "$intensity" "$state" "$pattern" "$object" "$role" "$scope" >> "$KSL_STREAM_FILE"
 
   kao_ksl_refresh_state_from_event "$event" "$signal" "$intensity"
-
-  printf "KSL::%s\n" "$signal"
-}
-
-kao_ksl_stream_render_line() {
-  local line="$1"
-  local ts layer priority event signal symbol intensity
-
-  IFS='|' read -r ts layer priority event signal symbol intensity <<EOF2
-$line
-EOF2
-
-  [ -n "${ts:-}" ] || return 0
-
-  printf "%s %s %-22s [%s|%s] %s\n" \
-    "$ts" \
-    "${symbol:-◆}" \
-    "${event:-unknown}" \
-    "${priority:-P3}" \
-    "${intensity:-i1}" \
-    "${signal:-unknown}"
 }
 
 kao_ksl_hud_stream() {
-  kao_ksl_ensure_runtime_paths
-  tail -n 20 -f "$KSL_STREAM_FILE" | while IFS= read -r line; do
-    kao_ksl_stream_render_line "$line"
+  local ts layer priority event signal symbol intensity state pattern object role scope
+
+  tail -n 20 -f "$KSL_STREAM_FILE" 2>/dev/null | while IFS='|' read -r ts layer priority event signal symbol intensity state pattern object role scope; do
+    printf "%-20s | %-3s | %-2s | %-18s | %-28s | %-8s | %-10s | %-9s | %-9s | %s\n" \
+      "$ts" "$layer" "$priority" "$event" "$role" "$scope" "$state" "$pattern" "$intensity" "$signal"
   done
 }

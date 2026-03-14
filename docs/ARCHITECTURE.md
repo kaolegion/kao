@@ -220,12 +220,26 @@ Exemples de signaux :
 - `◆/NET/success/i2/hold/router:cloud`
 - `▮/ACT/success/i1/fade/agent`
 
+Sémantique dashboard désormais dérivée :
+
+- `role` = présence, contexte, décision, exécution, mémoire, prédiction
+- `scope` = local, session, global, future
+- `pattern` = lecture de rythme visible (`steady`, `hold`, `pulse-fast`, etc.)
+- `object` = cible visible (`session`, `network`, `router:cloud`, `agent`)
+
+Cela permet à KSL de nourrir directement :
+
+- une lecture HUD live
+- une timeline sémantique
+- un futur radar cognitif
+- une navigation temporelle plus lisible
+
 Couplage actuel :
 
 - `ray session` écrit la timeline narrative canonique
 - `lib/runtime/ksl_hook.sh` dérive des événements KSL depuis les événements de session
-- `kao status` expose la barre KSL synthétique
-- `kao hud` expose le flux HUD KSL en continu
+- `kao status` expose la barre KSL synthétique et le dernier contexte sémantique
+- `kao hud` expose le flux HUD KSL en continu avec rôle, scope et pattern
 
 ---
 ## Layer 0 — Machine Host

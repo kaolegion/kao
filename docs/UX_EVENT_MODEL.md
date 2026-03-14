@@ -78,6 +78,13 @@ Current scope meanings:
 - `cognitive` → routing / reasoning / gateway interpretation
 - `system` → local execution / filesystem / runtime mechanisms
 
+KSL dashboard scope adds a second visible scope layer for signal surfaces:
+
+- `local` → local agent or unit action
+- `session` → current cognitive session field
+- `global` → machine or network world state
+- `future` → predictive or roadmap-facing signal
+
 ---
 
 ## Intensity layer
@@ -88,6 +95,8 @@ Current intensity meanings:
 - `active` → meaningful visible operator activity
 - `critical` → repair / safety / strong intervention
 - `narrative` → structural timeline moment
+
+KSL signal intensity remains encoded as `i1..i4`.
 
 ---
 
@@ -109,6 +118,50 @@ Future UX mapping idea:
 
 ---
 
+## KSL dashboard semantic layer
+
+KSL now exposes a dashboard-oriented semantic layer in addition to the canonical runtime timeline.
+
+Each signal can now be read through:
+
+- domain
+- visible state
+- intensity
+- animation pattern
+- object
+- role
+- scope
+
+Example signal reading:
+
+- `◆/NET/success/i2/hold/router:cloud`
+- domain = `NET`
+- state = `success`
+- intensity = `i2`
+- pattern = `hold`
+- object = `router:cloud`
+- role = `decision`
+- scope = `session`
+
+Primary dashboard roles:
+
+- `presence` → session existence / user or runtime breathing
+- `context` → environment or network condition
+- `decision` → routing or arbitration moment
+- `execution` → agent work in progress or completion
+- `memory` → recall / heat / persistence signal
+- `prediction` → roadmap / future / anticipation layer
+- `state` → fallback generic semantic role
+
+This prepares four readable dashboard families:
+
+- cognitive radar
+- signal stream
+- agent field
+- temporal navigator
+
+---
+
 ## Current UX mapping intent
 
 This semantic model prepares future:
@@ -118,6 +171,7 @@ This semantic model prepares future:
 - session replay nodes
 - HUD layers
 - cognitive heat / activity filters
+- dashboard semantic overlays
 
 The current rule is:
 
@@ -133,12 +187,18 @@ Current implementation files:
 - `lib/runtime/session_manager.sh`
 - `lib/runtime/event_normalizer.sh`
 - `config/event_taxonomy.env`
+- `lib/ksl/ksl_engine.sh`
+- `lib/ksl/ksl_mapping.env`
+- `lib/ksl/ksl_render.sh`
+- `lib/ksl/ksl_timeline.sh`
 
 Validation surfaces:
 
 - `ray session timeline`
 - `tests/e2e/scenarios/ray_timeline.sh`
 - `tests/e2e/scenarios/ray_session_timeline_v2.sh`
+- `kao status`
+- `kao hud`
 
 ## Timeline cognitive query intent
 
@@ -146,15 +206,15 @@ The runtime semantic model now supports operator cognitive filtering.
 
 The query layer enables:
 
-- session clustering  
-- agent presence mapping  
-- cognitive intensity reading  
-- provider distribution inspection  
+- session clustering
+- agent presence mapping
+- cognitive intensity reading
+- provider distribution inspection
 
 This prepares future UX surfaces such as:
 
-- timeline heat maps  
-- cognitive workload overlays  
-- session replay navigation  
-- agent constellation views  
-
+- timeline heat maps
+- cognitive workload overlays
+- session replay navigation
+- agent constellation views
+- dashboard semantic grouping

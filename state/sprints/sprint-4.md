@@ -152,3 +152,92 @@ Kao now has:
 - a cleaner distinction between canonical source and ephemeral runtime perception
 
 This sprint locks the first real KSL operator surface for future UX evolution.
+
+# SPRINT UX/KSL 1.7 — Signal Surface Expansion + Dashboard Semantics
+
+## Mission
+
+Expand KSL from a compact signal layer into a richer dashboard-readable semantic surface.
+
+## Goal
+
+Allow an operator to:
+
+- read not only the signal itself but also its dashboard meaning
+- understand role, scope, visible state, pattern and target at a glance
+- keep the canonical runtime timeline intact while enriching the derived HUD layer
+- prepare future radar, agent field and temporal navigation surfaces without breaking shell simplicity
+
+## Scope
+
+Versioned implementation now extends:
+
+- `lib/ksl/ksl_engine.sh`
+- `lib/ksl/ksl_mapping.env`
+- `lib/ksl/ksl_render.sh`
+- `lib/ksl/ksl_timeline.sh`
+- `bin/kao-hud`
+- `bin/kao-status`
+- `docs/UX_EVENT_MODEL.md`
+- `docs/ARCHITECTURE.md`
+- `state/sprints/sprint-4.md`
+
+## Semantic extension delivered
+
+KSL derived surfaces now expose:
+
+- `role`
+- `scope`
+- `state`
+- `pattern`
+- `object`
+
+Current dashboard roles include:
+
+- `presence`
+- `context`
+- `decision`
+- `execution`
+- `memory`
+- `state`
+
+Current dashboard scopes include:
+
+- `local`
+- `session`
+- `global`
+
+## Operator surface result
+
+The sprint now improves:
+
+- `kao hud` with semantic stream columns
+- `kao status` with last semantic dashboard context
+- KSL timeline readability for future dashboard grouping
+
+## Doctrine locked by this sprint
+
+This sprint keeps the rule:
+
+- session timeline remains the narrative canonical source
+- KSL board surfaces remain derived runtime-local perception
+- dashboard semantics enrich reading without replacing shell stability
+
+## Expected validation
+
+Validation should confirm:
+
+- shell syntax remains valid
+- emitted KSL timeline lines now include role and scope
+- HUD stream rows expose state, pattern and role coherently
+- `kao status` exposes last semantic context without breaking bar rendering
+- runtime-local board artifacts stay derived and non-versioned
+
+## Product result
+
+Kao now moves one step closer to a true cognitive dashboard language:
+
+- compact enough for terminal use
+- semantic enough for future HUD/TUI
+- structured enough for replay, grouping and visual navigation
+- still grounded in the canonical session runtime doctrine
