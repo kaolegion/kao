@@ -8,6 +8,6 @@
 
 # runtime state artifacts
 state/runtime/runtime.snapshot
-
 state/runtime/session.current
 state/runtime/session.history
+state/sessions/

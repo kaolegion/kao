@@ -1509,3 +1509,49 @@ This keeps:
 - session cognition visible for the operator
 - runtime history available locally
 - repository status clean after validation and normal usage
+
+---
+
+## DEV 2.9 session lifecycle integrity note
+
+The runtime session cognition layer has been extended to improve historical fidelity.
+
+Implemented real state now includes:
+
+- canonical session identifier
+- last visible event timestamp on active session
+- compact runtime history index
+- dedicated snapshot archive per closed session
+- persistent lineage between runtime history and archived session state
+- improved operator temporal readability
+
+Runtime session artifacts now include:
+
+- `state/runtime/session.current`
+- `state/runtime/session.history`
+- `state/sessions/<session-id>.snapshot`
+
+Design doctrine refinement:
+
+- runtime history remains compact and readable
+- each closed session preserves a full immutable snapshot
+- session lineage becomes traceable across operator cycles
+- runtime temporal continuity becomes observable
+- Kao breathing state becomes historically inspectable
+
+Runtime hygiene extension:
+
+- `state/sessions/` is treated as ephemeral local runtime state
+- archived session snapshots are intentionally excluded from Git tracking
+- repository cleanliness remains preserved after normal usage
+
+Operator outcome:
+
+A human operator can now:
+
+- identify each runtime session uniquely
+- inspect full closed session state later
+- read compact history while preserving detailed archives
+- observe continuity of cognitive presence across work cycles
+- reason about temporal behavior of Kao as a living system
+

@@ -118,7 +118,6 @@ Runtime expression currently used in design:
 
 ---
 
-
 ## Understand ray system inspect
 
 ray system inspect exposes a deterministic local system diagnostic surface.
@@ -254,7 +253,9 @@ Reading rules:
 
 Visible fields include:
 
+- `id`
 - `start`
+- `last`
 - `duration`
 - `machine`
 - `user`
@@ -265,10 +266,18 @@ Visible fields include:
 
 Operational note:
 
+- `id` identifies the active or closed session snapshot lineage
+- `last` reflects the most recent visible event on the active session
 - `internet` reflects the current online/offline reading
 - `llm` summarizes the active cognition source as `cloud`, `local`, or `none`
 - `gateway` reflects the current principal route/provider context
 - `agents` accumulates the secondary surfaces used during the session
+
+Session closure behavior:
+
+- `ray session close` appends a readable compact entry to `state/runtime/session.history`
+- `ray session close` also writes a dedicated closed snapshot into `state/sessions/`
+- the runtime history remains readable in one place while each closed session keeps its own preserved state file
 
 During `ray run`, Kao now renders a small breathing block before execution so the operator can read the current runtime cognitive state directly in the terminal.
 
@@ -276,3 +285,4 @@ Runtime hygiene extension:
 
 - `state/runtime/session.current` is treated as ephemeral local runtime state and ignored by Git
 - `state/runtime/session.history` is treated as ephemeral local runtime state and ignored by Git
+- `state/sessions/` is treated as ephemeral local runtime state and ignored by Git

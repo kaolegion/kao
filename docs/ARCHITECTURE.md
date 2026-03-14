@@ -318,6 +318,7 @@ Artefacts runtime :
 
 - `state/runtime/session.current`
 - `state/runtime/session.history`
+- `state/sessions/`
 
 Bibliothèque canonique :
 
@@ -330,10 +331,13 @@ Cette couche expose :
 - respiration visible pendant `ray run`
 - fermeture de session avec archivage lisible
 - historique local des sessions fermées
+- snapshot dédié pour chaque session clôturée
 
 Les attributs actuellement gouvernés sont :
 
+- identifiant de session
 - heure de début
+- heure de fin
 - durée
 - machine
 - user
@@ -341,6 +345,7 @@ Les attributs actuellement gouvernés sont :
 - source LLM (`cloud`, `local`, `none`)
 - gateway principal
 - agents secondaires appelés
+- dernier événement visible sur la session active
 
 Surface opérateur associée :
 
@@ -352,15 +357,19 @@ Surface opérateur associée :
 Doctrine :
 
 - `session.current` est mutable et locale
-- `session.history` est une trace runtime locale
+- `session.history` est une trace runtime locale compacte
+- `state/sessions/` contient les snapshots fermés par session
 - cette couche ne remplace pas la gouvernance source Git
 - elle rend visible la respiration de Kao au niveau session
+- elle améliore la fidélité historique sans transformer le runtime en source versionnée
 
 Lecture opératoire :
 
 - une session active représente un cycle de présence opérateur
 - le gateway visible représente l’agent principal au moment courant
 - la liste `agents` représente les surfaces ou sous-agents activés pendant la session
+- `session.history` agit comme un index lisible des sessions clôturées
+- chaque snapshot de `state/sessions/` préserve l’état fermé complet d’une session
 
 ### Git hygiene note
 
@@ -368,3 +377,4 @@ Les artefacts suivants sont explicitement traités comme runtime local éphémè
 
 - `state/runtime/session.current`
 - `state/runtime/session.history`
+- `state/sessions/`
