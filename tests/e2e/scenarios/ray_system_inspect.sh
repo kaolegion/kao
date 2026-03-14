@@ -41,5 +41,25 @@ printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:
   && e2e_ok "agent registry state readable" \
   || e2e_error "agent registry state unreadable"
 
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*owner[[:space:]]+[A-Za-z0-9_-]+:[A-Za-z0-9_-]+" \
+  && e2e_ok "root path owner visible" \
+  || e2e_error "root path owner missing"
+
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*mode[[:space:]]+[0-9]{3,4}" \
+  && e2e_ok "root path mode visible" \
+  || e2e_error "root path mode missing"
+
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "root path[[:space:]]*:.*path[[:space:]]+/home/kao" \
+  && e2e_ok "root path path visible" \
+  || e2e_error "root path path missing"
+
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*owner[[:space:]]+n/a:n/a" \
+  && e2e_ok "missing path ownership fallback visible" \
+  || e2e_error "missing path ownership fallback missing"
+
+printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:]]*:.*mode[[:space:]]+n/a" \
+  && e2e_ok "missing path mode fallback visible" \
+  || e2e_error "missing path mode fallback missing"
+
 printf 'OK ray_system_inspect\n'
 }

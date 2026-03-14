@@ -194,6 +194,7 @@ Responsabilités :
 - exposition d’un état de chemin exécutable ou en attente
 - exposition d’une séquence locale lisible avant action
 - exposition d’une surface d’inspection système locale sûre
+- exposition de métadonnées d’ownership lisibles pour chaque chemin inspecté
 - exécution via le gateway existant pour les prompts cognitifs
 - exécution locale via séquences internes déterministes pour un premier sous-ensemble sûr
 - inspection locale read-only via registry canonique de chemins
@@ -243,6 +244,7 @@ Ray distingue maintenant explicitement :
 - la vue complète des entrées registry
 - la vue scout du paysage modèle multi-entrée ordonné
 - une vue locale d’inspection système dérivée d’un registry canonique de chemins
+- une vue locale incluant état, owner, group, mode et chemin réel
 
 États exposés :
 

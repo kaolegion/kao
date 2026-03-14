@@ -1181,3 +1181,49 @@ A human operator can now understand immediately:
 - why those mutations are not source changes
 - how Git hygiene distinguishes source from runtime
 - why end-of-sprint repository cleanliness is easier to preserve going forward
+
+---
+
+## DEV 2.4 ownership governance inspection note
+
+Ray system inspection now exposes ownership-oriented metadata
+for each canonical local path entry.
+
+Implemented real state now includes:
+
+- visible owner for each inspected path
+- visible group for each inspected path
+- visible permission mode for each inspected path
+- visible resolved real path for each inspected path
+- explicit fallback metadata for missing paths
+- preserved readable state surface for existing inspection results
+- E2E lock for ownership metadata visibility
+
+## DEV 2.4 validation result
+
+Validation now confirms:
+
+- `ray system inspect` keeps its canonical banner
+- canonical path labels remain visible
+- canonical path states remain readable
+- root path owner is visible
+- root path mode is visible
+- root path resolved path is visible
+- missing path fallback owner is visible as `n/a:n/a`
+- missing path fallback mode is visible as `n/a`
+- targeted harness execution is green
+- full E2E runner remains green
+- runtime snapshot hygiene is restored after validation
+
+## DEV 2.4 operator result
+
+A human operator can now understand immediately:
+
+- whether a canonical path exists
+- whether it is readable
+- who owns it
+- which group governs it
+- which permission mode is applied
+- which real path is being inspected
+- whether a missing path is absent cleanly without fake metadata
+- where root-managed and operator-managed areas diverge

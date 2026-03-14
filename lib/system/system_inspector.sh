@@ -41,26 +41,78 @@ kao_system_check_path_state() {
   printf 'OK\n'
 }
 
+kao_system_path_owner() {
+  local path
+  path="${1:-}"
+
+  if [ ! -e "${path}" ]; then
+    printf 'n/a\n'
+    return 0
+  fi
+
+  stat -c '%U' "${path}"
+}
+
+kao_system_path_group() {
+  local path
+  path="${1:-}"
+
+  if [ ! -e "${path}" ]; then
+    printf 'n/a\n'
+    return 0
+  fi
+
+  stat -c '%G' "${path}"
+}
+
+kao_system_path_mode() {
+  local path
+  path="${1:-}"
+
+  if [ ! -e "${path}" ]; then
+    printf 'n/a\n'
+    return 0
+  fi
+
+  stat -c '%a' "${path}"
+}
+
 kao_system_inspect_local_paths() {
-  local label expected_type path state
+  local label expected_type path state owner group mode
 
   while IFS='|' read -r label expected_type path; do
     [ -n "${label}" ] || continue
     state="$(kao_system_check_path_state "${expected_type}" "${path}")"
-    printf '%s|%s|%s|%s\n' "${label}" "${expected_type}" "${path}" "${state}"
+    owner="$(kao_system_path_owner "${path}")"
+    group="$(kao_system_path_group "${path}")"
+    mode="$(kao_system_path_mode "${path}")"
+    printf '%s|%s|%s|%s|%s|%s|%s\n' \
+      "${label}" \
+      "${expected_type}" \
+      "${path}" \
+      "${state}" \
+      "${owner}" \
+      "${group}" \
+      "${mode}"
   done <<EOF_PATHS
 $(kao_local_paths_list)
 EOF_PATHS
 }
 
 kao_system_render_inspection() {
-  local label _expected_type _path state
+  local label _expected_type path state owner group mode
 
   printf 'LOCAL SYSTEM INSPECTION\n\n'
 
-  while IFS='|' read -r label _expected_type _path state; do
+  while IFS='|' read -r label _expected_type path state owner group mode; do
     [ -n "${label}" ] || continue
-    printf '%-16s : %s\n' "${label}" "${state}"
+    printf '%-16s : %s | owner %s:%s | mode %s | path %s\n' \
+      "${label}" \
+      "${state}" \
+      "${owner}" \
+      "${group}" \
+      "${mode}" \
+      "${path}"
   done <<EOF_RESULTS
 $(kao_system_inspect_local_paths)
 EOF_RESULTS

@@ -274,6 +274,14 @@ It shows a stable operator surface for:
 - e2e scenarios
 - agent registry
 
+Current visible metadata includes:
+
+- state
+- owner
+- group
+- mode
+- real path
+
 Current inspection states are:
 
 - `OK`
@@ -295,3 +303,12 @@ Current behavior:
 - paths declared in `lib/system/local_paths_registry.sh`
 - states computed in `lib/system/system_inspector.sh`
 - rendered through `ray system inspect`
+
+Current output shape is:
+
+- `<label> : <state> | owner <user>:<group> | mode <permissions> | path <resolved path>`
+
+Missing paths fall back to:
+
+- owner `n/a:n/a`
+- mode `n/a`
