@@ -13,7 +13,7 @@ scenario_ray_timeline() {
 
   output="$(/home/kao/bin/ray session open)"
   assert_contains "${output}" "RAY SESSION" "ray session open banner visible"
-  assert_contains "${output}" "state    : ACTIVE" "ray session open active state visible"
+  assert_contains "${output}" "state    : active" "ray session open active state visible"
 
   /home/kao/bin/ray status >/dev/null
   /home/kao/bin/ray registry >/dev/null
@@ -27,8 +27,8 @@ scenario_ray_timeline() {
   output="$(cat "${timeline_file}")"
   assert_contains "${output}" "type=session-open" "session open event recorded"
   assert_contains "${output}" "type=session-touch" "session touch event recorded"
-  assert_contains "${output}" "detail=ray-status" "ray status detail recorded"
-  assert_contains "${output}" "detail=ray-registry" "ray registry detail recorded"
+  assert_contains "${output}" "detail=action=operator-status" "ray status action detail recorded"
+  assert_contains "${output}" "detail=action=operator-registry" "ray registry action detail recorded"
 
   output="$(/home/kao/bin/ray session close)"
   assert_contains "${output}" "RAY SESSION CLOSED" "ray session close banner visible"

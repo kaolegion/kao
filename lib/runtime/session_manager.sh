@@ -107,6 +107,12 @@ kao_session_build_id() {
   printf 'session-%s-%s\n' "$(kao_session_stamp_compact)" "$$"
 }
 
+kao_session_build_event_id() {
+  local event_type
+  event_type="${1:-unknown}"
+  printf 'evt-%s-%s-%s\n' "$(kao_session_stamp_compact)" "$$" "$(printf '%s' "${event_type}" | tr -c '[:alnum:]' '-')"
+}
+
 kao_session_archive_file_for_id() {
   local session_id
   session_id="${1}"
@@ -175,7 +181,7 @@ kao_session_merge_agents() {
 
 kao_session_append_timeline_event() {
   local event_type session_id machine_name user_name internet_state llm_state gateway_agent agents detail
-  local file at
+  local file at enriched_detail event_id event_version
 
   event_type="${1}"
   session_id="${2}"
@@ -190,10 +196,20 @@ kao_session_append_timeline_event() {
   kao_session_ensure_dirs
   file="$(kao_session_timeline_file)"
   at="$(kao_session_now)"
+  event_id="$(kao_session_build_event_id "${event_type}")"
+  event_version="2"
   touch "${file}"
 
+  if [ -f "${KROOT}/lib/runtime/event_normalizer.sh" ]; then
+    # shellcheck disable=SC1091
+    . "${KROOT}/lib/runtime/event_normalizer.sh"
+    enriched_detail="$(kao_event_enrich_detail "${event_type}" "${detail}")"
+  else
+    enriched_detail="${detail}"
+  fi
+
   printf '%s\n' \
-    "SESSION_EVENT|at=$(kao_session_escape_field "${at}")|session_id=$(kao_session_escape_field "${session_id}")|type=$(kao_session_escape_field "${event_type}")|machine=$(kao_session_escape_field "${machine_name}")|user=$(kao_session_escape_field "${user_name}")|internet=$(kao_session_escape_field "${internet_state}")|llm=$(kao_session_escape_field "${llm_state}")|gateway=$(kao_session_escape_field "${gateway_agent}")|agents=$(kao_session_escape_field "${agents}")|detail=$(kao_session_escape_field "${detail}")" \
+    "SESSION_EVENT|event_version=$(kao_session_escape_field "${event_version}")|event_id=$(kao_session_escape_field "${event_id}")|at=$(kao_session_escape_field "${at}")|session_id=$(kao_session_escape_field "${session_id}")|type=$(kao_session_escape_field "${event_type}")|machine=$(kao_session_escape_field "${machine_name}")|user=$(kao_session_escape_field "${user_name}")|internet=$(kao_session_escape_field "${internet_state}")|llm=$(kao_session_escape_field "${llm_state}")|gateway=$(kao_session_escape_field "${gateway_agent}")|agents=$(kao_session_escape_field "${agents}")|detail=$(kao_session_escape_field "${enriched_detail}")" \
     >> "${file}"
 }
 
@@ -260,10 +276,6 @@ kao_session_touch() {
   existing_agents="$(kao_session_value "${file}" SESSION_AGENTS)"
   merged_agents="$(kao_session_merge_agents "${existing_agents}" "${secondary_agents}")"
 
-  [ -n "${session_id}" ] || session_id="$(kao_session_build_id)"
-  [ -n "${gateway_agent}" ] || gateway_agent="$(kao_session_selected_provider)"
-  [ -n "${merged_agents}" ] || merged_agents="gateway-router"
-
   kao_session_write_current \
     "${session_id}" \
     "${start_at}" \
@@ -287,123 +299,34 @@ kao_session_touch() {
     "${detail}"
 }
 
-kao_session_duration_seconds() {
-  local start_epoch now_epoch
-
-  start_epoch="${1:-0}"
-  now_epoch="$(kao_session_epoch)"
-
-  if [ "${start_epoch}" -le 0 ] 2>/dev/null; then
-    printf '0\n'
-    return 0
-  fi
-
-  printf '%s\n' "$((now_epoch - start_epoch))"
-}
-
-kao_session_duration_human() {
-  local total hours minutes seconds
-
-  total="${1:-0}"
-  hours="$((total / 3600))"
-  minutes="$(((total % 3600) / 60))"
-  seconds="$((total % 60))"
-
-  if [ "${hours}" -gt 0 ]; then
-    printf '%sh%02sm%02ss\n' "${hours}" "${minutes}" "${seconds}"
-    return 0
-  fi
-
-  if [ "${minutes}" -gt 0 ]; then
-    printf '%sm%02ss\n' "${minutes}" "${seconds}"
-    return 0
-  fi
-
-  printf '%ss\n' "${seconds}"
-}
-
-kao_session_write_archive_snapshot() {
-  local session_id start_at start_epoch end_at end_epoch duration_seconds duration_human machine_name user_name internet_state llm_state gateway_agent agents
-  local file
-
-  session_id="${1}"
-  start_at="${2}"
-  start_epoch="${3}"
-  end_at="${4}"
-  end_epoch="${5}"
-  duration_seconds="${6}"
-  duration_human="${7}"
-  machine_name="${8}"
-  user_name="${9}"
-  internet_state="${10}"
-  llm_state="${11}"
-  gateway_agent="${12}"
-  agents="${13}"
-
-  kao_session_ensure_dirs
-  file="$(kao_session_archive_file_for_id "${session_id}")"
-
-  cat > "${file}" <<EOF_ARCHIVE
-SESSION_ID=${session_id}
-SESSION_STATE=CLOSED
-SESSION_STATUS=CLOSED
-SESSION_START_AT=${start_at}
-SESSION_START_EPOCH=${start_epoch}
-SESSION_END_AT=${end_at}
-SESSION_END_EPOCH=${end_epoch}
-SESSION_DURATION_SECONDS=${duration_seconds}
-SESSION_DURATION_HUMAN=${duration_human}
-SESSION_MACHINE=${machine_name}
-SESSION_USER=${user_name}
-SESSION_INTERNET=${internet_state}
-SESSION_LLM=${llm_state}
-SESSION_GATEWAY=${gateway_agent}
-SESSION_AGENTS=${agents}
-SESSION_ARCHIVED_AT=$(kao_session_now)
-EOF_ARCHIVE
-
-  printf '%s\n' "${file}"
-}
-
-kao_session_append_history() {
-  local session_id start_at end_at duration_seconds duration_human machine_name user_name internet_state llm_state gateway_agent agents archive_file
-  local file
-
-  session_id="${1}"
-  start_at="${2}"
-  end_at="${3}"
-  duration_seconds="${4}"
-  duration_human="${5}"
-  machine_name="${6}"
-  user_name="${7}"
-  internet_state="${8}"
-  llm_state="${9}"
-  gateway_agent="${10}"
-  agents="${11}"
-  archive_file="${12}"
-
-  kao_session_ensure_dirs
-  file="$(kao_session_history_file)"
-  touch "${file}"
-
-  printf '%s\n' \
-    "SESSION_CLOSED|id=${session_id}|start=${start_at}|end=${end_at}|duration_seconds=${duration_seconds}|duration_human=${duration_human}|machine=${machine_name}|user=${user_name}|internet=${internet_state}|llm=${llm_state}|gateway=${gateway_agent}|agents=${agents}|archive=${archive_file}" \
-    >> "${file}"
-}
-
 kao_session_open() {
   kao_session_ensure_active
 }
 
-kao_session_close() {
-  local file session_id start_at start_epoch end_at end_epoch machine_name user_name internet_state llm_state gateway_agent agents duration_seconds duration_human archive_file
+kao_session_duration_human() {
+  local seconds
+  seconds="${1:-0}"
 
-  file="$(kao_session_current_file)"
-  if [ ! -f "${file}" ]; then
-    printf 'RAY SESSION\n'
-    printf 'state    : INACTIVE\n'
+  if [ "${seconds}" -lt 60 ]; then
+    printf '%ss\n' "${seconds}"
     return 0
   fi
+
+  if [ "${seconds}" -lt 3600 ]; then
+    printf '%sm%ss\n' "$((seconds / 60))" "$((seconds % 60))"
+    return 0
+  fi
+
+  printf '%sh%sm%ss\n' "$((seconds / 3600))" "$(((seconds % 3600) / 60))" "$((seconds % 60))"
+}
+
+kao_session_close() {
+  local file session_id start_at start_epoch machine_name user_name internet_state llm_state gateway_agent agents
+  local end_at end_epoch duration_seconds duration_human archive_file history_file
+
+  kao_session_ensure_dirs
+  file="$(kao_session_current_file)"
+  [ -f "${file}" ] || return 0
 
   session_id="$(kao_session_value "${file}" SESSION_ID)"
   start_at="$(kao_session_value "${file}" SESSION_START_AT)"
@@ -415,40 +338,12 @@ kao_session_close() {
   gateway_agent="$(kao_session_value "${file}" SESSION_GATEWAY)"
   agents="$(kao_session_value "${file}" SESSION_AGENTS)"
 
-  [ -n "${session_id}" ] || session_id="$(kao_session_build_id)"
   end_at="$(kao_session_now)"
   end_epoch="$(kao_session_epoch)"
-  duration_seconds="$(kao_session_duration_seconds "${start_epoch}")"
+  duration_seconds="$((end_epoch - start_epoch))"
   duration_human="$(kao_session_duration_human "${duration_seconds}")"
-
-  archive_file="$(kao_session_write_archive_snapshot \
-    "${session_id}" \
-    "${start_at}" \
-    "${start_epoch}" \
-    "${end_at}" \
-    "${end_epoch}" \
-    "${duration_seconds}" \
-    "${duration_human}" \
-    "${machine_name}" \
-    "${user_name}" \
-    "${internet_state}" \
-    "${llm_state}" \
-    "${gateway_agent}" \
-    "${agents}")"
-
-  kao_session_append_history \
-    "${session_id}" \
-    "${start_at}" \
-    "${end_at}" \
-    "${duration_seconds}" \
-    "${duration_human}" \
-    "${machine_name}" \
-    "${user_name}" \
-    "${internet_state}" \
-    "${llm_state}" \
-    "${gateway_agent}" \
-    "${agents}" \
-    "${archive_file}"
+  archive_file="$(kao_session_archive_file_for_id "${session_id}")"
+  history_file="$(kao_session_history_file)"
 
   kao_session_append_timeline_event \
     "session-close" \
@@ -459,31 +354,27 @@ kao_session_close() {
     "${llm_state}" \
     "${gateway_agent}" \
     "${agents}" \
-    "duration=${duration_human};archive=${archive_file}"
+    "closed-duration=${duration_human}"
+
+  cp "${file}" "${archive_file}"
+
+  printf '%s\n' \
+    "SESSION_CLOSED|id=$(kao_session_escape_field "${session_id}")|start=$(kao_session_escape_field "${start_at}")|end=$(kao_session_escape_field "${end_at}")|duration_seconds=$(kao_session_escape_field "${duration_seconds}")|duration_human=$(kao_session_escape_field "${duration_human}")|machine=$(kao_session_escape_field "${machine_name}")|user=$(kao_session_escape_field "${user_name}")|internet=$(kao_session_escape_field "${internet_state}")|llm=$(kao_session_escape_field "${llm_state}")|gateway=$(kao_session_escape_field "${gateway_agent}")|agents=$(kao_session_escape_field "${agents}")|archive=$(kao_session_escape_field "${archive_file}")" \
+    >> "${history_file}"
 
   rm -f "${file}"
-
-  printf 'RAY SESSION CLOSED\n'
-  printf 'id       : %s\n' "${session_id}"
-  printf 'start    : %s\n' "${start_at}"
-  printf 'end      : %s\n' "${end_at}"
-  printf 'duration : %s\n' "${duration_human}"
-  printf 'machine  : %s\n' "${machine_name}"
-  printf 'user     : %s\n' "${user_name}"
-  printf 'internet : %s\n' "${internet_state}"
-  printf 'llm      : %s\n' "${llm_state}"
-  printf 'gateway  : %s\n' "${gateway_agent}"
-  printf 'agents   : %s\n' "${agents}"
-  printf 'archive  : %s\n' "${archive_file}"
 }
 
 kao_session_render_status() {
   local file session_id start_at start_epoch machine_name user_name internet_state llm_state gateway_agent agents duration_seconds duration_human last_event_at
+  local now_epoch
 
+  kao_session_ensure_dirs
   file="$(kao_session_current_file)"
+
+  printf 'RAY SESSION\n'
   if [ ! -f "${file}" ]; then
-    printf 'RAY SESSION\n'
-    printf 'state    : INACTIVE\n'
+    printf 'state    : none\n'
     return 0
   fi
 
@@ -497,11 +388,12 @@ kao_session_render_status() {
   gateway_agent="$(kao_session_value "${file}" SESSION_GATEWAY)"
   agents="$(kao_session_value "${file}" SESSION_AGENTS)"
   last_event_at="$(kao_session_value "${file}" SESSION_LAST_EVENT_AT)"
-  duration_seconds="$(kao_session_duration_seconds "${start_epoch}")"
+
+  now_epoch="$(kao_session_epoch)"
+  duration_seconds="$((now_epoch - start_epoch))"
   duration_human="$(kao_session_duration_human "${duration_seconds}")"
 
-  printf 'RAY SESSION\n'
-  printf 'state    : ACTIVE\n'
+  printf 'state    : active\n'
   printf 'id       : %s\n' "${session_id}"
   printf 'start    : %s\n' "${start_at}"
   printf 'last     : %s\n' "${last_event_at}"
@@ -517,15 +409,16 @@ kao_session_render_status() {
 kao_session_render_history() {
   local file
 
+  kao_session_ensure_dirs
   file="$(kao_session_history_file)"
-  printf 'RAY SESSION HISTORY\n'
 
-  if [ ! -f "${file}" ] || [ ! -s "${file}" ]; then
+  printf 'RAY SESSION HISTORY\n'
+  [ -f "${file}" ] || {
     printf 'none\n'
     return 0
-  fi
+  }
 
-  tail -n 10 "${file}"
+  tail -n 20 "${file}"
 }
 
 kao_session_render_timeline() {
@@ -533,35 +426,30 @@ kao_session_render_timeline() {
 
   file="$(kao_session_timeline_file)"
   printf 'RAY SESSION TIMELINE\n'
-
-  if [ ! -f "${file}" ] || [ ! -s "${file}" ]; then
+  [ -f "${file}" ] || {
     printf 'none\n'
     return 0
-  fi
+  }
 
-  tail -n 20 "${file}"
+  tail -n 50 "${file}"
 }
 
 kao_session_render_breathing() {
-  local file session_id start_epoch gateway_agent agents internet_state llm_state duration_seconds duration_human
-
-  kao_session_ensure_active
+  local file session_id internet_state llm_state gateway_agent agents
   file="$(kao_session_current_file)"
 
+  kao_session_ensure_active
+
   session_id="$(kao_session_value "${file}" SESSION_ID)"
-  start_epoch="$(kao_session_value "${file}" SESSION_START_EPOCH)"
-  gateway_agent="$(kao_session_value "${file}" SESSION_GATEWAY)"
-  agents="$(kao_session_value "${file}" SESSION_AGENTS)"
   internet_state="$(kao_session_value "${file}" SESSION_INTERNET)"
   llm_state="$(kao_session_value "${file}" SESSION_LLM)"
-  duration_seconds="$(kao_session_duration_seconds "${start_epoch}")"
-  duration_human="$(kao_session_duration_human "${duration_seconds}")"
+  gateway_agent="$(kao_session_value "${file}" SESSION_GATEWAY)"
+  agents="$(kao_session_value "${file}" SESSION_AGENTS)"
 
-  printf 'SESSION ACTIVE\n'
-  printf 'id       : %s\n' "${session_id}"
+  printf 'SESSION BREATHING\n'
+  printf 'session  : %s\n' "${session_id}"
   printf 'internet : %s\n' "${internet_state}"
   printf 'llm      : %s\n' "${llm_state}"
   printf 'gateway  : %s\n' "${gateway_agent}"
   printf 'agents   : %s\n' "${agents}"
-  printf 'duration : %s\n' "${duration_human}"
 }

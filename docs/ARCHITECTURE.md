@@ -324,6 +324,11 @@ Artefacts runtime :
 Bibliothèque canonique :
 
 - `lib/runtime/session_manager.sh`
+- `lib/runtime/event_normalizer.sh`
+
+Configuration canonique :
+
+- `config/event_taxonomy.env`
 
 Cette couche expose :
 
@@ -334,10 +339,13 @@ Cette couche expose :
 - historique local des sessions fermées
 - timeline canonique des événements de session
 - snapshot dédié pour chaque session clôturée
+- enrichissement sémantique non destructif des événements timeline
 
 Les attributs actuellement gouvernés sont :
 
 - identifiant de session
+- identifiant d’événement
+- version d’événement
 - heure de début
 - heure de fin
 - durée
@@ -349,6 +357,7 @@ Les attributs actuellement gouvernés sont :
 - agents secondaires appelés
 - dernier événement visible sur la session active
 - détail opératoire d’événement pour la timeline
+- taxonomie sémantique d’événement
 
 Surface opérateur associée :
 
@@ -367,6 +376,7 @@ Doctrine :
 - cette couche ne remplace pas la gouvernance source Git
 - elle rend visible la respiration de Kao au niveau session
 - elle prépare une future UX timeline sans transformer le runtime en source versionnée
+- l’enrichissement sémantique doit rester compatible avec la lecture shell existante
 
 Lecture opératoire :
 
@@ -376,18 +386,45 @@ Lecture opératoire :
 - `session.history` agit comme un index lisible des sessions clôturées
 - `session.timeline` agit comme une séquence canonique grep-friendly des événements runtime
 - chaque snapshot de `state/sessions/` préserve l’état fermé complet d’une session
+- la taxonomie sémantique rend la timeline lisible comme langage narratif machine + humain
 
 Format canonique timeline :
 
 - une ligne = un événement
 - préfixe canonique : `SESSION_EVENT`
-- structure : `SESSION_EVENT|at=...|session_id=...|type=...|machine=...|user=...|internet=...|llm=...|gateway=...|agents=...|detail=...`
+- structure : `SESSION_EVENT|event_version=...|event_id=...|at=...|session_id=...|type=...|machine=...|user=...|internet=...|llm=...|gateway=...|agents=...|detail=...`
+
+Règle d’enrichissement :
+
+- le champ `type` reste stable et grep-friendly
+- le champ `detail` peut être enrichi sémantiquement
+- l’enrichissement actuel ajoute des signaux comme :
+  - `family=...`
+  - `scope=...`
+  - `intensity=...`
+  - `surface=...`
+  - `action=...`
 
 Types minimaux introduits dans ce sprint :
 
 - `session-open`
 - `session-touch`
 - `session-close`
+
+Familles actuellement visibles :
+
+- `session_lifecycle`
+- `operator_surface`
+
+### Git hygiene note
+
+Les artefacts suivants sont explicitement traités comme runtime local éphémère et ignorés par Git :
+
+- `state/runtime/session.current`
+- `state/runtime/session.history`
+- `state/runtime/session.timeline`
+- `state/sessions/`
+
 
 ### Git hygiene note
 

@@ -1593,3 +1593,59 @@ A human operator can now read:
 - when a session closed
 - a canonical event stream ready for future Kao UX timeline mapping
 
+---
+
+## DEV 3.1 session timeline event taxonomy + structured detail canonization note
+
+The runtime session timeline has been extended from a chronological shell trace into a semantic event layer while preserving canonical line readability.
+
+Implemented real state now includes:
+
+- canonical `event_version=2` timeline field
+- canonical `event_id` per timeline event
+- canonical semantic enrichment through `lib/runtime/event_normalizer.sh`
+- canonical taxonomy source through `config/event_taxonomy.env`
+- preserved `SESSION_EVENT` prefix and shell-readable event structure
+- preserved stable `type=` field for grep-friendly compatibility
+- semantic enrichment of `detail=` with:
+  - `family=...`
+  - `scope=...`
+  - `intensity=...`
+  - `surface=...`
+  - `action=...`
+- operator surface propagation for:
+  - status
+  - registry
+  - session open
+- dedicated semantic E2E coverage through `ray_session_timeline_v2`
+
+## DEV 3.1 validation result
+
+Validation now confirms:
+
+- `ray` shell syntax remains valid
+- `session_manager` shell syntax remains valid
+- `event_normalizer` shell syntax remains valid
+- canonical timeline still emits `SESSION_EVENT|`
+- timeline still exposes `session-open`
+- timeline still exposes `session-touch`
+- timeline still exposes `session-close`
+- timeline now exposes `event_version=2`
+- timeline now exposes `event_id=evt-...`
+- timeline now exposes `family=session_lifecycle`
+- timeline now exposes `family=operator_surface`
+- timeline now exposes semantic operator actions such as:
+  - `action=operator-status`
+  - `action=operator-registry`
+
+## DEV 3.1 operator result
+
+A human operator can now read:
+
+- a session event stream that remains shell-readable
+- a stable event identity and event version
+- the semantic family of timeline events
+- whether an event belongs to session lifecycle or operator surface
+- semantic operator actions without losing chronological simplicity
+- a runtime foundation directly preparatory for future Kao UX cards, HUD, replay, and world timeline nodes
+

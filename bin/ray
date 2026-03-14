@@ -52,7 +52,7 @@ ray_status() {
   local registry_selected_base registry_selected_declared registry_selected_runtime registry_selected_score
   local registry_selected_rank registry_selected_maturity
 
-  kao_session_touch "$(gateway_provider_select)" "gateway-router,status-surface" "ray-status"
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,status-surface" "action=operator-status"
 
   selected_provider="$(gateway_provider_select)"
   selected_label="$(gateway_provider_label "${selected_provider}")"
@@ -141,7 +141,7 @@ ray_status() {
 }
 
 ray_registry() {
-  kao_session_touch "$(gateway_provider_select)" "gateway-router,registry-surface" "ray-registry"
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,registry-surface" "action=operator-registry"
   gateway_model_registry_operator_surface
 }
 
@@ -168,7 +168,7 @@ ray_scout_entry_line() {
 ray_scout() {
   local ranked_dump provider
 
-  kao_session_touch "$(gateway_provider_select)" "gateway-router,scout-surface" "ray-scout"
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,scout-surface" "action=operator-scout"
   gateway_require_model_registry
 
   printf 'MODEL LANDSCAPE\n\n'
@@ -206,7 +206,7 @@ ray_ask() {
   surface="$(execution_surface_for_strategy "${strategy}")"
   decision="$(execution_decision_label "${strategy}" "${surface}")"
 
-  kao_session_touch "$(gateway_provider_select)" "intent-router,ask-surface" "ray-ask"
+  kao_session_touch "$(gateway_provider_select)" "intent-router,ask-surface" "action=intent-analysis"
 
   printf 'RAY ASK\n'
   printf 'prompt  : %s\n' "${prompt}"
@@ -236,7 +236,7 @@ ray_bridge() {
     return 1
   fi
 
-  kao_session_touch "$(gateway_provider_select)" "intent-router,execution-bridge,bridge-surface" "ray-bridge"
+  kao_session_touch "$(gateway_provider_select)" "intent-router,execution-bridge,bridge-surface" "action=execution-bridge"
   execution_bridge_operator_surface "$@"
 }
 
@@ -245,7 +245,7 @@ ray_run_gateway() {
   prompt="${*:-}"
   selected_provider="$(gateway_provider_select)"
 
-  kao_session_touch "${selected_provider}" "gateway-router,brain-infer" "ray-run-gateway"
+  kao_session_touch "${selected_provider}" "gateway-router,brain-infer" "action=execution-gateway"
   kao_session_render_breathing
   printf '\n'
 
@@ -256,7 +256,7 @@ ray_run_local() {
   local prompt
   prompt="${*:-}"
 
-  kao_session_touch "local-shell" "intent-router,execution-bridge,local-shell" "ray-run-local"
+  kao_session_touch "local-shell" "intent-router,execution-bridge,local-shell" "action=execution-local-shell"
   printf 'RAY RUN\n'
   kao_session_render_breathing
   printf '\n'
@@ -301,7 +301,7 @@ ray_session() {
     open)
       shift || true
       kao_session_open
-      kao_session_touch "$(gateway_provider_select)" "gateway-router,session-open" "ray-session-open"
+      kao_session_touch "$(gateway_provider_select)" "gateway-router,session-open" "action=operator-session-open"
       kao_session_render_status
       ;;
     close)
@@ -325,12 +325,12 @@ ray_session() {
 }
 
 ray_system_inspect() {
-  kao_session_touch "$(gateway_provider_select)" "gateway-router,system-inspector" "ray-system-inspect"
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,system-inspector" "action=operator-system-inspect"
   kao_system_inspect_operator_surface "$@"
 }
 
 ray_system_repair() {
-  kao_session_touch "$(gateway_provider_select)" "gateway-router,system-repair" "ray-system-repair"
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,system-repair" "action=operator-system-repair"
   kao_system_repair_operator_surface "$@"
 }
 
