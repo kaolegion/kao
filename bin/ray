@@ -17,18 +17,20 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 ray_usage() {
   cat <<'USAGE'
-USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"|system inspect]
+USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"|system inspect|system repair [--dry-run]]
 
 COMMANDS
-  ray                     show ray hybrid status
-  ray status              show ray hybrid status
-  ray registry            show live model registry reading
-  ray scout               show strategic live model landscape reading
-  ray ask "<prompt>"      classify operator intent and show route family
-  ray bridge "<prompt>"   show intent-aware execution bridge reading
-  ray run "<prompt>"      run a prompt through the execution bridge
-  ray system inspect      inspect canonical local system paths safely
-  ray "<prompt>"          shortcut for ray run "<prompt>"
+  ray                          show ray hybrid status
+  ray status                   show ray hybrid status
+  ray registry                 show live model registry reading
+  ray scout                    show strategic live model landscape reading
+  ray ask "<prompt>"           classify operator intent and show route family
+  ray bridge "<prompt>"        show intent-aware execution bridge reading
+  ray run "<prompt>"           run a prompt through the execution bridge
+  ray system inspect           inspect canonical local system paths safely
+  ray system repair            repair ownership and mode drift on canonical local paths
+  ray system repair --dry-run  preview ownership and mode repair actions safely
+  ray "<prompt>"               shortcut for ray run "<prompt>"
 USAGE
 }
 
@@ -261,15 +263,39 @@ ray_system_inspect() {
   kao_system_render_inspection
 }
 
-main() {
-  local command subcommand
+ray_system_repair() {
+  local dry_run
 
-  if [ "$#" -eq 0 ]; then
-    ray_status
-    return 0
+  dry_run="0"
+
+  case "${1:-}" in
+    "")
+      ;;
+    --dry-run)
+      dry_run="1"
+      shift
+      ;;
+    *)
+      printf 'RAY_ERROR unknown system repair option: %s\n' "${1}" >&2
+      ray_usage >&2
+      return 1
+      ;;
+  esac
+
+  if [ "$#" -ne 0 ]; then
+    printf 'RAY_ERROR too many system repair arguments\n' >&2
+    ray_usage >&2
+    return 1
   fi
 
-  command="${1:-}"
+  kao_system_repair_local_paths "${dry_run}"
+}
+
+main() {
+  local command
+
+  command="${1:-status}"
+
   case "${command}" in
     status)
       shift
@@ -297,23 +323,30 @@ main() {
       ;;
     system)
       shift
-      subcommand="${1:-}"
-      case "${subcommand}" in
+      case "${1:-}" in
         inspect)
           shift
           ray_system_inspect "$@"
           ;;
+        repair)
+          shift
+          ray_system_repair "$@"
+          ;;
         *)
+          printf 'RAY_ERROR unknown system command\n' >&2
           ray_usage >&2
           return 1
           ;;
       esac
       ;;
-    -h|--help|help)
+    help|--help|-h)
       ray_usage
       ;;
+    "")
+      ray_status
+      ;;
     *)
-      ray_run "$@"
+      ray_run "$command" "${@:2}"
       ;;
   esac
 }

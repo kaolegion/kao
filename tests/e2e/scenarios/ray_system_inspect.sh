@@ -81,5 +81,37 @@ printf '%s\n' "${ray_system_inspect_output}" | grep -Eq "agent registry[[:space:
   && e2e_ok "missing path drift fallback visible" \
   || e2e_error "missing path drift fallback missing"
 
+ray_system_repair_dry_run_output="$(
+  /home/kao/bin/ray system repair --dry-run 2>&1
+)"
+
+printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -q "LOCAL SYSTEM REPAIR" \
+  && e2e_ok "ray system repair dry-run banner visible" \
+  || e2e_error "ray system repair dry-run banner missing"
+
+printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "root path[[:space:]]*: NOOP \| state OK \| drift OK \| path /home/kao" \
+  && e2e_ok "repair dry-run noop visible on aligned path" \
+  || e2e_error "repair dry-run noop missing on aligned path"
+
+printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "bin directory[[:space:]]*: DRY-RUN \| state OK \| drift DRIFT:mode \| APPLY\|owner=no\|group=no\|mode=would-fix" \
+  && e2e_ok "repair dry-run mode-only action visible" \
+  || e2e_error "repair dry-run mode-only action missing"
+
+printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "system libs[[:space:]]*: DRY-RUN \| state OK \| drift DRIFT:(owner,group,mode|owner,mode,group|group,owner,mode|group,mode,owner|mode,owner,group|mode,group,owner) \| APPLY\|owner=would-fix\|group=would-fix\|mode=would-fix" \
+  && e2e_ok "repair dry-run full metadata action visible" \
+  || e2e_error "repair dry-run full metadata action missing"
+
+printf '%s\n' "${ray_system_repair_dry_run_output}" | grep -Eq "agent registry[[:space:]]*: SKIP \| state MISSING \| drift n/a \| reason non-repairable-state \| path /home/kao/lib/agents" \
+  && e2e_ok "repair dry-run missing path skip visible" \
+  || e2e_error "repair dry-run missing path skip missing"
+
+ray_system_repair_bad_option_output="$(
+  /home/kao/bin/ray system repair --bad-option 2>&1 || true
+)"
+
+printf '%s\n' "${ray_system_repair_bad_option_output}" | grep -q "RAY_ERROR unknown system repair option: --bad-option" \
+  && e2e_ok "repair option guard visible" \
+  || e2e_error "repair option guard missing"
+
 printf 'OK ray_system_inspect\n'
 }

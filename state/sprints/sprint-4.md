@@ -1279,3 +1279,57 @@ A human operator can now understand immediately:
 - whether a missing path still belongs to the governed baseline
 - where future controlled repair should target first
 
+## DEV 2.6 ownership governance action scaffold note
+
+A first ownership governance action scaffold now exists for Ray local system inspection.
+
+Implemented real state now includes:
+
+- canonical `ray system repair` command
+- canonical `ray system repair --dry-run` command
+- repair preview based on the existing local metadata registry
+- repair filtering restricted to paths already in `OK` state
+- explicit `NOOP`, `DRY-RUN` and `SKIP` operator outcomes
+- metadata action preview for owner, group and mode
+- argument guard on unsupported repair options
+- E2E lock extended for repair dry-run visibility
+
+The repair scaffold is currently conservative by design:
+
+- missing paths are not created
+- non-readable or type-mismatched paths are not altered
+- dry-run remains the documented validation entrypoint for this sprint
+- the current layer prepares a future controlled real repair phase
+
+The repair computation is now implemented in:
+
+- `/home/kao/lib/system/system_inspector.sh`
+- `/home/kao/bin/ray`
+- `/home/kao/tests/e2e/scenarios/ray_system_inspect.sh`
+
+## DEV 2.6 validation result
+
+Validation now confirms:
+
+- system inspector syntax remains valid
+- ray syntax remains valid
+- `ray --help` exposes `ray system repair`
+- `ray system repair --dry-run` renders a stable operator banner
+- aligned paths can be reported as `NOOP`
+- metadata drift paths can be reported as `DRY-RUN`
+- missing paths can be reported as `SKIP`
+- unsupported repair options fail explicitly
+- targeted E2E scenario content now covers repair dry-run visibility
+- direct standalone execution of the scenario file remains non-conclusive because the file declares the scenario function and relies on the global E2E harness for execution
+
+## DEV 2.6 operator result
+
+A human operator can now understand immediately:
+
+- which canonical path is already aligned
+- which canonical path would receive an owner fix
+- which canonical path would receive a group fix
+- which canonical path would receive a mode fix
+- which path combines multiple metadata repair actions
+- which missing path remains intentionally excluded from repair
+- how a future real repair command should behave before enabling it

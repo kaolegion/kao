@@ -127,7 +127,26 @@ Operator usage goals:
 - prepare a future runtime repair action
 - understand system integrity without reading shell libraries
 
-Output shape example:
+A first controlled repair preview now exists:
+
+- `ray system repair --dry-run`
+
+This command:
+
+- reads the same canonical registry baseline
+- previews metadata repair only on paths already in `OK` state
+- never creates missing paths
+- never attempts repair on `MISSING`, `TYPE-MISMATCH` or `UNREADABLE` paths
+- exposes three operator outcomes:
+  - `NOOP`
+  - `DRY-RUN`
+  - `SKIP`
+
+Dry-run output shape example:
+
+<label> : DRY-RUN | state <state> | drift <drift_signal> | APPLY|owner=<action>|group=<action>|mode=<action> | expected <expected_user>:<expected_group> <expected_mode> | current <real_user>:<real_group> <real_mode> | path <real_path>
+
+Inspection output shape example:
 
 <label> : <state> | owner <real_user>:<real_group> | mode <real_mode> | expected <expected_user>:<expected_group> <expected_mode> | drift <drift_signal> | path <real_path>
 

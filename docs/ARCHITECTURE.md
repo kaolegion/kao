@@ -120,6 +120,21 @@ Cette surface permet :
 - une détection de dérive après installation ou manipulation root
 - une future intégration d’outils de réparation contrôlée
 
+Une première action opératoire existe maintenant :
+
+- `ray system repair --dry-run`
+
+Cette commande :
+
+- reste registry-driven
+- ne crée aucun chemin manquant
+- ne répare que les chemins en état `OK`
+- signale `NOOP`, `DRY-RUN` ou `SKIP`
+- prévisualise les corrections `owner`, `group` et `mode`
+
+Cette première brique prépare la future réparation réelle
+sans casser la lisibilité actuelle du diagnostic.
+
 ---
 
 ## Layer 0 — Machine Host
