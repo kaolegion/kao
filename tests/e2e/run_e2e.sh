@@ -9,6 +9,7 @@
 . /home/kao/tests/e2e/scenarios/error_recovery.sh
 . /home/kao/tests/e2e/scenarios/gateway_infer.sh
 . /home/kao/tests/e2e/scenarios/ray_surface.sh
+. /home/kao/tests/e2e/scenarios/ray_system_inspect.sh
 . /home/kao/tests/e2e/scenarios/runtime_surface.sh
 
 e2e_init
@@ -21,6 +22,7 @@ scenario_user_patch_flow
 scenario_error_recovery
 scenario_gateway_infer
 scenario_ray_surface
+scenario_ray_system_inspect
 scenario_runtime_surface
 
 e2e_finalize

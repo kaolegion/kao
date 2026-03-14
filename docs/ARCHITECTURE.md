@@ -142,8 +142,10 @@ Responsabilités :
 - exposition d’un label de chemin local canonique
 - exposition d’un état de chemin exécutable ou en attente
 - exposition d’une séquence locale lisible avant action
+- exposition d’une surface d’inspection système locale sûre
 - exécution via le gateway existant pour les prompts cognitifs
 - exécution locale via séquences internes déterministes pour un premier sous-ensemble sûr
+- inspection locale read-only via registry canonique de chemins
 - préparation d’une bibliothèque future de chemins et d’un registry d’actions
 
 Ray ne remplace pas :
@@ -161,6 +163,7 @@ Ray agit comme :
 - une première fenêtre vers le paysage vivant des modèles
 - un bridge explicable entre intention et exécution
 - une couche de séquençage local bornée pour actions sûres reconnues
+- une première couche d’inspection locale sûre et canonique
 
 Ray distingue maintenant explicitement :
 
@@ -188,6 +191,7 @@ Ray distingue maintenant explicitement :
 - le statut stratégique dérivé des entrées visibles
 - la vue complète des entrées registry
 - la vue scout du paysage modèle multi-entrée ordonné
+- une vue locale d’inspection système dérivée d’un registry canonique de chemins
 
 États exposés :
 
@@ -259,25 +263,62 @@ Ray distingue maintenant explicitement :
 - gateway-ready
 - unclassified
 
-### Chemins locaux canoniques actuels
+### État d’inspection système locale
 
-- path-open-directory
-- path-list-current-directory
+- OK
+- MISSING
+- TYPE-MISMATCH
+- UNREADABLE
 
-### État hybride
+---
 
-- hybrid-ready
-- cloud-only
-- local-only
-- unavailable
+## Layer 6 — Local System Path Registry + Safe Inspection
 
-### Lecture registry
+Cette couche introduit une cartographie locale canonique minimale.
 
-- registry count
-- registry provider
-- registry model
-- registry family
-- registry base
-- registry declared
-- registry runtime
-- registry score
+Responsabilités :
+
+- déclaration des chemins locaux officiels
+- normalisation de la nomenclature de chemins
+- lecture déterministe des surfaces locales attendues
+- inspection read-only de l’état réel des chemins
+- rendu opérateur stable et diffable
+- préparation de futures surfaces doctor / scan / capabilities
+
+Bibliothèques canoniques :
+
+- `lib/system/local_paths_registry.sh`
+- `lib/system/system_inspector.sh`
+
+Doctrine actuelle :
+
+- registry séparé de l’inspection
+- aucun effet de bord
+- aucune auto-réparation
+- aucune écriture système
+- aucun secret exposé
+- lecture locale sûre avant extension des capacités
+
+Surface opérateur actuelle :
+
+- `ray system inspect`
+
+Chemins canoniques actuellement suivis :
+
+- root path
+- bin directory
+- library root
+- cognition libs
+- system libs
+- state directory
+- logs directory
+- runtime state
+- e2e scenarios
+- agent registry
+
+Cette couche prépare :
+
+- doctor local
+- scan de capacités
+- lecture locale plus riche
+- évolution vers runtime awareness étendue

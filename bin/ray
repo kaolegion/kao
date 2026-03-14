@@ -10,10 +10,14 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 . "${KROOT}/lib/cognition/intent_router.sh"
 # shellcheck disable=SC1091
 . "${KROOT}/lib/cognition/execution_bridge.sh"
+# shellcheck disable=SC1091
+. "${KROOT}/lib/system/local_paths_registry.sh"
+# shellcheck disable=SC1091
+. "${KROOT}/lib/system/system_inspector.sh"
 
 ray_usage() {
   cat <<'USAGE'
-USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"]
+USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"|system inspect]
 
 COMMANDS
   ray                     show ray hybrid status
@@ -23,6 +27,7 @@ COMMANDS
   ray ask "<prompt>"      classify operator intent and show route family
   ray bridge "<prompt>"   show intent-aware execution bridge reading
   ray run "<prompt>"      run a prompt through the execution bridge
+  ray system inspect      inspect canonical local system paths safely
   ray "<prompt>"          shortcut for ray run "<prompt>"
 USAGE
 }
@@ -252,8 +257,12 @@ ray_run() {
   esac
 }
 
+ray_system_inspect() {
+  kao_system_render_inspection
+}
+
 main() {
-  local command
+  local command subcommand
 
   if [ "$#" -eq 0 ]; then
     ray_status
@@ -285,6 +294,20 @@ main() {
     run)
       shift
       ray_run "$@"
+      ;;
+    system)
+      shift
+      subcommand="${1:-}"
+      case "${subcommand}" in
+        inspect)
+          shift
+          ray_system_inspect "$@"
+          ;;
+        *)
+          ray_usage >&2
+          return 1
+          ;;
+      esac
       ;;
     -h|--help|help)
       ray_usage

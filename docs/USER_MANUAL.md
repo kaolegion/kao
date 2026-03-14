@@ -50,6 +50,7 @@ Commands:
 - ray ask "<prompt>"
 - ray bridge "<prompt>"
 - ray run "<prompt>"
+- ray system inspect
 
 Ray exposes routing cognition,
 not only provider availability.
@@ -72,6 +73,10 @@ through `ray bridge`.
 Ray now also exposes a first
 bounded local execution layer
 through `ray run`.
+
+Ray now also exposes a first
+safe local system inspection layer
+through `ray system inspect`.
 
 ---
 
@@ -210,6 +215,55 @@ Current implemented safe local paths are:
 This keeps the system deterministic while preparing
 future direct local execution growth through a
 controlled path library.
+
+---
+
+## Understand ray system inspect
+
+`ray system inspect` exposes a safe
+read-only inspection of canonical local paths.
+
+It shows a stable operator surface for:
+
+- root path
+- bin directory
+- library root
+- cognition libs
+- system libs
+- state directory
+- logs directory
+- runtime state
+- e2e scenarios
+- agent registry
+
+Current inspection states are:
+
+- `OK`
+- `MISSING`
+- `TYPE-MISMATCH`
+- `UNREADABLE`
+
+Inspection doctrine:
+
+- registry-driven
+- read-only
+- deterministic
+- no secret exposure
+- no mutation
+- no auto-repair
+
+Current behavior:
+
+- paths declared in `lib/system/local_paths_registry.sh`
+- states computed in `lib/system/system_inspector.sh`
+- rendered through `ray system inspect`
+
+This command is useful to:
+
+- validate the local Kao structure quickly
+- detect missing expected directories
+- inspect local readiness without reading library code directly
+- prepare future local doctor and capability scans
 
 ---
 

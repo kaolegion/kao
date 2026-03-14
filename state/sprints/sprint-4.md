@@ -1075,3 +1075,78 @@ This stage prepares:
 - broader safe system inspection paths
 - richer workspace-aware path resolution
 - stricter operator policy layers before any destructive capability
+
+---
+
+## DEV 2.2 local path registry + safe system inspection note
+
+A canonical local path registry and a safe
+system inspection surface now exist for Ray.
+
+Implemented real state now includes:
+
+- canonical `lib/system/local_paths_registry.sh` library
+- canonical `lib/system/system_inspector.sh` library
+- canonical `ray system inspect` command
+- stable local operator inspection banner
+- canonical registry-driven path reading
+- readable local path state rendering
+- explicit read-only inspection doctrine
+- E2E registration for `ray_system_inspect`
+
+Current canonical local inspection entries include:
+
+- root path
+- bin directory
+- library root
+- cognition libs
+- system libs
+- state directory
+- logs directory
+- runtime state
+- e2e scenarios
+- agent registry
+
+Current local inspection states include:
+
+- `OK`
+- `MISSING`
+- `TYPE-MISMATCH`
+- `UNREADABLE`
+
+## DEV 2.2 validation result
+
+Validation now confirms:
+
+- `local_paths_registry.sh` shell syntax is valid
+- `system_inspector.sh` shell syntax is valid
+- `ray` shell syntax remains valid
+- `ray --help` exposes `ray system inspect`
+- `ray system inspect` renders a stable local inspection surface
+- canonical local system paths are readable through Ray
+- missing future agent registry stays visible as `MISSING`
+- dedicated `ray_system_inspect` scenario is registered
+- full E2E suite remains green at score 100
+
+## DEV 2.2 operator result
+
+A human operator can now understand quickly:
+
+- whether the core Kao root exists
+- whether canonical bin and lib surfaces exist
+- whether cognition and system libraries are present
+- whether runtime and log directories are present
+- whether E2E surfaces are present
+- whether a future agent registry is already mounted
+- whether the inspected local topology is coherent enough before deeper action
+
+## DEV 2.2 doctrine result
+
+The local inspection layer now stays:
+
+- registry-driven
+- deterministic
+- read-only
+- non-destructive
+- secret-safe
+- ready for future local doctor and capability expansion
