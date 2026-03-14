@@ -628,10 +628,38 @@ gateway_log_preview() {
   tail -n "${KAO_GATEWAY_LOG_PREVIEW_LINES}" "${KAO_GATEWAY_LOG_FILE}"
 }
 
+gateway_fallback_status() {
+  local selected_provider ollama_available ollama_health
+  selected_provider="$(gateway_provider_select)"
+  ollama_available="$(gateway_provider_available ollama)"
+  ollama_health="$(gateway_provider_health ollama)"
+
+  if [ "${selected_provider}" != "mistral" ] || [ "${ollama_available}" != "available" ]; then
+    printf 'fallback-unavailable\n'
+    return 0
+  fi
+
+  case "${ollama_health}" in
+    local-stub-ready)
+      printf 'armed-via-ollama-stub\n'
+      ;;
+    local-real-backend-ready)
+      printf 'armed-via-ollama-backend-only\n'
+      ;;
+    local-real-ready)
+      printf 'armed-via-ollama-real\n'
+      ;;
+    *)
+      printf 'fallback-unavailable\n'
+      ;;
+  esac
+}
+
 gateway_health() {
   local selected_provider selected_label forced_provider detected_provider
   local selected_kind selected_health selected_note
   local mistral_available mistral_health ollama_available ollama_kind ollama_health
+  local ollama_model ollama_model_state ollama_runtime ollama_real_calls ollama_real_state
   local secrets_state log_state fallback_status
 
   selected_provider="$(gateway_provider_select)"
@@ -647,6 +675,11 @@ gateway_health() {
   ollama_available="$(gateway_provider_available ollama)"
   ollama_kind="$(gateway_provider_kind ollama)"
   ollama_health="$(gateway_provider_health ollama)"
+  ollama_model="$(gateway_ollama_model)"
+  ollama_model_state="$(gateway_ollama_model_state)"
+  ollama_runtime="$(gateway_ollama_runtime_state)"
+  ollama_real_calls="$(gateway_ollama_real_calls_policy)"
+  ollama_real_state="$(gateway_ollama_real_state)"
 
   if [ -f "${KAO_GATEWAY_SECRETS_FILE}" ]; then
     secrets_state="present"
@@ -660,11 +693,7 @@ gateway_health() {
     log_state="missing"
   fi
 
-  if [ "${selected_provider}" = "mistral" ] && [ "${ollama_available}" = "available" ]; then
-    fallback_status="armed-local"
-  else
-    fallback_status="not-armed"
-  fi
+  fallback_status="$(gateway_fallback_status)"
 
   printf 'KAO GATEWAY HEALTH\n'
   printf 'selected provider : %s\n' "${selected_provider}"
@@ -679,6 +708,11 @@ gateway_health() {
   printf 'ollama available  : %s\n' "${ollama_available}"
   printf 'ollama kind       : %s\n' "${ollama_kind}"
   printf 'ollama health     : %s\n' "${ollama_health}"
+  printf 'ollama model      : %s\n' "${ollama_model}"
+  printf 'ollama model state: %s\n' "${ollama_model_state}"
+  printf 'ollama runtime    : %s\n' "${ollama_runtime}"
+  printf 'ollama real calls : %s\n' "${ollama_real_calls}"
+  printf 'ollama real state : %s\n' "${ollama_real_state}"
   printf 'secrets state     : %s\n' "${secrets_state}"
   printf 'log state         : %s\n' "${log_state}"
   printf 'fallback status   : %s\n' "${fallback_status}"
@@ -698,9 +732,9 @@ gateway_logs_surface() {
   printf 'KAO GATEWAY LOGS\n'
   printf 'log file          : %s\n' "${KAO_GATEWAY_LOG_FILE}"
   printf 'log state         : %s\n' "${log_state}"
-  printf 'log line count    : %s\n' "${line_count}"
+  printf 'log lines         : %s\n' "${line_count}"
   printf 'last log event    : %s\n' "${last_event}"
-  printf 'log preview\n'
+  printf 'preview           :\n'
   gateway_log_preview
 }
 
@@ -758,11 +792,7 @@ gateway_status() {
   last_log_event="$(gateway_last_log_event)"
 
   fallback_policy="cloud-then-local"
-  if [ "${selected_provider}" = "mistral" ] && [ "${ollama_available}" = "available" ]; then
-    fallback_status="armed-local"
-  else
-    fallback_status="not-armed"
-  fi
+  fallback_status="$(gateway_fallback_status)"
 
   diagnostic_hint="run 'kao gateway health' then 'kao gateway logs' for deeper diagnostics"
 
@@ -799,10 +829,10 @@ gateway_status() {
   printf 'ollama real state : %s\n' "${ollama_real_state}"
   printf 'fallback policy   : %s\n' "${fallback_policy}"
   printf 'fallback status   : %s\n' "${fallback_status}"
-  printf 'log line count    : %s\n' "${log_line_count}"
+  printf 'log lines         : %s\n' "${log_line_count}"
   printf 'last log event    : %s\n' "${last_log_event}"
-  printf 'diagnostic hint   : %s\n' "${diagnostic_hint}"
-  printf 'log preview\n'
+  printf 'diagnostic        : %s\n' "${diagnostic_hint}"
+  printf 'log preview       :\n'
   gateway_log_preview
 }
 
@@ -848,7 +878,7 @@ gateway_infer() {
 
 gateway_help() {
   cat <<'USAGE'
-USAGE: kao gateway [status|health|logs|help]
+USAGE: kao gateway [status|health|logs]
 
 COMMANDS
   kao gateway         show canonical gateway status
