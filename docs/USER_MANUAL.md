@@ -231,3 +231,48 @@ Reading rule:
 Inspection output shape example:
 
 <label> : <state> | owner <real_user>:<real_group> | mode <real_mode> | expected <expected_user>:<expected_group> <expected_mode> | drift <drift_signal> | path <real_path>
+
+---
+
+## Understand ray session
+
+Kao now exposes a readable runtime session surface.
+
+Main commands:
+
+- `ray session`
+- `ray session open`
+- `ray session close`
+- `ray session history`
+
+Reading rules:
+
+- `ray session` shows the current active runtime session
+- `ray session open` ensures that a session exists and starts duration tracking
+- `ray session close` archives the current session into history and closes it
+- `ray session history` shows recent closed sessions
+
+Visible fields include:
+
+- `start`
+- `duration`
+- `machine`
+- `user`
+- `internet`
+- `llm`
+- `gateway`
+- `agents`
+
+Operational note:
+
+- `internet` reflects the current online/offline reading
+- `llm` summarizes the active cognition source as `cloud`, `local`, or `none`
+- `gateway` reflects the current principal route/provider context
+- `agents` accumulates the secondary surfaces used during the session
+
+During `ray run`, Kao now renders a small breathing block before execution so the operator can read the current runtime cognitive state directly in the terminal.
+
+Runtime hygiene extension:
+
+- `state/runtime/session.current` is treated as ephemeral local runtime state and ignored by Git
+- `state/runtime/session.history` is treated as ephemeral local runtime state and ignored by Git

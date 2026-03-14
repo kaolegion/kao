@@ -307,3 +307,64 @@ Important :
 - `mistral` peut être sélectionné parce qu’il est actuellement le meilleur candidat disponible
 - cela ne signifie pas qu’il soit prioritaire par doctrine
 - Kao vise une sélection future des meilleurs agents selon la valeur de la tâche et l’état réel du système
+
+---
+
+## Runtime session cognition layer
+
+Kao introduit maintenant une couche de session runtime explicite.
+
+Artefacts runtime :
+
+- `state/runtime/session.current`
+- `state/runtime/session.history`
+
+Bibliothèque canonique :
+
+- `lib/runtime/session_manager.sh`
+
+Cette couche expose :
+
+- ouverture implicite ou explicite de session
+- état de session courant
+- respiration visible pendant `ray run`
+- fermeture de session avec archivage lisible
+- historique local des sessions fermées
+
+Les attributs actuellement gouvernés sont :
+
+- heure de début
+- durée
+- machine
+- user
+- état internet
+- source LLM (`cloud`, `local`, `none`)
+- gateway principal
+- agents secondaires appelés
+
+Surface opérateur associée :
+
+- `ray session`
+- `ray session open`
+- `ray session close`
+- `ray session history`
+
+Doctrine :
+
+- `session.current` est mutable et locale
+- `session.history` est une trace runtime locale
+- cette couche ne remplace pas la gouvernance source Git
+- elle rend visible la respiration de Kao au niveau session
+
+Lecture opératoire :
+
+- une session active représente un cycle de présence opérateur
+- le gateway visible représente l’agent principal au moment courant
+- la liste `agents` représente les surfaces ou sous-agents activés pendant la session
+
+### Git hygiene note
+
+Les artefacts suivants sont explicitement traités comme runtime local éphémère et ignorés par Git :
+
+- `state/runtime/session.current`
+- `state/runtime/session.history`

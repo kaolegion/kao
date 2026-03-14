@@ -14,10 +14,12 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 . "${KROOT}/lib/system/local_paths_registry.sh"
 # shellcheck disable=SC1091
 . "${KROOT}/lib/system/system_inspector.sh"
+# shellcheck disable=SC1091
+. "${KROOT}/lib/runtime/session_manager.sh"
 
 ray_usage() {
   cat <<'USAGE'
-USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"|system inspect|system repair [--dry-run]]
+USAGE: ray [status|registry|scout|ask "<prompt>"|bridge "<prompt>"|run "<prompt>"|session [open|close|history]|system inspect|system repair [--dry-run]]
 
 COMMANDS
   ray                          show ray hybrid status
@@ -27,6 +29,10 @@ COMMANDS
   ray ask "<prompt>"           classify operator intent and show route family
   ray bridge "<prompt>"        show intent-aware execution bridge reading
   ray run "<prompt>"           run a prompt through the execution bridge
+  ray session                  show active session state
+  ray session open             open or ensure a runtime session
+  ray session close            close current runtime session and archive it
+  ray session history          show recent closed sessions
   ray system inspect           inspect canonical local system paths safely
   ray system repair            repair ownership and mode drift on canonical local paths
   ray system repair --dry-run  preview ownership and mode repair actions safely
@@ -44,6 +50,8 @@ ray_status() {
   local registry_count registry_selected_provider registry_selected_model registry_selected_family
   local registry_selected_base registry_selected_declared registry_selected_runtime registry_selected_score
   local registry_selected_rank registry_selected_maturity
+
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,status-surface"
 
   selected_provider="$(gateway_provider_select)"
   selected_label="$(gateway_provider_label "${selected_provider}")"
@@ -132,6 +140,7 @@ ray_status() {
 }
 
 ray_registry() {
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,registry-surface"
   gateway_model_registry_operator_surface
 }
 
@@ -158,6 +167,7 @@ ray_scout_entry_line() {
 ray_scout() {
   local ranked_dump provider
 
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,scout-surface"
   gateway_require_model_registry
 
   printf 'MODEL LANDSCAPE\n\n'
@@ -195,6 +205,8 @@ ray_ask() {
   surface="$(execution_surface_for_strategy "${strategy}")"
   decision="$(execution_decision_label "${strategy}" "${surface}")"
 
+  kao_session_touch "$(gateway_provider_select)" "intent-router,ask-surface"
+
   printf 'RAY ASK\n'
   printf 'prompt  : %s\n' "${prompt}"
   printf 'INTENT  : %s\n' "${intent}"
@@ -223,12 +235,19 @@ ray_bridge() {
     return 1
   fi
 
+  kao_session_touch "$(gateway_provider_select)" "intent-router,execution-bridge,bridge-surface"
   execution_bridge_operator_surface "$@"
 }
 
 ray_run_gateway() {
-  local prompt
+  local prompt selected_provider
   prompt="${*:-}"
+  selected_provider="$(gateway_provider_select)"
+
+  kao_session_touch "${selected_provider}" "gateway-router,brain-infer"
+  kao_session_render_breathing
+  printf '\n'
+
   exec "${KROOT}/bin/brain" infer "${prompt}"
 }
 
@@ -236,7 +255,10 @@ ray_run_local() {
   local prompt
   prompt="${*:-}"
 
+  kao_session_touch "local-shell" "intent-router,execution-bridge,local-shell"
   printf 'RAY RUN\n'
+  kao_session_render_breathing
+  printf '\n'
   execution_bridge_operator_surface "${prompt}"
   printf '\n'
   execution_bridge_execute_prompt "${prompt}"
@@ -270,7 +292,36 @@ ray_run() {
   esac
 }
 
+ray_session() {
+  case "${1:-status}" in
+    status|"")
+      shift || true
+      kao_session_render_status "$@"
+      ;;
+    open)
+      shift
+      kao_session_open
+      kao_session_touch "$(gateway_provider_select)" "gateway-router,session-open"
+      kao_session_render_status
+      ;;
+    close)
+      shift
+      kao_session_close
+      ;;
+    history)
+      shift
+      kao_session_render_history
+      ;;
+    *)
+      printf 'RAY_ERROR unknown session command\n' >&2
+      ray_usage >&2
+      return 1
+      ;;
+  esac
+}
+
 ray_system_inspect() {
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,system-inspector"
   kao_system_render_inspection
 }
 
@@ -299,6 +350,7 @@ ray_system_repair() {
     return 1
   fi
 
+  kao_session_touch "$(gateway_provider_select)" "gateway-router,system-repair"
   kao_system_repair_local_paths "${dry_run}"
 }
 
@@ -331,6 +383,10 @@ main() {
     run)
       shift
       ray_run "$@"
+      ;;
+    session)
+      shift
+      ray_session "$@"
       ;;
     system)
       shift

@@ -1451,3 +1451,61 @@ A human operator can now read directly:
 An initial DEV 2.8 attempt failed because the patch anchors did not match the real file contents.
 
 The sprint was then corrected through a precise re-inspection workflow and completed as DEV 2.8B using real insertion anchors taken from the inspected files themselves.
+
+---
+
+## DEV 2.8 session runtime cognition note
+
+A runtime session cognition layer now exists for the `ray` operator surface.
+
+Implemented real state now includes:
+
+- canonical `ray session` surface
+- explicit `ray session open`
+- explicit `ray session close`
+- visible `ray session history`
+- `state/runtime/session.current`
+- `state/runtime/session.history`
+- breathing header before `ray run`
+- gateway and secondary agents accumulation inside the active session
+- dedicated E2E scenario for session lifecycle
+
+## DEV 2.8 validation result
+
+Validation now confirms:
+
+- session library shell syntax is valid
+- `ray` shell syntax remains valid
+- session open creates an active runtime session
+- session status exposes machine, internet, llm, gateway, and agents
+- intent inspection enriches the active agent list
+- session close archives a readable closed session line
+- session history remains operator-readable
+- dedicated `ray_session` scenario is present
+
+## DEV 2.8 operator result
+
+A human operator can now read:
+
+- when a runtime session started
+- how long it has been active
+- whether Kao is currently online or offline
+- whether cognition is currently local or cloud-oriented
+- which gateway is principal at the current moment
+- which secondary agent surfaces have been called during the session
+- what the last closed runtime sessions looked like
+
+## DEV 2.8 runtime hygiene convergence note
+
+The session runtime artifacts were aligned with the existing Git hygiene doctrine.
+
+Converged runtime-local artifacts now explicitly ignored by Git:
+
+- `state/runtime/session.current`
+- `state/runtime/session.history`
+
+This keeps:
+
+- session cognition visible for the operator
+- runtime history available locally
+- repository status clean after validation and normal usage
