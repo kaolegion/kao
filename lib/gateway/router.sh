@@ -55,6 +55,8 @@ gateway_model_registry_bridge_aliases() {
   eval "$(declare -f gateway_model_registry_selected_operator_rank_score | sed '1s/gateway_model_registry_selected_operator_rank_score/gateway_registry_selected_operator_rank_score_impl/')"
   eval "$(declare -f gateway_model_registry_selected_maturity_level | sed '1s/gateway_model_registry_selected_maturity_level/gateway_registry_selected_maturity_level_impl/')"
   eval "$(declare -f gateway_model_registry_operator_surface | sed '1s/gateway_model_registry_operator_surface/gateway_registry_operator_surface_impl/')"
+  eval "$(declare -f gateway_model_registry_strategic_status | sed '1s/gateway_model_registry_strategic_status/gateway_registry_strategic_status_impl/')"
+  eval "$(declare -f gateway_model_registry_selected_strategic_status | sed '1s/gateway_model_registry_selected_strategic_status/gateway_registry_selected_strategic_status_impl/')"
 
   KAO_GATEWAY_MODEL_REGISTRY_BRIDGED=1
 }
@@ -64,6 +66,56 @@ gateway_require_model_registry() {
   . "${KAO_GATEWAY_ROOT}/lib/gateway/model_registry.sh"
   gateway_model_registry_bridge_aliases
 }
+
+gateway_model_registry_strategic_status() {
+  local provider maturity
+
+  provider="${1:-none}"
+  maturity="${2:-unknown}"
+
+  gateway_require_model_registry
+
+  case "${provider}" in
+    mistral|ollama)
+      ;;
+    none|'')
+      printf 'experimental\n'
+      return 0
+      ;;
+    *)
+      printf 'experimental\n'
+      return 0
+      ;;
+  esac
+
+  case "${maturity}" in
+    elite)
+      printf 'dominant\n'
+      ;;
+    high)
+      printf 'competitive\n'
+      ;;
+    medium)
+      printf 'viable\n'
+      ;;
+    low)
+      printf 'incubating\n'
+      ;;
+    unknown|*)
+      printf 'experimental\n'
+      ;;
+  esac
+}
+
+gateway_model_registry_selected_strategic_status() {
+  local provider maturity
+
+  provider="$(gateway_model_registry_selected_provider)"
+  maturity="$(gateway_model_registry_selected_maturity_level)"
+
+  gateway_model_registry_strategic_status "${provider}" "${maturity}"
+}
+
 
 gateway_load_secrets() {
   local mode

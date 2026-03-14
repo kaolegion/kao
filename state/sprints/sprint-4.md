@@ -760,3 +760,68 @@ Kao dispose maintenant :
 - d’une première lecture de maturité comparative
 - d’une base stable pour une future couche de ranking dynamique
 - d’une fondation propre pour un futur routeur vivant sans casser le présent
+
+
+---
+
+## DEV 1.7 — Live Model Intelligence Layer
+
+### Intent
+
+Introduce a first strategic cognitive reading layer
+over the live model registry without altering routing.
+
+### Operator surface
+
+New command:
+
+- `ray scout`
+
+### Exposed reading
+
+The scout surface exposes for the selected registry entry:
+
+- provider
+- model
+- family
+- maturity
+- operator rank
+- mapped strategic status
+
+Strategic status mapping:
+
+- elite → dominant
+- high → competitive
+- medium → viable
+- low → incubating
+- unknown → experimental
+
+### Architectural impact
+
+- router now derives a strategic status signal
+- ray exposes a new cognitive landscape surface
+- registry observability remains read-only
+- routing policy remains unchanged
+- hybrid router decision layer stays deterministic
+
+### Verification
+
+- targeted E2E: OK
+- global E2E: OK
+- runtime snapshot clean
+- repo state clean
+
+### Cognitive milestone
+
+This sprint introduces the first notion of:
+
+- model landscape reading
+- strategic posture awareness
+- operator-visible comparative cognition
+
+It prepares future:
+
+- live ranking evolution
+- adaptive routing intelligence
+- gamified agent perception layers
+

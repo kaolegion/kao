@@ -9,12 +9,13 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 ray_usage() {
   cat <<'USAGE'
-USAGE: ray [status|registry|run "<prompt>"]
+USAGE: ray [status|registry|scout|run "<prompt>"]
 
 COMMANDS
   ray                     show ray hybrid status
   ray status              show ray hybrid status
   ray registry            show live model registry reading
+  ray scout               show strategic live model landscape reading
   ray run "<prompt>"      run a prompt through the gateway
   ray "<prompt>"          shortcut for ray run "<prompt>"
 USAGE
@@ -110,6 +111,33 @@ ray_registry() {
   gateway_model_registry_operator_surface
 }
 
+ray_scout_provider_block() {
+  local provider model family maturity rank status
+
+  provider="${1:-none}"
+  gateway_require_model_registry
+  model="$(gateway_registry_model_impl "${provider}")"
+  family="$(gateway_registry_family_impl "${provider}")"
+  maturity="$(gateway_registry_maturity_level_impl "${provider}")"
+  rank="$(gateway_registry_operator_rank_score_impl "${provider}")"
+  status="$(gateway_model_registry_strategic_status "${provider}" "${maturity}")"
+
+  printf 'MODEL LANDSCAPE\n\n'
+  printf 'provider : %s\n' "${provider}"
+  printf 'model    : %s\n' "${model}"
+  printf 'family   : %s\n' "${family}"
+  printf 'maturity : %s\n' "${maturity}"
+  printf 'rank     : %s\n' "${rank}"
+  printf 'status   : %s\n' "${status}"
+}
+
+ray_scout() {
+  local selected_provider
+
+  selected_provider="$(gateway_model_registry_selected_provider)"
+  ray_scout_provider_block "${selected_provider}"
+}
+
 ray_run() {
   local prompt
   if [ "$#" -eq 0 ]; then
@@ -139,6 +167,10 @@ main() {
     registry)
       shift
       ray_registry "$@"
+      ;;
+    scout)
+      shift
+      ray_scout "$@"
       ;;
     run)
       shift

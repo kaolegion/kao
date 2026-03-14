@@ -46,6 +46,7 @@ Commands:
 - ray
 - ray status
 - ray registry
+- ray scout
 - ray run "<prompt>"
 
 Ray exposes routing cognition,
@@ -53,6 +54,46 @@ not only provider availability.
 
 Ray also exposes a first readable
 internal model registry.
+
+Ray also exposes a first strategic
+model landscape reading for the
+selected registry entry.
+
+---
+
+## Understand ray scout reading
+
+`ray scout` shows the selected
+model landscape in a compact
+operator format.
+
+It exposes:
+
+- provider
+- model
+- family
+- maturity
+- rank
+- status
+
+This view is:
+
+- deterministic
+- read-only
+- derived from the selected registry entry
+- independent from routing mutation
+
+Strategic status is currently mapped as:
+
+- elite → dominant
+- high → competitive
+- medium → viable
+- low → incubating
+- unknown → experimental
+
+This mapping is informational only.
+
+It does not change routing yet.
 
 ---
 
@@ -170,6 +211,7 @@ Ray also exposes:
 - registry runtime score
 - registry operator rank
 - registry maturity
+- scout strategic status
 
 Interpretation:
 
@@ -177,8 +219,9 @@ Interpretation:
 - registry score describes runtime-weighted registry value
 - registry operator rank describes comparative operator priority
 - registry maturity describes compact maturity reading
+- scout strategic status describes the selected model landscape posture
 
-Registry values do not change routing yet.
+Registry and scout values do not change routing yet.
 
 ---
 
@@ -244,12 +287,13 @@ Before running inference:
 
 1. read ray status
 2. read ray registry
-3. understand decision state
-4. understand route reason
-5. evaluate routing scores
-6. evaluate registry reading
-7. decide whether to force a provider
-8. run inference
+3. read ray scout
+4. understand decision state
+5. understand route reason
+6. evaluate routing scores
+7. evaluate registry and scout reading
+8. decide whether to force a provider
+9. run inference
 
 If deeper diagnosis is needed:
 

@@ -88,6 +88,7 @@ Responsabilités :
 - exposition d’un score runtime registry pondéré par l’état réel
 - exposition d’un rang opérateur comparatif
 - exposition d’un niveau de maturité par entrée registry
+- exposition d’un statut stratégique dérivé pour l’entrée sélectionnée
 
 Doctrine actuelle :
 
@@ -97,6 +98,7 @@ Doctrine actuelle :
 - intelligence opérateur simple avant orchestration avancée
 - registry lisible avant ranking dynamique réel
 - intelligence de maturité lisible avant pilotage réel du routage
+- première lecture stratégique du paysage modèle avant classement vivant complet
 
 Objectifs d’évolution :
 
@@ -126,7 +128,9 @@ Responsabilités :
 - exposition d’une lecture compacte du registry actif
 - exposition du rang opérateur de l’entrée sélectionnée
 - exposition de la maturité de l’entrée sélectionnée
+- exposition d’un statut stratégique dérivé pour l’entrée sélectionnée
 - exposition d’une vue registry dédiée
+- exposition d’une vue scout dédiée au paysage modèle sélectionné
 - exécution via le gateway existant
 
 Ray ne remplace pas :
@@ -155,7 +159,9 @@ Ray distingue maintenant explicitement :
 - le score runtime de l’entrée sélectionnée
 - le rang opérateur de l’entrée sélectionnée
 - la maturité de l’entrée sélectionnée
+- le statut stratégique dérivé de l’entrée sélectionnée
 - la vue complète des entrées registry
+- la vue scout du paysage modèle sélectionné
 
 États exposés :
 
@@ -213,6 +219,15 @@ Ray distingue maintenant explicitement :
 - registry rank
 - registry maturity
 
+### Lecture scout
+
+- provider
+- model
+- family
+- maturity
+- rank
+- status
+
 Doctrine de lecture :
 
 - `forced raw value` expose l’entrée opérateur telle qu’exprimée
@@ -226,6 +241,7 @@ Doctrine de lecture :
 - `registry score` prépare une première pondération runtime lisible
 - `registry rank` prépare une comparaison opérateur entre entrées
 - `registry maturity` expose une synthèse courte de maturité
+- `status` expose une lecture stratégique dérivée de la maturité sélectionnée
 - cette lecture enrichie n’altère pas encore la décision réelle du routeur
 
 Cas important :
@@ -252,6 +268,7 @@ préparer Kao à :
 - une lecture humaine de la décision avant automatisation plus lourde
 - un futur classement vivant des modèles/providers
 - un futur pilotage plus intelligent fondé sur la maturité runtime
+- un futur paysage vivant des modèles lisible par statut stratégique
 
 ---
 

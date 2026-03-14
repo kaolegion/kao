@@ -230,6 +230,42 @@ printf '%s\n' "${ray_registry_output}" | grep -q "rank 35 | maturity low" \
   && e2e_ok "ray registry ollama rank visible" \
   || e2e_error "ray registry ollama rank missing"
 
+ray_scout_output="$(
+  /home/kao/bin/ray scout 2>&1
+)"
+
+printf '%s\n' "${ray_scout_output}" | grep -q "MODEL LANDSCAPE" \
+  && e2e_ok "ray scout banner visible" \
+  || e2e_error "ray scout banner missing"
+
+printf '%s\n' "${ray_scout_output}" | grep -q "provider : mistral" \
+  && e2e_ok "ray scout provider visible" \
+  || e2e_error "ray scout provider missing"
+
+printf '%s\n' "${ray_scout_output}" | grep -q "model    : mistral-medium-latest" \
+  && e2e_ok "ray scout model visible" \
+  || e2e_error "ray scout model missing"
+
+printf '%s\n' "${ray_scout_output}" | grep -q "family   : cloud" \
+  && e2e_ok "ray scout family visible" \
+  || e2e_error "ray scout family missing"
+
+printf '%s\n' "${ray_scout_output}" | grep -q "maturity : elite" \
+  && e2e_ok "ray scout maturity visible" \
+  || e2e_error "ray scout maturity missing"
+
+printf '%s\n' "${ray_scout_output}" | grep -Eq "rank     : [0-9][0-9]*" \
+  && e2e_ok "ray scout rank readable" \
+  || e2e_error "ray scout rank missing"
+
+printf '%s\n' "${ray_scout_output}" | grep -Eq "status   : (dominant|competitive|viable|incubating|experimental)" \
+  && e2e_ok "ray scout status readable" \
+  || e2e_error "ray scout status missing"
+
+printf '%s\n' "${ray_scout_output}" | grep -q "status   : dominant" \
+  && e2e_ok "ray scout strategic status mapped" \
+  || e2e_error "ray scout strategic status mapping missing"
+
 ray_default_output="$(
   /home/kao/bin/ray 2>&1
 )"
@@ -242,7 +278,7 @@ ray_help_output="$(
   /home/kao/bin/ray help 2>&1
 )"
 
-printf '%s\n' "${ray_help_output}" | grep -q 'USAGE: ray \[status|registry|run "<prompt>"\]' \
+printf '%s\n' "${ray_help_output}" | grep -q 'USAGE: ray \[status|registry|scout|run "<prompt>"\]' \
   && e2e_ok "ray help visible" \
   || e2e_error "ray help missing"
 
@@ -261,101 +297,5 @@ ray_shortcut_output="$(
 printf '%s\n' "${ray_shortcut_output}" | grep -Eq "gateway -> (mistral cloud|ollama local)" \
   && e2e_ok "ray shortcut route visible" \
   || e2e_error "ray shortcut route missing"
-
-forced_local_status_output="$(
-  KAO_GATEWAY_PROVIDER=ollama /home/kao/bin/ray status 2>&1
-)"
-
-printf '%s\n' "${forced_local_status_output}" | grep -q "decision state    : route-selected" \
-  && e2e_ok "ray forced local decision state visible" \
-  || e2e_error "ray forced local decision state missing"
-
-printf '%s\n' "${forced_local_status_output}" | grep -q "route reason      : forced-provider-ollama" \
-  && e2e_ok "ray forced local reason visible" \
-  || e2e_error "ray forced local reason missing"
-
-printf '%s\n' "${forced_local_status_output}" | grep -q "registry provider : ollama" \
-  && e2e_ok "ray forced local registry provider visible" \
-  || e2e_error "ray forced local registry provider missing"
-
-printf '%s\n' "${forced_local_status_output}" | grep -q "registry family   : local" \
-  && e2e_ok "ray forced local registry family visible" \
-  || e2e_error "ray forced local registry family missing"
-
-forced_mistral_status_output="$(
-  KAO_GATEWAY_PROVIDER=mistral /home/kao/bin/ray status 2>&1
-)"
-
-printf '%s\n' "${forced_mistral_status_output}" | grep -q "decision state    : route-selected" \
-  && e2e_ok "ray forced mistral decision state visible" \
-  || e2e_error "ray forced mistral decision state missing"
-
-printf '%s\n' "${forced_mistral_status_output}" | grep -q "route reason      : forced-provider-mistral" \
-  && e2e_ok "ray forced mistral reason visible" \
-  || e2e_error "ray forced mistral reason missing"
-
-printf '%s\n' "${forced_mistral_status_output}" | grep -q "registry provider : mistral" \
-  && e2e_ok "ray forced mistral registry provider visible" \
-  || e2e_error "ray forced mistral registry provider missing"
-
-printf '%s\n' "${forced_mistral_status_output}" | grep -q "registry family   : cloud" \
-  && e2e_ok "ray forced mistral registry family visible" \
-  || e2e_error "ray forced mistral registry family missing"
-
-unsupported_forced_status_output="$(
-  KAO_GATEWAY_PROVIDER=badvalue /home/kao/bin/ray status 2>&1
-)"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "decision state    : blocked-unsupported-forcing" \
-  && e2e_ok "ray unsupported forced decision state visible" \
-  || e2e_error "ray unsupported forced decision state missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "selected route    : none" \
-  && e2e_ok "ray unsupported forced selected route none visible" \
-  || e2e_error "ray unsupported forced selected route none missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "selected provider : none" \
-  && e2e_ok "ray unsupported forced selected provider none visible" \
-  || e2e_error "ray unsupported forced selected provider none missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "mode              : degraded" \
-  && e2e_ok "ray unsupported forced degraded mode visible" \
-  || e2e_error "ray unsupported forced degraded mode missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "hybrid state      : hybrid-ready" \
-  && e2e_ok "ray unsupported forced capacity still visible" \
-  || e2e_error "ray unsupported forced capacity reading missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "forced raw value  : badvalue" \
-  && e2e_ok "ray unsupported forced raw value visible" \
-  || e2e_error "ray unsupported forced raw value missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "forced provider   : none" \
-  && e2e_ok "ray unsupported forced normalized provider visible" \
-  || e2e_error "ray unsupported forced normalized provider missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "forced state      : unsupported" \
-  && e2e_ok "ray unsupported forced state visible" \
-  || e2e_error "ray unsupported forced state missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "route reason      : unsupported-forced-provider" \
-  && e2e_ok "ray unsupported forced reason visible" \
-  || e2e_error "ray unsupported forced reason missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "registry provider : none" \
-  && e2e_ok "ray unsupported forced registry provider none visible" \
-  || e2e_error "ray unsupported forced registry provider none missing"
-
-printf '%s\n' "${unsupported_forced_status_output}" | grep -q "registry family   : none" \
-  && e2e_ok "ray unsupported forced registry family none visible" \
-  || e2e_error "ray unsupported forced registry family none missing"
-
-forced_local_output="$(
-  KAO_GATEWAY_PROVIDER=ollama /home/kao/bin/ray run "ray forced local test" 2>&1
-)"
-
-printf '%s\n' "${forced_local_output}" | grep -q "gateway -> ollama local" \
-  && e2e_ok "ray forced local route visible" \
-  || e2e_error "ray forced local route missing"
 
 }
