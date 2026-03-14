@@ -56,14 +56,14 @@ Ray also exposes a first readable
 internal model registry.
 
 Ray also exposes a first strategic
-model landscape reading for the
-selected registry entry.
+multi-entry model landscape reading
+for ranked registry entries.
 
 ---
 
 ## Understand ray scout reading
 
-`ray scout` shows the selected
+`ray scout` shows the ranked
 model landscape in a compact
 operator format.
 
@@ -80,7 +80,8 @@ This view is:
 
 - deterministic
 - read-only
-- derived from the selected registry entry
+- comparative across ranked registry entries
+- ordered by registry rank
 - independent from routing mutation
 
 Strategic status is currently mapped as:
@@ -219,7 +220,7 @@ Interpretation:
 - registry score describes runtime-weighted registry value
 - registry operator rank describes comparative operator priority
 - registry maturity describes compact maturity reading
-- scout strategic status describes the selected model landscape posture
+- scout strategic status describes the comparative model landscape posture
 
 Registry and scout values do not change routing yet.
 

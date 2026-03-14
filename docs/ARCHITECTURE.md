@@ -88,7 +88,7 @@ Responsabilités :
 - exposition d’un score runtime registry pondéré par l’état réel
 - exposition d’un rang opérateur comparatif
 - exposition d’un niveau de maturité par entrée registry
-- exposition d’un statut stratégique dérivé pour l’entrée sélectionnée
+- exposition d’un statut stratégique dérivé pour chaque entrée registry lue
 
 Doctrine actuelle :
 
@@ -128,9 +128,9 @@ Responsabilités :
 - exposition d’une lecture compacte du registry actif
 - exposition du rang opérateur de l’entrée sélectionnée
 - exposition de la maturité de l’entrée sélectionnée
-- exposition d’un statut stratégique dérivé pour l’entrée sélectionnée
+- exposition d’un statut stratégique dérivé pour chaque entrée registry lue
 - exposition d’une vue registry dédiée
-- exposition d’une vue scout dédiée au paysage modèle sélectionné
+- exposition d’une vue scout dédiée au paysage modèle multi-entrée ordonné
 - exécution via le gateway existant
 
 Ray ne remplace pas :
@@ -159,9 +159,9 @@ Ray distingue maintenant explicitement :
 - le score runtime de l’entrée sélectionnée
 - le rang opérateur de l’entrée sélectionnée
 - la maturité de l’entrée sélectionnée
-- le statut stratégique dérivé de l’entrée sélectionnée
+- le statut stratégique dérivé des entrées visibles
 - la vue complète des entrées registry
-- la vue scout du paysage modèle sélectionné
+- la vue scout du paysage modèle multi-entrée ordonné
 
 États exposés :
 
@@ -227,6 +227,7 @@ Ray distingue maintenant explicitement :
 - maturity
 - rank
 - status
+- ordre comparatif par rang
 
 Doctrine de lecture :
 
@@ -241,7 +242,7 @@ Doctrine de lecture :
 - `registry score` prépare une première pondération runtime lisible
 - `registry rank` prépare une comparaison opérateur entre entrées
 - `registry maturity` expose une synthèse courte de maturité
-- `status` expose une lecture stratégique dérivée de la maturité sélectionnée
+- `status` expose une lecture stratégique dérivée de la maturité de chaque entrée visible
 - cette lecture enrichie n’altère pas encore la décision réelle du routeur
 
 Cas important :

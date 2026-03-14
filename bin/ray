@@ -111,31 +111,45 @@ ray_registry() {
   gateway_model_registry_operator_surface
 }
 
-ray_scout_provider_block() {
+ray_scout_entry_line() {
   local provider model family maturity rank status
 
   provider="${1:-none}"
-  gateway_require_model_registry
+
   model="$(gateway_registry_model_impl "${provider}")"
   family="$(gateway_registry_family_impl "${provider}")"
   maturity="$(gateway_registry_maturity_level_impl "${provider}")"
   rank="$(gateway_registry_operator_rank_score_impl "${provider}")"
   status="$(gateway_model_registry_strategic_status "${provider}" "${maturity}")"
 
-  printf 'MODEL LANDSCAPE\n\n'
-  printf 'provider : %s\n' "${provider}"
-  printf 'model    : %s\n' "${model}"
-  printf 'family   : %s\n' "${family}"
-  printf 'maturity : %s\n' "${maturity}"
-  printf 'rank     : %s\n' "${rank}"
-  printf 'status   : %s\n' "${status}"
+  printf '%s | %s | family %s | maturity %s | rank %s | status %s\n' \
+    "${provider}" \
+    "${model}" \
+    "${family}" \
+    "${maturity}" \
+    "${rank}" \
+    "${status}"
 }
 
 ray_scout() {
-  local selected_provider
+  local ranked_dump provider
 
-  selected_provider="$(gateway_model_registry_selected_provider)"
-  ray_scout_provider_block "${selected_provider}"
+  gateway_require_model_registry
+
+  printf 'MODEL LANDSCAPE\n\n'
+
+  ranked_dump="$(gateway_registry_ranked_dump_impl)"
+  if [ -z "${ranked_dump}" ]; then
+    printf 'none\n'
+    return 0
+  fi
+
+  while IFS='|' read -r provider _rest; do
+    [ -n "${provider}" ] || continue
+    ray_scout_entry_line "${provider}"
+  done <<SCOUT_EOF
+${ranked_dump}
+SCOUT_EOF
 }
 
 ray_run() {

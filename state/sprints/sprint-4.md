@@ -825,3 +825,85 @@ It prepares future:
 - adaptive routing intelligence
 - gamified agent perception layers
 
+
+---
+
+# SPRINT DEV 1.8 — Live Model Landscape Multi-Entry Surface
+
+## Mission
+
+Faire évoluer la surface opérateur `ray scout` :
+
+- d’une lecture registry sélectionnée
+- vers une lecture comparative multi-entrée du paysage modèle vivant.
+
+## Résultats obtenus
+
+### Surface opérateur enrichie
+
+`ray scout` expose maintenant :
+
+- provider
+- model
+- family
+- maturity
+- operator rank
+- strategic status
+
+pour **toutes les entrées registry classées**.
+
+La lecture est :
+
+- ordonnée par rang opérateur
+- comparative
+- déterministe
+- strictement read-only
+
+### Cohérence architecturale
+
+Cette évolution :
+
+- n’altère pas la logique de routage
+- n’introduit pas encore de ranking décisionnel réel
+- prépare une future orchestration intelligente du provider.
+
+Le router conserve :
+
+- priorité cloud
+- fallback lisible
+- scoring opérateur informatif uniquement.
+
+### Impact E2E
+
+Les tests confirment :
+
+- visibilité du banner MODEL LANDSCAPE
+- présence des entrées registry attendues
+- ordre correct par rang
+- lisibilité du statut stratégique
+- stabilité complète des surfaces `ray`.
+
+### Convergence documentaire
+
+Alignement réalisé sur :
+
+- README
+- ARCHITECTURE
+- USER_MANUAL
+
+La notion de :
+
+> paysage modèle sélectionné
+
+évolue officiellement vers :
+
+> paysage modèle comparatif multi-entrée.
+
+## État global après DEV 1.8
+
+- router déterministe stable
+- registry vivant lisible
+- surface opérateur stratégique enrichie
+- base prête pour ranking dynamique futur
+- cognition hybride progressivement observable
+

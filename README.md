@@ -65,9 +65,9 @@ selected registry maturity.
 internal model registry, including runtime score, operator rank and
 maturity level.
 
-`ray scout` gives a first strategic live model landscape reading for the
-selected registry entry, exposing provider, model, family, maturity,
-operator rank and mapped strategic status.
+`ray scout` gives a first strategic live model landscape reading across
+ranked registry entries, exposing provider, model, family, maturity,
+operator rank and mapped strategic status in a comparative ordered format.
 
 `ray run "<prompt>"` executes a request through the same gateway-backed path
 as `brain infer`.
@@ -88,7 +88,7 @@ The current gateway and ray model supports:
 - first internal live model registry layer
 - first runtime maturity reading layer inside the registry
 - first operator rank and maturity reading for registered entries
-- first strategic status mapping layer for selected model landscape reading
+- first strategic status mapping layer for comparative model landscape reading
 - explicit separation between runtime capacity and effective routing decision
 - explicit separation between provider routing and model registry reading
 - explicit separation between registry observability and real routing policy
@@ -131,10 +131,10 @@ The current ray behavior is:
 - expose cloud readiness
 - expose local readiness
 - expose a first readable model registry surface through `ray registry`
-- expose a first strategic model landscape surface through `ray scout`
+- expose a first strategic multi-entry model landscape surface through `ray scout`
 - expose selected registry rank
 - expose selected registry maturity
-- expose mapped strategic status for the selected registry entry
+- expose mapped strategic status for ranked registry entries
 - preserve the selected provider visibility
 - preserve the same execution path as `brain infer`
 
@@ -167,12 +167,12 @@ Typical operator reading now includes:
 - registry score
 - registry rank
 - registry maturity
-- strategic scout provider
-- strategic scout model
-- strategic scout family
-- strategic scout maturity
-- strategic scout rank
-- strategic scout status
+- strategic scout comparative provider entries
+- strategic scout comparative model entries
+- strategic scout comparative family entries
+- strategic scout comparative maturity entries
+- strategic scout comparative rank entries
+- strategic scout comparative status entries
 - provider availability and health for mistral
 - provider availability, kind and health for ollama
 - ollama model

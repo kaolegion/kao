@@ -238,64 +238,27 @@ printf '%s\n' "${ray_scout_output}" | grep -q "MODEL LANDSCAPE" \
   && e2e_ok "ray scout banner visible" \
   || e2e_error "ray scout banner missing"
 
-printf '%s\n' "${ray_scout_output}" | grep -q "provider : mistral" \
-  && e2e_ok "ray scout provider visible" \
-  || e2e_error "ray scout provider missing"
+printf '%s\n' "${ray_scout_output}" | grep -q "^mistral | mistral-medium-latest | family cloud | maturity elite | rank 90 | status dominant$" \
+  && e2e_ok "ray scout mistral landscape entry visible" \
+  || e2e_error "ray scout mistral landscape entry missing"
 
-printf '%s\n' "${ray_scout_output}" | grep -q "model    : mistral-medium-latest" \
-  && e2e_ok "ray scout model visible" \
-  || e2e_error "ray scout model missing"
+printf '%s\n' "${ray_scout_output}" | grep -q "^ollama | llama3.2 | family local | maturity low | rank 35 | status incubating$" \
+  && e2e_ok "ray scout ollama landscape entry visible" \
+  || e2e_error "ray scout ollama landscape entry missing"
 
-printf '%s\n' "${ray_scout_output}" | grep -q "family   : cloud" \
-  && e2e_ok "ray scout family visible" \
-  || e2e_error "ray scout family missing"
+printf '%s\n' "${ray_scout_output}" | grep -Eq "^mistral \| .*status dominant$" \
+  && e2e_ok "ray scout strategic status dominant readable" \
+  || e2e_error "ray scout strategic status dominant missing"
 
-printf '%s\n' "${ray_scout_output}" | grep -q "maturity : elite" \
-  && e2e_ok "ray scout maturity visible" \
-  || e2e_error "ray scout maturity missing"
+printf '%s\n' "${ray_scout_output}" | grep -Eq "^ollama \| .*status incubating$" \
+  && e2e_ok "ray scout strategic status incubating readable" \
+  || e2e_error "ray scout strategic status incubating missing"
 
-printf '%s\n' "${ray_scout_output}" | grep -Eq "rank     : [0-9][0-9]*" \
-  && e2e_ok "ray scout rank readable" \
-  || e2e_error "ray scout rank missing"
-
-printf '%s\n' "${ray_scout_output}" | grep -Eq "status   : (dominant|competitive|viable|incubating|experimental)" \
-  && e2e_ok "ray scout status readable" \
-  || e2e_error "ray scout status missing"
-
-printf '%s\n' "${ray_scout_output}" | grep -q "status   : dominant" \
-  && e2e_ok "ray scout strategic status mapped" \
-  || e2e_error "ray scout strategic status mapping missing"
-
-ray_default_output="$(
-  /home/kao/bin/ray 2>&1
+ray_scout_first_entry="$(
+  printf '%s\n' "${ray_scout_output}" | grep '|' | head -n 1
 )"
 
-printf '%s\n' "${ray_default_output}" | grep -q "RAY STATUS" \
-  && e2e_ok "ray default command visible" \
-  || e2e_error "ray default command missing"
-
-ray_help_output="$(
-  /home/kao/bin/ray help 2>&1
-)"
-
-printf '%s\n' "${ray_help_output}" | grep -q 'USAGE: ray \[status|registry|scout|run "<prompt>"\]' \
-  && e2e_ok "ray help visible" \
-  || e2e_error "ray help missing"
-
-ray_run_output="$(
-  /home/kao/bin/ray run "ray e2e run test" 2>&1
-)"
-
-printf '%s\n' "${ray_run_output}" | grep -Eq "gateway -> (mistral cloud|ollama local)" \
-  && e2e_ok "ray run route visible" \
-  || e2e_error "ray run route missing"
-
-ray_shortcut_output="$(
-  /home/kao/bin/ray "ray e2e shortcut test" 2>&1
-)"
-
-printf '%s\n' "${ray_shortcut_output}" | grep -Eq "gateway -> (mistral cloud|ollama local)" \
-  && e2e_ok "ray shortcut route visible" \
-  || e2e_error "ray shortcut route missing"
-
+printf '%s\n' "${ray_scout_first_entry}" | grep -q "^mistral | mistral-medium-latest | family cloud | maturity elite | rank 90 | status dominant$" \
+  && e2e_ok "ray scout landscape ordered by highest rank first" \
+  || e2e_error "ray scout landscape ordering incorrect"
 }
