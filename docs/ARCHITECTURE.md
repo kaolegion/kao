@@ -783,3 +783,49 @@ This convergence direction is tracked under:
 
 `kao.git vision lab`
 
+
+## Deep consistency kernel — REL-2 foundation
+
+REL-2 introduces the first kernel-grade deep runtime consistency checker.
+
+Purpose:
+
+- detect structural runtime corruption
+- detect incomplete transactional mutation
+- prove crash safety through operator recovery loop
+- classify runtime health deterministically
+
+Runtime consistency classification:
+
+- `STRONG`
+  - no open or staged transaction integrity violation
+  - WAL ordering clean
+  - recovery dry-run safe
+  - runtime writable
+  - runtime.state syntactically valid
+
+- `DEGRADED`
+  - non-critical ownership drift or soft anomaly
+  - runtime still operational
+
+- `BROKEN`
+  - open or staged transaction without terminal state
+  - WAL pending ordering violation
+  - recovery dry-run failure
+  - runtime structural corruption
+
+REL-2 proof loop:
+
+1. intentionally create incomplete transaction mutation
+2. deep consistency checker detects `BROKEN`
+3. operator invokes transactional recovery
+4. runtime returns to snapshot baseline
+5. checker confirms `STRONG`
+
+This closes the first kernel safety cycle:
+
+- mutation safety
+- crash detection
+- deterministic repair
+- health verification
+

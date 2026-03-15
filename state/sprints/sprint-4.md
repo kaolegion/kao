@@ -552,3 +552,44 @@ Before sprint closure:
 - `state/runtime/runtime.journal` test residue must be purged
 - only versioned source convergence remains in Git status
 
+
+## REL-2 — Deep consistency kernel foundation
+
+### Mission
+
+Introduce deterministic runtime integrity verification and crash recovery proof loop.
+
+### Delivered kernel capabilities
+
+- deep consistency checker command
+- strict transaction integrity invariant
+- WAL ordering verification
+- recovery dry-run validation
+- runtime writable verification
+- runtime.state syntax validation
+
+### Crash safety proof
+
+REL-2 demonstrates the full kernel safety loop:
+
+- force incomplete transaction mutation
+- detect runtime `BROKEN`
+- execute operator transactional recovery
+- return runtime to snapshot baseline
+- confirm runtime `STRONG`
+
+### Architectural meaning
+
+This sprint installs the first kernel-grade runtime safety cycle:
+
+- mutation control
+- crash detection
+- deterministic repair
+- post-repair verification
+
+This foundation prepares:
+
+- concurrent mutation diagnostics
+- reliability cockpit surfaces
+- cognitive runtime health modeling
+

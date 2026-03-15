@@ -448,3 +448,37 @@ Reliability visualization is therefore treated as:
 system cognition exposure  
 rather than operator activity narration.
 
+
+## Deep consistency semantic layer — REL-2
+
+REL-2 introduces a higher-order runtime safety semantic layer.
+
+New reliability semantic family:
+
+- `runtime_consistency`
+
+New reliability reading:
+
+- consistency classification events
+- crash detection overlays
+- recovery confirmation signals
+- deep safety badges
+
+Future UX surfaces prepared:
+
+- consistency health cards
+- crash-recovery replay ribbons
+- runtime safety status strips
+- kernel integrity dashboard indicators
+
+Semantic mapping:
+
+- `STRONG` → stable runtime baseline
+- `DEGRADED` → soft anomaly requiring attention
+- `BROKEN` → critical mutation integrity violation
+
+This layer complements:
+
+- runtime_transaction lifecycle semantics
+- runtime_recovery stabilization semantics
+
