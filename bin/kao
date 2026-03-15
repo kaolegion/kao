@@ -173,6 +173,29 @@ health_dispatch() {
   exec "${KROOT}/bin/kao-health" "${1:-compact}"
 }
 
+
+router_dispatch() {
+  case "${1:-status}" in
+    ""|status)
+      echo "ROUTER STATUS"
+      echo "-------------"
+      grep '^KAO_CONNECTIVITY_NETWORK=' "${KROOT}/state/runtime/runtime.state"
+      grep '^KAO_LOCAL_LLM=' "${KROOT}/state/runtime/runtime.state"
+      grep '^KAO_CLOUD_ACCESS=' "${KROOT}/state/runtime/runtime.state"
+      grep '^KAO_ROUTER_GATEWAY=' "${KROOT}/state/runtime/runtime.state"
+      grep '^KAO_ROUTER_REASON=' "${KROOT}/state/runtime/runtime.state"
+      ;;
+    *)
+      printf 'ERROR: unknown router subcommand: %s
+' "${1:-}" >&2
+      printf 'USAGE: kao router [status]
+' >&2
+      return 1
+      ;;
+  esac
+}
+
+
 case "${mode}" in
   boot)
     exec "${KROOT}/bin/kao-boot"
@@ -226,6 +249,11 @@ case "${mode}" in
   consistency)
     shift || true
     consistency_dispatch "${1:-status}"
+    ;;
+
+  router)
+    shift || true
+    router_dispatch "${1:-status}"
     ;;
 
   gateway)
