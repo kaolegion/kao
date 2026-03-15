@@ -583,3 +583,20 @@ ROUT-5 therefore marks the transition from:
 
 gateway observability → routing cognition visibility.
 
+
+## ROUT-6 — Router Temporal Cognition Surface
+
+Routing decisions now emit timeline events with switch detection flags:
+
+- provider_switch
+- level_switch
+- mode_switch
+
+This enables operator UX patterns such as:
+
+- detecting routing turbulence
+- understanding provider arbitration sequences
+- reading routing intent evolution over time.
+
+ROUT-6 establishes the first temporal cognition layer for the Kao router.
+

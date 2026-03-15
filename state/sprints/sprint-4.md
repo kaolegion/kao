@@ -727,3 +727,29 @@ intent → gateway thinking → router execution → cognitive cockpit.
 
 This establishes the first production-grade mental model visibility for hybrid routing.
 
+
+
+# SPRINT CORE — Router Timeline Surface
+
+## ROUT-6 — Provider Switch History & Cognitive Route Trace
+
+### Mission
+
+Introduce temporal cognition memory for routing decisions.
+
+### Delivered
+
+- router timeline writer
+- router switch detection engine
+- operator CLI surface:
+  - kao router timeline tail
+  - kao router timeline switches
+
+### Result
+
+The Kao router now exposes:
+
+instant cognition + temporal cognition.
+
+Routing arbitration becomes historically observable.
+

@@ -986,3 +986,30 @@ The operator can now:
 
 This sprint establishes the first stable **cognitive cockpit surface** in Kao.
 
+
+## ROUT-6 — Router Cognitive Timeline
+
+ROUT-6 introduces temporal cognition memory for routing decisions.
+
+The router now writes structured dispatch traces into the canonical
+session timeline surface.
+
+### Key properties
+
+- provider switch detection
+- cognitive level transitions
+- routing mode transitions
+- temporal arbitration visibility
+
+### Architectural meaning
+
+Routing cognition becomes:
+
+stateful → historical → analyzable.
+
+This prepares higher-level cockpit layers such as:
+
+- routing heat maps
+- provider arbitration waves
+- session cognitive routing summaries.
+

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+KROOT="${KROOT:-/home/kao}"
+TIMELINE="${KROOT}/state/runtime/session.timeline"
+
+mode="${1:-tail}"
+arg="${2:-20}"
+
+if [ ! -f "$TIMELINE" ]; then
+echo "router timeline unavailable"
+exit 1
+fi
+
+echo
+echo "ROUTER TIMELINE"
+echo "---------------"
+
+case "$mode" in
+    tail)
+        grep "event_type=router-dispatch" "$TIMELINE" | tail -n "$arg"
+        ;;
+    switches)
+        grep "event_type=router-dispatch" "$TIMELINE" | grep -E "provider_switch=yes|level_switch=yes|mode_switch=yes"
+        ;;
+    *)
+        echo "usage: kao router timeline [tail <count>|switches]"
+        exit 1
+        ;;
+esac
+
+echo
