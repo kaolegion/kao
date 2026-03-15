@@ -1013,3 +1013,51 @@ This prepares higher-level cockpit layers such as:
 - provider arbitration waves
 - session cognitive routing summaries.
 
+
+
+## ROUT-7 — Router Cognitive Heat Externalization
+
+ROUT-7 externalizes routing cognition intensity into an autonomous
+behavioral observer process.
+
+### Architectural shift
+
+Routing heat is no longer produced inside the router execution path.
+
+Instead:
+
+- router timeline remains a pure canonical writer
+- a stateful daemon observes stabilized dispatch history
+- cognitive provider switches become the only heat trigger
+- retry / fallback / probing noise is ignored
+
+### Stateful observer model
+
+The heat daemon maintains:
+
+- a persistent set of seen routing events
+- the last effective cognitive provider
+- a temporal behavioral memory file
+
+Heat memory format:
+
+`provider | score | last_update_epoch`
+
+Temporal decay is continuously applied,
+producing an adaptive cognition intensity curve.
+
+### Architectural meaning
+
+Routing cognition now evolves from:
+
+historical trace → behavioral memory → adaptive routing signal.
+
+This layer prepares:
+
+- adaptive provider arbitration
+- routing affinity scoring
+- session-level routing learning patterns
+
+ROUT-7 therefore establishes the first **behavioral learning surface**
+in the Kao routing architecture.
+

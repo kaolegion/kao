@@ -753,3 +753,30 @@ instant cognition + temporal cognition.
 
 Routing arbitration becomes historically observable.
 
+
+
+# ROUT-7.RESET — Stateful Router Heat Observer
+
+### Objective
+
+Stabilize routing cognition heat as an external behavioral memory.
+
+### Actions
+
+- removed heat hook from router kernel timeline
+- restored router timeline as canonical writer only
+- introduced idempotent heat observer daemon
+- implemented temporal decay behavioral scoring
+- added event seen-set to avoid double counting
+
+### Result
+
+Routing cognition heat is now:
+
+- deterministic
+- historically stable
+- behaviorally meaningful
+
+This prepares adaptive routing policy layers and
+future competitive provider arbitration mechanisms.
+
