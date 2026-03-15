@@ -352,3 +352,34 @@ This sprint establishes:
 - a base for recovery timeline navigation
 - a prerequisite for concurrent agent mutation control
 
+
+---
+
+# SPRINT RELIABILITY+BRAIN 1.3A — Kernel trajectory + Brain lab extraction
+
+## Mission
+
+Extend runtime reliability doctrine beyond transactional safety
+while initiating strategic reading of repository intelligence engines.
+
+## Outcomes
+
+- hardened transaction status surface (silent when no transaction exists)
+- confirmation of reliability kernel trajectory:
+  - concurrent mutation discipline
+  - differential snapshot strategies
+  - deep consistency checker vision
+  - agent-safe mutation governance
+  - distributed runtime reliability projection
+- identification of `codebase-snapshot` as a laboratory brain candidate
+- creation of strategic track: `kao.git vision lab`
+
+## Product interpretation
+
+This sprint marks the first explicit convergence between:
+
+- runtime safety engineering
+- cognitive repository intelligence modeling
+
+forming an early architectural seed for the future Kao brain layer.
+

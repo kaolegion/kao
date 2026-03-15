@@ -708,3 +708,49 @@ Doctrine :
 - le canonique contient la logique runtime stable
 - le lab contient les seeds UX et démos jetables
 - le lab dépend du canonique mais jamais l’inverse
+
+---
+
+## Reliability kernel trajectory (post-transaction engine)
+
+The current runtime transaction engine establishes the first kernel-grade safety layer.
+
+Next architectural trajectory:
+
+- preparation for **concurrent mutation arbitration**
+- introduction of **differential snapshot strategies**
+- evolution toward a **deep consistency checker**
+- definition of **agent-safe mutation governance**
+- projection toward **distributed runtime reliability models**
+
+This layer is intended to evolve from:
+
+local crash-safe mutation engine  
+→ mutation discipline kernel  
+→ reliability cognition layer  
+→ distributed runtime stabilization fabric.
+
+---
+
+## Brain convergence seed — repository intelligence lab
+
+The external project `codebase-snapshot` is identified as a strategic
+repository cognition engine candidate.
+
+At this stage:
+
+- no canonical integration is performed
+- the engine is treated as a **laboratory intelligence subsystem**
+- extraction focuses on architectural reading and surface mapping
+
+Future Kao brain architecture may combine:
+
+- runtime safety kernel
+- repository structural cognition
+- explain-first system interpretation
+- timeline-aware memory models
+
+This convergence direction is tracked under:
+
+`kao.git vision lab`
+

@@ -439,20 +439,36 @@ kao_runtime_tx_rollback() {
 }
 
 kao_runtime_tx_status() {
+  local lock_state
+  local txdir txid state barrier_state resource_count snapshot_id
+  local tx_found=0
+
   printf 'RUNTIME TRANSACTION STATUS\n'
 
-  if kao_runtime_lock_is_held; then
-    printf 'lock : held\n'
-  else
-    printf 'lock : free\n'
+  lock_state="$(kao_runtime_lock_state 2>/dev/null || printf 'unknown')"
+  printf 'lock : %s\n' "${lock_state}"
+
+  if [ ! -d "${RUNTIME_TX_DIR}" ]; then
+    return 0
   fi
 
-  find "${RUNTIME_TX_DIR}" -mindepth 1 -maxdepth 1 -type d | while read -r d; do
-    local txid state barrier_state resource_count
-    txid="$(basename "${d}")"
-    state="$(kao_runtime_tx_field "${txid}" STATE 2>/dev/null || printf 'unknown')"
-    barrier_state="$(kao_runtime_tx_field "${txid}" BARRIER_STATE 2>/dev/null || printf 'unknown')"
-    resource_count="$(kao_runtime_tx_field "${txid}" RESOURCE_COUNT 2>/dev/null || printf '0')"
-    printf '%s|state=%s|barrier=%s|resources=%s\n' "${txid}" "${state}" "${barrier_state}" "${resource_count}"
-  done
+  while IFS= read -r txdir; do
+    [ -d "${txdir}" ] || continue
+    tx_found=1
+
+    txid="$(basename "${txdir}")"
+    state="$(kao_runtime_tx_field "${txid}" "STATE" || true)"
+    barrier_state="$(kao_runtime_tx_field "${txid}" "BARRIER_STATE" || true)"
+    resource_count="$(kao_runtime_tx_field "${txid}" "RESOURCE_COUNT" || true)"
+    snapshot_id="$(kao_runtime_tx_field "${txid}" "SNAPSHOT_ID" || true)"
+
+    printf '\n'
+    printf 'txid           : %s\n' "${txid}"
+    printf 'state          : %s\n' "${state:-unknown}"
+    printf 'barrier_state  : %s\n' "${barrier_state:-unknown}"
+    printf 'resource_count : %s\n' "${resource_count:-0}"
+    printf 'snapshot_id    : %s\n' "${snapshot_id:-none}"
+  done < <(find "${RUNTIME_TX_DIR}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
+
+  return 0
 }

@@ -384,3 +384,27 @@ Lab :
 - seeds timeline
 - démos cockpit
 - simulations UX rapides
+
+---
+
+## Future reliability UX projection
+
+As the reliability kernel matures, future UX layers may expose:
+
+- concurrent mutation arbitration indicators
+- differential snapshot preview surfaces
+- deep consistency verification cards
+- agent mutation safety signals
+- distributed runtime stabilization signals
+
+These surfaces must remain:
+
+- non-intrusive during normal operation
+- replayable during incident analysis
+- cognitively compact in dashboard form
+
+Reliability visualization is therefore treated as:
+
+system cognition exposure  
+rather than operator activity narration.
+
