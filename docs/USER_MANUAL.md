@@ -370,3 +370,44 @@ Typical operator usage:
 - inspect provider usage patterns  
 - isolate a specific session narrative  
 
+
+## kao pulse
+
+Commande de diagnostic cognitif rapide.
+
+Affiche :
+- l'acteur runtime actif
+- l'état réseau
+- la gateway sélectionnée
+- la disponibilité cloud
+- la présence ou l'absence d'un LLM local
+- la dernière autorité décisionnelle connue
+
+Usage :
+
+```bash
+kao pulse
+clear
+
+echo "========================================"
+echo "DIVERGENCE FINALE — UX MICRO-SURFACE"
+echo "DOC-1 — INJECTION"
+echo "========================================"
+
+cd /home/kao || exit 1
+mkdir -p state/sprints
+
+cat <<'EOF' >> docs/USER_MANUAL.md
+
+
+Le prompt terminal Kao expose en continu une lecture compacte du runtime :
+
+- acteur actif
+- gateway actuelle
+- état réseau
+
+Exemple :
+
+    [KAO:owner|cloud|online]
+
+Cette surface sert de repère permanent pour l'opérateur.

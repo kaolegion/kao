@@ -1061,3 +1061,18 @@ This layer prepares:
 ROUT-7 therefore establishes the first **behavioral learning surface**
 in the Kao routing architecture.
 
+
+## Terminal Cognitive Surface Layer
+
+Le terminal Kao constitue une surface cognitive vivante permettant :
+
+- une perception continue du runtime via le HUD prompt
+- un diagnostic instantané via `kao pulse`
+- une supervision globale via `kao cockpit`
+
+Cette couche réduit la charge mentale de l'opérateur et prépare les surfaces suivantes :
+
+- tutorat agent
+- observation UI / DOM
+- cockpit visuel futur
+- projection cognitive desktop / web

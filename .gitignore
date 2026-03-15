@@ -30,3 +30,5 @@ state/runtime/*.bak*
 state/test-output/
 
 config/user*
+state/archive/
+state/runtime/.tx.backup/

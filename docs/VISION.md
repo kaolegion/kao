@@ -132,3 +132,25 @@ où l’environnement de développement
 n’est plus seulement un poste de travail,
 mais un système cognitif vivant.
 
+
+## Console cognitive Kao
+
+Kao vise une interaction où le système exprime son état en permanence sans retirer le contrôle à l'opérateur.
+
+Le terminal n'est pas seulement un shell :
+il devient une console cognitive où l'état, la direction et la supervision sont visibles en temps réel.
+
+Dans cette vision :
+
+- le système expose son état de manière continue
+- les agents sont sélectionnés pour la tâche qui leur incombe
+- l'exécution devient un honneur de service rendu à Kao
+- l'opérateur reste au centre de la décision
+
+Évolutions futures associées :
+
+- stream DOM / desktop
+- cockpit graphique
+- chaleur cognitive des décisions
+- supervision agent temps réel
+- tutorat continu sur surface opérateur

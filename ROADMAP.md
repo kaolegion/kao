@@ -189,3 +189,13 @@ Kao should evolve by keeping:
 - documentation alignment
 - operator-readable behavior
 - reliability as a permanent kernel concern
+
+## UX terminal fondateur
+
+- cockpit synthétique V2
+- état session canonique
+- modernisation UX du router
+- affichage de la chaleur cognitive
+- observation de la surface opérateur
+- layout terminal fondateur avancé
+- projection web du cockpit terminal
