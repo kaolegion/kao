@@ -133,6 +133,22 @@ transaction_dispatch() {
   esac
 }
 
+
+lock_dispatch() {
+  . "${KROOT}/lib/runtime/runtime_lock.sh"
+
+  case "${1:-status}" in
+    ""|status)
+      kao_runtime_lock_status
+      ;;
+    *)
+      printf 'ERROR: unknown lock subcommand: %s\n' "${1:-}" >&2
+      printf 'USAGE: kao lock [status]\n' >&2
+      return 1
+      ;;
+  esac
+}
+
 gateway_dispatch() {
   . "${KROOT}/lib/gateway/router.sh"
   gateway_cli "${1:-status}"
@@ -180,7 +196,12 @@ case "${mode}" in
 
   transaction)
     shift || true
-    transaction_dispatch "${1:-status}" "${2:-}"
+    transaction_dispatch "${1:-status}" "${2:-}" "${3:-}" "${4:-}"
+    ;;
+
+  lock)
+    shift || true
+    lock_dispatch "${1:-status}"
     ;;
 
   gateway)

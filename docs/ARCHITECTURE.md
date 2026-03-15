@@ -204,6 +204,34 @@ Artefacts runtime locaux associés :
 - `state/runtime/runtime.journal`
 - `state/sessions/runtime-*`
 
+Discipline de concurrence verrouillée par REL-1 :
+
+- le lock runtime reste global et exclusif
+- le lock porte maintenant une identité lisible :
+  - `pid`
+  - `owner_kind`
+  - `owner_label`
+  - `txid`
+  - `command`
+  - `state`
+  - `created_at`
+- la transaction qui ouvre une mutation devient lisible depuis la surface lock
+- l’introspection opérateur minimale devient :
+  - `kao lock status`
+  - `kao transaction status`
+
+Discipline opérationnelle verrouillée par REL-1B :
+
+- une transaction peut rester `open` entre plusieurs commandes opérateur
+- le lock n’est plus conservé pendant toute la vie logique de la transaction
+- le lock n’est tenu que pendant une opération réelle :
+  - `begin`
+  - `stage`
+  - `commit`
+  - `rollback`
+- une transaction ouverte sans lock actif n’est pas une corruption
+- le recovery boot-time ne doit réparer que les mutations interrompues avec lock orphelin
+
 Structure transactionnelle canonique :
 
 - une transaction possède un `TX_ID`
@@ -266,9 +294,10 @@ Checker de cohérence minimal :
 Recovery piloté par état :
 
 - au boot, Kao inspecte d’abord les locks orphelins
-- si une transaction incomplète est détectée, le recovery lit `STATE` et `BARRIER_STATE`
-- les états `open:*`, `committing:*` et `committed:apply-running` sont traités comme incomplets
-- ces états déclenchent un rollback vers le snapshot préalable
+- le recovery ne traite une transaction que si une interruption opératoire est suggérée par un lock orphelin
+- une transaction `open` ou `staged` sans lock actif peut être une transaction opérateur volontairement laissée en attente
+- les états `committing:*` et `committed:apply-running` restent des états incomplets critiques
+- lorsqu’un lock orphelin pointe une mutation interrompue, le recovery déclenche un rollback vers le snapshot préalable
 - la transaction est ensuite marquée `aborted` avec barrière `reverted`
 - une transaction déjà `committed:applied` peut être confirmée sans rollback
 - les états terminaux `rolled_back:*` et `aborted:*` sont ignorés en réparation active

@@ -383,3 +383,172 @@ This sprint marks the first explicit convergence between:
 
 forming an early architectural seed for the future Kao brain layer.
 
+
+# SPRINT RELIABILITY 1.4 — Concurrent Mutation Discipline + Deep Consistency Kernel
+
+## REL-1 — Lock ownership foundation
+
+### Mission
+
+Introduce the first explicit concurrency ownership layer for runtime exclusivity.
+
+### Goal
+
+Allow an operator to:
+
+- identify who currently holds the runtime lock
+- link a held lock to a transaction when applicable
+- read the command origin of the mutation lifecycle
+- prepare deep consistency and future concurrent mutation diagnostics
+
+### Scope
+
+Versioned implementation for REL-1 updates:
+
+- `lib/runtime/runtime_lock.sh`
+- `lib/runtime/runtime_transaction.sh`
+- `bin/kao`
+- `docs/ARCHITECTURE.md`
+- `docs/UX_EVENT_MODEL.md`
+- `state/sprints/sprint-4.md`
+
+### Delivered foundation
+
+The runtime lock now exposes canonical metadata:
+
+- `pid`
+- `owner_kind`
+- `owner_label`
+- `txid`
+- `command`
+- `state`
+- `created_at`
+
+Operator surface added:
+
+- `kao lock status`
+
+### Kernel result
+
+REL-1 locks the first readable ownership bridge between:
+
+- exclusivity
+- transaction lifecycle
+- operator introspection
+
+This is the first foundation block before:
+
+- deep consistency checks
+- lock lifecycle validation
+- differential snapshot strategy
+- stronger concurrent mutation discipline
+
+### Immediate correction applied
+
+REL-1A fixes transaction begin ordering so that:
+
+- `TX_ID` is generated before lock acquisition metadata is written
+- the runtime lock can expose the actual transaction identifier at begin time
+- lock ownership introspection remains semantically aligned with transaction lifecycle
+
+
+
+## REL-1B — Operation-scoped lock model
+
+### Mission
+
+Align runtime lock semantics with multi-command terminal transactions.
+
+### Goal
+
+Allow an operator to:
+
+- open a transaction in one command
+- stage resources in later commands
+- commit or rollback later
+- avoid false recovery on an intentionally pending transaction
+
+### Scope
+
+REL-1B updates:
+
+- `lib/runtime/runtime_transaction.sh`
+- `docs/ARCHITECTURE.md`
+- `docs/UX_EVENT_MODEL.md`
+- `state/sprints/sprint-4.md`
+
+### Delivered correction
+
+The runtime lock is now operation-scoped:
+
+- `begin` acquires and releases its own lock
+- `stage` acquires and releases its own lock
+- `commit` acquires and releases its own lock
+- `rollback` acquires and releases its own lock
+
+### Kernel meaning
+
+A transaction may now remain visible in state `open` or `staged` without an active lock.
+
+This is the expected idle-pending model for terminal-first operator flow.
+
+Recovery remains reserved for interrupted mutation execution, not for a transaction intentionally left pending between commands.
+
+
+
+## REL-1C — Transaction CLI forwarding repair
+
+### Mission
+
+Repair terminal transaction argument forwarding so multi-step transaction commands reach the runtime layer intact.
+
+### Goal
+
+Allow an operator to:
+
+- forward `txid`
+- forward `target`
+- forward `source_file`
+- use `stage` through the public CLI without argument truncation
+
+### Scope
+
+REL-1C updates:
+
+- `bin/kao`
+- `state/sprints/sprint-4.md`
+
+### Delivered correction
+
+The `transaction` branch in `bin/kao` now forwards:
+
+- subcommand
+- txid
+- target
+- source file
+
+This restores the canonical operator path for staged runtime mutations.
+
+
+
+## REL-1E — Convergence close and runtime cleanup doctrine
+
+### Mission
+
+Close REL-1 with aligned recovery semantics and clean runtime test residue.
+
+### Delivered convergence
+
+The architecture doctrine now reflects that:
+
+- `open` or `staged` without a live lock may be an intentional pending transaction
+- recovery should be driven by interrupted execution evidence, not by pending transaction presence alone
+
+### Runtime close discipline
+
+Before sprint closure:
+
+- test transaction directories under `state/runtime/.tx/` must be purged
+- `state/runtime/runtime.journal` test residue must be purged
+- only versioned source convergence remains in Git status
+

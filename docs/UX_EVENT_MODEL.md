@@ -152,8 +152,8 @@ The current runtime transaction model exposes two compact visible axes:
 
 Current transaction state meanings:
 
-- `open` → transaction created, not yet finalized
-- `committing` → apply phase entered
+- `open` → transaction created and logically pending between operator steps
+- `committing` → apply phase entered under an active mutation lock
 - `committed` → commit completed
 - `rolled_back` → manual rollback completed
 - `aborted` → interrupted transaction reverted by safety flow
@@ -218,6 +218,46 @@ Suggested scope mapping:
 Suggested intensity mapping:
 
 - `passive` → regular transaction begin/status
+
+---
+
+## Runtime lock semantic layer
+
+REL-1 introduces a first explicit semantic layer for runtime lock ownership.
+
+The lock is no longer read only as a binary held/free gate.
+
+It now exposes readable ownership fields:
+
+- `state`
+- `pid`
+- `owner_kind`
+- `owner_label`
+- `txid`
+- `command`
+- `created_at`
+
+Reading intent:
+
+- `state` → current lock lifecycle visibility
+- `owner_kind` → broad mutation family holding exclusivity
+- `owner_label` → human-readable lock owner role
+- `txid` → transaction link when mutation is transaction-backed
+- `command` → operator-visible command origin
+
+REL-1B refines the reading model:
+
+- a visible transaction may exist without any active lock
+- this means the transaction is pending, not corrupted
+- a lock should appear only during a real mutation operation
+- orphan-lock recovery should therefore indicate interrupted execution, not idle pending state
+
+This prepares future UX surfaces such as:
+
+- lock lifecycle cards
+- mutation ownership badges
+- deep consistency overlays
+- concurrent mutation diagnostics
 - `active` → stage/apply/commit flow
 - `critical` → rollback, inconsistency, orphan-lock repair, crash recovery
 - `narrative` → final stabilized runtime transition worth replaying

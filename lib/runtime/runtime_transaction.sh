@@ -149,6 +149,20 @@ kao_runtime_tx_sha256() {
   sha256sum "${file}" | awk '{print $1}'
 }
 
+kao_runtime_tx_with_lock() {
+  local txid="${1:-none}"
+  local owner_label="${2:-runtime-op}"
+  local command="${3:-unknown-command}"
+
+  kao_runtime_lock_acquire 50 "transaction" "${owner_label}" "${txid}" "${command}"
+}
+
+kao_runtime_tx_release_lock() {
+  if kao_runtime_lock_is_held; then
+    kao_runtime_lock_release
+  fi
+}
+
 kao_runtime_tx_wal_append_stage() {
   local txid="${1:-}"
   local rel="${2:-}"
@@ -259,11 +273,12 @@ kao_runtime_tx_begin() {
   local txid txdir snapshot_id started_at
 
   kao_runtime_tx_require_paths
-  kao_runtime_lock_acquire || return 1
 
   txid="$(kao_runtime_tx_new_id)"
   txdir="$(kao_runtime_tx_dir "${txid}")"
   started_at="$(kao_runtime_tx_now_utc)"
+
+  kao_runtime_tx_with_lock "${txid}" "runtime-tx-begin" "kao transaction begin" || return 1
 
   mkdir -p \
     "${txdir}" \
@@ -275,6 +290,12 @@ kao_runtime_tx_begin() {
 
   snapshot_id="$(kao_snapshot_create | awk -F': ' '/SNAPSHOT CREATED/ {print $2}')"
 
+  [ -n "${snapshot_id}" ] || {
+    kao_runtime_tx_release_lock
+    printf 'ERROR: snapshot creation failed\n' >&2
+    return 1
+  }
+
   kao_runtime_tx_write_env \
     "${txid}" \
     "${started_at}" \
@@ -284,6 +305,7 @@ kao_runtime_tx_begin() {
     "0"
 
   kao_runtime_tx_log "begin" "${txid}" "snapshot=${snapshot_id}"
+  kao_runtime_tx_release_lock
 
   printf '%s\n' "${txid}"
 }
@@ -307,6 +329,8 @@ kao_runtime_tx_stage_file() {
     printf 'ERROR: stage source missing\n' >&2
     return 1
   }
+
+  kao_runtime_tx_with_lock "${txid}" "runtime-tx-stage" "kao transaction stage" || return 1
 
   rel="$(realpath --relative-to="${RUNTIME_DIR}" "${target}")"
   stage_target="$(kao_runtime_tx_stage_dir "${txid}")/${rel}"
@@ -335,6 +359,7 @@ kao_runtime_tx_stage_file() {
     "${resource_count}"
 
   kao_runtime_tx_log "stage" "${txid}" "${rel}"
+  kao_runtime_tx_release_lock
 }
 
 kao_runtime_tx_apply_stage() {
@@ -373,11 +398,14 @@ kao_runtime_tx_commit() {
     return 1
   }
 
+  kao_runtime_tx_with_lock "${txid}" "runtime-tx-commit" "kao transaction commit" || return 1
+
   snapshot_id="$(kao_runtime_tx_field "${txid}" SNAPSHOT_ID)"
   started_at="$(kao_runtime_tx_field "${txid}" STARTED_AT)"
   resource_count="$(kao_runtime_tx_resource_count "${txid}")"
 
   if ! kao_runtime_tx_check_consistency "${txid}" >/dev/null; then
+    kao_runtime_tx_release_lock
     printf 'ERROR: transaction consistency check failed\n' >&2
     return 1
   fi
@@ -405,8 +433,7 @@ kao_runtime_tx_commit() {
     "$(kao_runtime_tx_now_utc)"
 
   kao_runtime_tx_log "commit" "${txid}" "snapshot=${snapshot_id}"
-
-  kao_runtime_lock_release
+  kao_runtime_tx_release_lock
 
   printf 'RUNTIME TRANSACTION COMMITTED : %s\n' "${txid}"
 }
@@ -419,7 +446,12 @@ kao_runtime_tx_rollback() {
   started_at="$(kao_runtime_tx_field "${txid}" STARTED_AT)"
   resource_count="$(kao_runtime_tx_resource_count "${txid}")"
 
-  kao_snapshot_restore "${snapshot_id}"
+  kao_runtime_tx_with_lock "${txid}" "runtime-tx-rollback" "kao transaction rollback" || return 1
+
+  kao_snapshot_restore "${snapshot_id}" || {
+    kao_runtime_tx_release_lock
+    return 1
+  }
 
   kao_runtime_tx_write_env \
     "${txid}" \
@@ -432,8 +464,7 @@ kao_runtime_tx_rollback() {
     "$(kao_runtime_tx_now_utc)"
 
   kao_runtime_tx_log "rollback" "${txid}" "snapshot=${snapshot_id}"
-
-  kao_runtime_lock_release
+  kao_runtime_tx_release_lock
 
   printf 'RUNTIME TRANSACTION ROLLED BACK : %s\n' "${txid}"
 }
@@ -446,7 +477,13 @@ kao_runtime_tx_status() {
   printf 'RUNTIME TRANSACTION STATUS\n'
 
   lock_state="$(kao_runtime_lock_state 2>/dev/null || printf 'unknown')"
-  printf 'lock : %s\n' "${lock_state}"
+  printf 'lock         : %s\n' "${lock_state}"
+  if [ "${lock_state}" != "free" ]; then
+    printf 'lock owner   : %s\n' "$(kao_runtime_lock_owner_label 2>/dev/null || printf 'unknown')"
+    printf 'lock kind    : %s\n' "$(kao_runtime_lock_owner_kind 2>/dev/null || printf 'unknown')"
+    printf 'lock txid    : %s\n' "$(kao_runtime_lock_txid 2>/dev/null || printf 'none')"
+    printf 'lock command : %s\n' "$(kao_runtime_lock_command 2>/dev/null || printf 'unknown')"
+  fi
 
   if [ ! -d "${RUNTIME_TX_DIR}" ]; then
     return 0
