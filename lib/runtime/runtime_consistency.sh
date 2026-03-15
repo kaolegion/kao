@@ -7,19 +7,58 @@ check_transaction_integrity() {
   local txdir="${RUNTIME_DIR}/.tx"
   [ -d "${txdir}" ] || return 0
 
-  local tx state barrier
+  local tx state barrier env_file manifest_file wal_file resource_count manifest_count
+
   for tx in "${txdir}"/*; do
     [ -d "${tx}" ] || continue
-    [ -f "${tx}/transaction.env" ] || return 1
 
-    state="$(awk -F= '$1=="STATE"{print substr($0,index($0,"=")+1); exit}' "${tx}/transaction.env")"
-    barrier="$(awk -F= '$1=="BARRIER_STATE"{print substr($0,index($0,"=")+1); exit}' "${tx}/transaction.env")"
+    env_file="${tx}/transaction.env"
+    manifest_file="${tx}/resources.manifest"
+    wal_file="${tx}/wal/runtime.wal"
+
+    [ -f "${env_file}" ] || return 1
+
+    state="$(awk -F= '$1=="STATE"{print substr($0,index($0,"=")+1); exit}' "${env_file}")"
+    barrier="$(awk -F= '$1=="BARRIER_STATE"{print substr($0,index($0,"=")+1); exit}' "${env_file}")"
+    resource_count="$(awk -F= '$1=="RESOURCE_COUNT"{print substr($0,index($0,"=")+1); exit}' "${env_file}")"
+
+    [ -n "${state}" ] || return 1
+    [ -n "${barrier}" ] || return 1
+    [ -n "${resource_count}" ] || resource_count="0"
+
+    if [ -f "${manifest_file}" ]; then
+      manifest_count="$(awk 'NF { count++ } END { print count + 0 }' "${manifest_file}")"
+    else
+      manifest_count="0"
+    fi
 
     case "${state}:${barrier}" in
-      open:*|*:staged|committing:*|committed:apply-running)
+      committed:applied|aborted:reverted|rolled_back:reverted)
+        :
+        ;;
+      open:none|open:staged)
+        if [ "${resource_count}" != "${manifest_count}" ]; then
+          return 1
+        fi
+        ;;
+      committing:staged|committing:apply-ready)
+        return 1
+        ;;
+      committed:apply-running|committed:none|committed:staged)
+        return 1
+        ;;
+      aborted:*|rolled_back:*)
+        :
+        ;;
+      *)
         return 1
         ;;
     esac
+
+    if [ "${resource_count}" -gt 0 ]; then
+      [ -f "${manifest_file}" ] || return 1
+      [ -f "${wal_file}" ] || return 1
+    fi
   done
 
   return 0

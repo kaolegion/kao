@@ -26,6 +26,11 @@ kao_runtime_tx_dir() {
   printf '%s/%s\n' "${RUNTIME_TX_DIR}" "${txid}"
 }
 
+kao_runtime_tx_tmp_dir() {
+  local txid="${1:-}"
+  printf '%s/.tmp-%s-%s\n' "${RUNTIME_TX_DIR}" "${txid}" "$$"
+}
+
 kao_runtime_tx_env_file() {
   local txid="${1:-}"
   printf '%s/transaction.env\n' "$(kao_runtime_tx_dir "${txid}")"
@@ -65,20 +70,22 @@ kao_runtime_tx_field() {
   awk -F= -v key="${key}" '$1 == key { print substr($0, index($0, "=") + 1); exit }' "${env_file}"
 }
 
-kao_runtime_tx_write_env() {
-  local txid="${1:-}"
-  local started_at="${2:-}"
-  local snapshot_id="${3:-}"
-  local state="${4:-open}"
-  local barrier_state="${5:-none}"
-  local resource_count="${6:-0}"
-  local committed_at="${7:-}"
-  local aborted_at="${8:-}"
+kao_runtime_tx_write_env_path() {
+  local env_file="${1:-}"
+  local txid="${2:-}"
+  local started_at="${3:-}"
+  local snapshot_id="${4:-}"
+  local state="${5:-open}"
+  local barrier_state="${6:-none}"
+  local resource_count="${7:-0}"
+  local committed_at="${8:-}"
+  local aborted_at="${9:-}"
 
-  local env_file
-  env_file="$(kao_runtime_tx_env_file "${txid}")"
+  local env_tmp
 
+  [ -n "${env_file}" ] || return 1
   mkdir -p "$(dirname "${env_file}")"
+  env_tmp="${env_file}.tmp.$$"
 
   {
     printf 'TX_ID=%s\n' "${txid}"
@@ -95,7 +102,37 @@ kao_runtime_tx_write_env() {
     if [ -n "${aborted_at}" ]; then
       printf 'ABORTED_AT=%s\n' "${aborted_at}"
     fi
-  } > "${env_file}"
+  } > "${env_tmp}" || {
+    rm -f "${env_tmp}"
+    return 1
+  }
+
+  mv "${env_tmp}" "${env_file}"
+}
+
+kao_runtime_tx_write_env() {
+  local txid="${1:-}"
+  local started_at="${2:-}"
+  local snapshot_id="${3:-}"
+  local state="${4:-open}"
+  local barrier_state="${5:-none}"
+  local resource_count="${6:-0}"
+  local committed_at="${7:-}"
+  local aborted_at="${8:-}"
+
+  local env_file
+  env_file="$(kao_runtime_tx_env_file "${txid}")"
+
+  kao_runtime_tx_write_env_path \
+    "${env_file}" \
+    "${txid}" \
+    "${started_at}" \
+    "${snapshot_id}" \
+    "${state}" \
+    "${barrier_state}" \
+    "${resource_count}" \
+    "${committed_at}" \
+    "${aborted_at}"
 }
 
 kao_runtime_tx_log() {
@@ -258,6 +295,7 @@ kao_runtime_tx_check_consistency() {
 
   while IFS= read -r line; do
     [ -n "${line}" ] || continue
+
     checked=$((checked + 1))
     if ! kao_runtime_tx_check_stage_record "${txid}" "${line}"; then
       issues=$((issues + 1))
@@ -270,39 +308,67 @@ kao_runtime_tx_check_consistency() {
 }
 
 kao_runtime_tx_begin() {
-  local txid txdir snapshot_id started_at
+  local txid txdir tmpdir snapshot_id started_at
 
   kao_runtime_tx_require_paths
 
   txid="$(kao_runtime_tx_new_id)"
   txdir="$(kao_runtime_tx_dir "${txid}")"
+  tmpdir="$(kao_runtime_tx_tmp_dir "${txid}")"
   started_at="$(kao_runtime_tx_now_utc)"
 
   kao_runtime_tx_with_lock "${txid}" "runtime-tx-begin" "kao transaction begin" || return 1
 
-  mkdir -p \
-    "${txdir}" \
-    "$(kao_runtime_tx_stage_dir "${txid}")" \
-    "$(kao_runtime_tx_wal_dir "${txid}")"
+  [ ! -e "${txdir}" ] || {
+    kao_runtime_tx_release_lock
+    printf 'ERROR: transaction already exists\n' >&2
+    return 1
+  }
 
-  : > "$(kao_runtime_tx_manifest_file "${txid}")"
-  : > "$(kao_runtime_tx_wal_file "${txid}")"
+  rm -rf "${tmpdir}"
+
+  mkdir -p \
+    "${tmpdir}" \
+    "${tmpdir}/stage" \
+    "${tmpdir}/wal" || {
+      rm -rf "${tmpdir}"
+      kao_runtime_tx_release_lock
+      printf 'ERROR: transaction temp directory creation failed\n' >&2
+      return 1
+    }
+
+  : > "${tmpdir}/resources.manifest"
+  : > "${tmpdir}/wal/runtime.wal"
 
   snapshot_id="$(kao_snapshot_create | awk -F': ' '/SNAPSHOT CREATED/ {print $2}')"
 
   [ -n "${snapshot_id}" ] || {
+    rm -rf "${tmpdir}"
     kao_runtime_tx_release_lock
     printf 'ERROR: snapshot creation failed\n' >&2
     return 1
   }
 
-  kao_runtime_tx_write_env \
+  if ! kao_runtime_tx_write_env_path \
+    "${tmpdir}/transaction.env" \
     "${txid}" \
     "${started_at}" \
     "${snapshot_id}" \
     "open" \
     "none" \
-    "0"
+    "0"; then
+    rm -rf "${tmpdir}"
+    kao_runtime_tx_release_lock
+    printf 'ERROR: transaction env write failed\n' >&2
+    return 1
+  fi
+
+  if ! mv "${tmpdir}" "${txdir}"; then
+    rm -rf "${tmpdir}"
+    kao_runtime_tx_release_lock
+    printf 'ERROR: transaction promotion failed\n' >&2
+    return 1
+  fi
 
   kao_runtime_tx_log "begin" "${txid}" "snapshot=${snapshot_id}"
   kao_runtime_tx_release_lock
@@ -506,15 +572,12 @@ kao_runtime_tx_status() {
     printf 'resource_count : %s\n' "${resource_count:-0}"
     printf 'snapshot_id    : %s\n' "${snapshot_id:-none}"
   done < <(find "${RUNTIME_TX_DIR}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
-
-  return 0
 }
 
 kao_runtime_transaction_recover_all() {
   local txdir="${RUNTIME_TX_DIR}"
   [ -d "${txdir}" ] || {
-    printf 'RECOVERY COMPLETE
-'
+    printf 'RECOVERY COMPLETE\n'
     return 0
   }
 
@@ -526,17 +589,14 @@ kao_runtime_transaction_recover_all() {
 
     case "${state}" in
       open|committing)
-        printf 'RECOVER: rollback %s
-' "${txid}"
+        printf 'RECOVER: rollback %s\n' "${txid}"
         if ! kao_runtime_tx_rollback "${txid}" >/dev/null 2>&1; then
-          printf 'ERROR: recovery rollback failed for %s
-' "${txid}" >&2
+          printf 'ERROR: recovery rollback failed for %s\n' "${txid}" >&2
           return 1
         fi
         ;;
     esac
   done
 
-  printf 'RECOVERY COMPLETE
-'
+  printf 'RECOVERY COMPLETE\n'
 }
