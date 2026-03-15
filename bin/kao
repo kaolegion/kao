@@ -1,320 +1,99 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+KROOT="${KROOT:-/home/kao}"
+RUNTIME_STATE="${KROOT}/state/runtime/runtime.state"
 
-mode="${1:-root}"
+runtime_set_key() {
 
-. "${KROOT}/lib/runtime/runtime_recovery.sh"
-kao_runtime_recovery_run || true
+    local key="$1"
+    local value="$2"
+    local tmp
 
-runtime_dispatch() {
-  local subcommand target
-  subcommand="${1:-status}"
-  target="${2:-}"
+    tmp="$(mktemp)"
+    grep -v "^${key}=" "$RUNTIME_STATE" > "$tmp" || true
+    echo "${key}=${value}" >> "$tmp"
+    cat "$tmp" > "$RUNTIME_STATE"
+    rm -f "$tmp"
+}
 
-  . "${KROOT}/lib/kao-runtime.sh"
+kao_runtime_mode_status() {
 
-  case "${subcommand}" in
-    ""|status)
+    grep '^KAO_RUNTIME_CONNECTIVITY_MODE=' "$RUNTIME_STATE" \
+        || echo "KAO_RUNTIME_CONNECTIVITY_MODE=auto"
+}
 
-      kao_runtime_status
-      ;;
-    snapshot)
-      kao_runtime_snapshot
-      ;;
-    diff)
-      kao_runtime_diff
-      ;;
-    repair)
-      kao_runtime_repair
-      ;;
-    activate)
-      case "${target:-user}" in
-        user)
-          kao_runtime_activate_user
-          ;;
-        *)
-          printf 'ERROR: unsupported runtime activation target: %s\n' "${target}" >&2
-          printf 'USAGE: kao runtime activate user\n' >&2
-          return 1
-          ;;
-      esac
-      ;;
-    deactivate)
-      kao_runtime_deactivate
-      ;;
+kao_runtime_mode_set() {
+
+    runtime_set_key "KAO_RUNTIME_CONNECTIVITY_MODE" "$1"
+    echo "runtime connectivity mode set to $1"
+}
+
+kao_gateway_status_block() {
+
+    local provider level net
+
+    provider=$(grep '^KAO_GATEWAY_PROVIDER=' "$RUNTIME_STATE" | cut -d= -f2)
+    level=$(grep '^KAO_GATEWAY_COGNITIVE_LEVEL=' "$RUNTIME_STATE" | cut -d= -f2)
+    net=$(grep '^KAO_GATEWAY_CONNECTIVITY=' "$RUNTIME_STATE" | cut -d= -f2)
+
+    echo "gateway_provider  : ${provider:-unknown}"
+    echo "gateway_level     : ${level:-unknown}"
+    echo "gateway_net       : ${net:-unknown}"
+}
+
+kao_router_status() {
+
+    echo "ROUTER STATUS"
+    echo "-------------"
+
+    kao_gateway_status_block
+}
+
+kao_gateway_status() {
+
+    echo "GATEWAY STATUS"
+    echo "--------------"
+
+    grep '^KAO_GATEWAY_' "${RUNTIME_STATE}" 2>/dev/null | sed 's/^KAO_GATEWAY_//'
+}
+
+case "$1" in
+
+    runtime)
+        case "$2" in
+            mode)
+                case "$3" in
+                    status)
+                        kao_runtime_mode_status
+                        ;;
+                    set)
+                        kao_runtime_mode_set "$4"
+                        ;;
+                    *)
+                        echo "usage: kao runtime mode status|set <auto|offline|online>"
+                        ;;
+                esac
+                ;;
+        esac
+        ;;
+
+    router)
+        case "$2" in
+            status)
+                kao_router_status
+                ;;
+        esac
+        ;;
+
+    gateway)
+        case "$2" in
+            status)
+                kao_gateway_status
+                ;;
+        esac
+        ;;
+
     *)
-      printf 'ERROR: unknown runtime subcommand: %s\n' "${subcommand}" >&2
-      printf 'USAGE: kao runtime [status|snapshot|diff|repair|activate user|deactivate]\n' >&2
-      return 1
-      ;;
-  esac
-}
-
-snapshot_dispatch() {
-  local subcommand snapshot_id
-  subcommand="${1:-create}"
-  snapshot_id="${2:-}"
-
-  . "${KROOT}/lib/runtime/snapshot_manager.sh"
-
-  case "${subcommand}" in
-    create)
-      kao_snapshot_create
-      ;;
-    list)
-      kao_snapshot_list
-      ;;
-    restore)
-      if [ -z "${snapshot_id}" ]; then
-        printf 'ERROR: snapshot id required\n' >&2
-        printf 'USAGE: kao snapshot restore <snapshot-id>\n' >&2
-        return 1
-      fi
-      kao_snapshot_restore "${snapshot_id}"
-      ;;
-    gc)
-      kao_snapshot_gc
-      ;;
-    *)
-      printf 'ERROR: unknown snapshot subcommand: %s\n' "${subcommand}" >&2
-      printf 'USAGE: kao snapshot [create|list|restore <snapshot-id>|gc]\n' >&2
-      return 1
-      ;;
-  esac
-}
-
-transaction_dispatch() {
-  local subcommand txid target source_file
-  subcommand="${1:-status}"
-  txid="${2:-}"
-  target="${3:-}"
-  source_file="${4:-}"
-
-  . "${KROOT}/lib/runtime/runtime_transaction.sh"
-
-  case "${subcommand}" in
-    begin)
-      kao_runtime_tx_begin
-      ;;
-    stage)
-      if [ -z "${txid}" ] || [ -z "${target}" ] || [ -z "${source_file}" ]; then
-        printf 'ERROR: transaction id, target and source file required
-' >&2
-        printf 'USAGE: kao transaction stage <txid> <target> <source-file>
-' >&2
-        return 1
-      fi
-      kao_runtime_tx_stage_file "${txid}" "${target}" "${source_file}"
-      ;;
-    commit)
-      if [ -z "${txid}" ]; then
-        printf 'ERROR: transaction id required
-' >&2
-        printf 'USAGE: kao transaction commit <txid>
-' >&2
-        return 1
-      fi
-      kao_runtime_tx_commit "${txid}"
-      ;;
-    rollback)
-      if [ -z "${txid}" ]; then
-        printf 'ERROR: transaction id required
-' >&2
-        printf 'USAGE: kao transaction rollback <txid>
-' >&2
-        return 1
-      fi
-      kao_runtime_tx_rollback "${txid}"
-      ;;
-    recover)
-      kao_runtime_transaction_recover_all
-      ;;
-    status|"")
-      kao_runtime_tx_status
-      ;;
-    *)
-      printf 'ERROR: unknown transaction subcommand: %s
-' "${subcommand}" >&2
-      printf 'USAGE: kao transaction [begin|stage <txid> <target> <source-file>|commit <txid>|rollback <txid>|recover|status]
-' >&2
-      return 1
-      ;;
-  esac
-}
-
-lock_dispatch() {
-  . "${KROOT}/lib/runtime/runtime_lock.sh"
-
-  case "${1:-status}" in
-    ""|status)
-      kao_runtime_lock_status
-      ;;
-    *)
-      printf 'ERROR: unknown lock subcommand: %s\n' "${1:-}" >&2
-      printf 'USAGE: kao lock [status]\n' >&2
-      return 1
-      ;;
-  esac
-}
-
-consistency_dispatch() {
-  . "${KROOT}/lib/runtime/runtime_consistency.sh"
-  kao_runtime_consistency_cli "${1:-status}"
-}
-
-gateway_dispatch() {
-  . "${KROOT}/lib/gateway/router.sh"
-  gateway_cli "${1:-status}"
-}
-
-health_dispatch() {
-  exec "${KROOT}/bin/kao-health" "${1:-compact}"
-}
-
-
-
-router_dispatch() {
-  case "${1:-status}" in
-    ""|status)
-      echo "ROUTER STATUS"
-      echo "-------------"
-      grep '^KAO_CONNECTIVITY_NETWORK=' "${KROOT}/state/runtime/runtime.state"
-      grep '^KAO_LOCAL_LLM=' "${KROOT}/state/runtime/runtime.state"
-      grep '^KAO_CLOUD_ACCESS=' "${KROOT}/state/runtime/runtime.state"
-      grep '^KAO_ROUTER_GATEWAY=' "${KROOT}/state/runtime/runtime.state"
-      grep '^KAO_ROUTER_REASON=' "${KROOT}/state/runtime/runtime.state"
-      ;;
-    refresh)
-      . "${KROOT}/lib/runtime/kao-runtime.sh"
-      kao_router_refresh_connectivity
-      echo "ROUTER REFRESH OK"
-      ;;
-    *)
-      printf 'ERROR: unknown router subcommand: %s
-' "${1:-}" >&2
-      printf 'USAGE: kao router [status|refresh]
-' >&2
-      return 1
-      ;;
-  esac
-}
-
-
-
-
-case "${mode}" in
-  boot)
-    exec "${KROOT}/bin/kao-boot"
-    ;;
-
-  context)
-    shift
-    exec "${KROOT}/bin/kao-context" "${@:-root}"
-    ;;
-
-  sprint)
-    shift
-    exec "${KROOT}/bin/kao-sprint" "$@"
-    ;;
-
-  check|doctor)
-    shift
-    exec "${KROOT}/bin/kao-check" "${@:-full}"
-    ;;
-
-  owner)
-    shift || true
-    exec "${KROOT}/bin/kao-owner" "$@"
-    ;;
-
-  user)
-    shift || true
-    exec "${KROOT}/bin/kao-user" "$@"
-    ;;
-
-  runtime)
-    shift || true
-    runtime_dispatch "${1:-status}" "${2:-}"
-    ;;
-
-  snapshot)
-    shift || true
-    snapshot_dispatch "${1:-create}" "${2:-}"
-    ;;
-
-  transaction)
-    shift || true
-    transaction_dispatch "${1:-status}" "${2:-}" "${3:-}" "${4:-}"
-    ;;
-
-  lock)
-    shift || true
-    lock_dispatch "${1:-status}"
-    ;;
-
-  consistency)
-    shift || true
-    consistency_dispatch "${1:-status}"
-    ;;
-
-  router)
-    shift || true
-    router_dispatch "${1:-status}"
-    ;;
-
-  gateway)
-    shift || true
-    gateway_dispatch "${1:-status}"
-    ;;
-
-  health)
-    shift || true
-    health_dispatch "${1:-compact}"
-    ;;
-
-  hud)
-    shift || true
-    exec "${KROOT}/bin/kao-hud" "$@"
-    ;;
-
-  status)
-    shift || true
-    exec "${KROOT}/bin/kao-status" "$@"
-    ;;
-
-  new)
-    exec python3 "${KROOT}/runtime/kao_cli.py" "$@"
-    ;;
-
-  open)
-    shift
-    exec "${KROOT}/bin/kao-open" "$@"
-    ;;
-
-  where|sense)
-    shift
-    exec "${KROOT}/bin/kao-where" "$@"
-    ;;
-
-  list|tree)
-    exec "${KROOT}/bin/kao-list" "${KROOT}" "${mode}" "${2:-2}"
-    ;;
-
-  columns)
-    shift
-    exec "${KROOT}/bin/kao-columns" "${1:-${KROOT}}"
-    ;;
-
-  dev|doc|refactor|conciergerie|bar|event|software|perso|root)
-    "${KROOT}/bin/kao-boot"
-    "${KROOT}/bin/kao-context" "${mode}"
-    ;;
-
-  *)
-    "${KROOT}/bin/kao-boot"
-    "${KROOT}/bin/kao-context" root
-    ;;
+        echo "KAO CLI"
+        ;;
 esac
