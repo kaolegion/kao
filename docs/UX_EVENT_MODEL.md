@@ -482,3 +482,67 @@ This layer complements:
 - runtime_transaction lifecycle semantics
 - runtime_recovery stabilization semantics
 
+
+## ROUT-4 — Gateway cognitive operator surface
+
+ROUT-4 adds an explicit operator-visible gateway decision layer.
+
+### Canonical gateway state keys
+
+- `KAO_GATEWAY_PROVIDER`
+- `KAO_GATEWAY_COGNITIVE_LEVEL`
+- `KAO_GATEWAY_CONNECTIVITY`
+
+### Canonical runtime override key
+
+- `KAO_RUNTIME_CONNECTIVITY_MODE`
+
+Allowed values:
+
+- `auto`
+- `offline`
+- `online`
+
+### UX meaning
+
+The cockpit can now represent not only that routing happened, but why the current route exists.
+
+Operator-visible semantics:
+
+- provider chosen by the gateway
+- cognitive difficulty level inferred from the intent
+- current effective connectivity state
+- optional runtime-forced online/offline override
+
+### Operator commands
+
+The canonical operator surfaces introduced by ROUT-4 are:
+
+- `kao gateway status`
+- `kao router status`
+- `kao runtime mode status`
+- `kao runtime mode set <auto|offline|online>`
+
+### Event-model implication
+
+The gateway becomes a first-class cognitive actor in the interaction loop:
+
+- user intent enters gateway interpretation
+- gateway publishes a routing decision
+- router executes using the current decision
+- runtime state exposes the result to the cockpit
+
+Canonical loop:
+
+- `intent -> gateway_think -> router_act -> runtime_trace`
+
+### UX projection
+
+This prepares future cockpit surfaces such as:
+
+- gateway timeline
+- provider switch history
+- online/offline transition visibility
+- heat mapping of cognitive routing intensity
+- future multi-agent or multi-provider competition traces
+

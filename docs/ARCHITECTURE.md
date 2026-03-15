@@ -864,3 +864,77 @@ The reliability kernel therefore evolves from:
 
 transaction safety → consistency discipline → health observability layer.
 
+
+## ROUT-4 — Gateway Intelligence Layer
+
+### Mission
+
+Insert a cognitive decision layer between operator intent and router execution.
+
+### Delivered surfaces
+
+- `lib/router/gateway_intelligence.sh`
+- `lib/router/router_dispatch.sh`
+- `kao gateway status`
+- `kao runtime mode status`
+- `kao runtime mode set <auto|offline|online>`
+
+### Decision doctrine
+
+The gateway layer thinks before dispatch.
+
+Canonical flow:
+
+- intent
+- gateway intelligence evaluation
+- router execution
+- runtime trace exposure
+
+Canonical expression:
+
+- `intent -> gateway_think -> router_act -> runtime_trace`
+
+### Runtime connectivity mode
+
+ROUT-4 introduces a canonical runtime override:
+
+- `KAO_RUNTIME_CONNECTIVITY_MODE=auto`
+- `KAO_RUNTIME_CONNECTIVITY_MODE=offline`
+- `KAO_RUNTIME_CONNECTIVITY_MODE=online`
+
+Priority rule:
+
+- if runtime connectivity mode is `offline`, the gateway must force offline behavior
+- if runtime connectivity mode is `online`, the gateway must force online behavior
+- if runtime connectivity mode is `auto`, the gateway may use live connectivity detection
+
+### Provider selection semantics
+
+Current gateway decision model:
+
+- offline + any cognitive level -> `ollama_local`
+- online + micro intent -> `local_fast`
+- online + expert intent -> `cloud_free`
+- online + standard intent -> `hybrid_auto`
+
+### Operator meaning
+
+ROUT-4 turns the router into an observable decision organ.
+
+The operator can now see:
+
+- selected provider
+- selected cognitive level
+- effective connectivity state
+
+This is the first stable bridge between hybrid routing policy and cockpit visibility.
+
+### Architectural impact
+
+ROUT-4 establishes the first production-grade hybrid gateway contract:
+
+- runtime may explicitly simulate or force connectivity mode
+- gateway decisions become visible in runtime state
+- hybrid online/offline behavior becomes testable without mutating host networking
+- future competitive provider arbitration can extend this layer without breaking operator surfaces
+

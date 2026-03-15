@@ -639,3 +639,65 @@ It prepares:
 - hybrid online/offline routing guarantees
 - future cockpit-level system awareness
 
+
+# SPRINT CORE — Hybrid Router Evolution
+
+## ROUT-4 — Gateway Intelligence Layer
+
+### Mission
+
+Install a cognitive gateway layer able to evaluate intent, interpret runtime connectivity mode, and expose the routing decision to the operator surface.
+
+### Delivered components
+
+- `lib/router/gateway_intelligence.sh`
+- `lib/router/router_dispatch.sh`
+- `bin/kao` gateway and runtime mode commands
+
+### Delivered operator capabilities
+
+- `kao gateway status`
+- `kao router status`
+- `kao runtime mode status`
+- `kao runtime mode set offline`
+- `kao runtime mode set online`
+- `kao runtime mode set auto`
+
+### Delivered runtime semantics
+
+The runtime now supports a canonical connectivity override:
+
+- `KAO_RUNTIME_CONNECTIVITY_MODE=auto|offline|online`
+
+The gateway writes canonical decision keys:
+
+- `KAO_GATEWAY_PROVIDER`
+- `KAO_GATEWAY_COGNITIVE_LEVEL`
+- `KAO_GATEWAY_CONNECTIVITY`
+
+### Hybrid validation proof
+
+ROUT-4 was validated through three explicit runtime modes:
+
+- online -> provider `cloud_free`
+- offline -> provider `ollama_local`
+- auto + micro intent -> provider `local_fast`
+
+### Architectural result
+
+Kao now owns a first stable hybrid routing cognition loop:
+
+- intent is interpreted before execution
+- routing policy is observable from the terminal
+- online/offline behavior is testable without host network mutation
+- the router becomes an operator-visible decision organ
+
+### Next trajectory
+
+ROUT-4 prepares:
+
+- cognitive router dashboard
+- gateway/provider switch timeline
+- competitive provider arbitration
+- richer hybrid operator cockpit surfaces
+
