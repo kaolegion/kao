@@ -18,6 +18,7 @@ runtime_dispatch() {
 
   case "${subcommand}" in
     ""|status)
+
       kao_runtime_status
       ;;
     snapshot)
@@ -174,6 +175,7 @@ health_dispatch() {
 }
 
 
+
 router_dispatch() {
   case "${1:-status}" in
     ""|status)
@@ -185,15 +187,22 @@ router_dispatch() {
       grep '^KAO_ROUTER_GATEWAY=' "${KROOT}/state/runtime/runtime.state"
       grep '^KAO_ROUTER_REASON=' "${KROOT}/state/runtime/runtime.state"
       ;;
+    refresh)
+      . "${KROOT}/lib/runtime/kao-runtime.sh"
+      kao_router_refresh_connectivity
+      echo "ROUTER REFRESH OK"
+      ;;
     *)
       printf 'ERROR: unknown router subcommand: %s
 ' "${1:-}" >&2
-      printf 'USAGE: kao router [status]
+      printf 'USAGE: kao router [status|refresh]
 ' >&2
       return 1
       ;;
   esac
 }
+
+
 
 
 case "${mode}" in

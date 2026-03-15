@@ -2,6 +2,7 @@
 
 KROOT="${KROOT:-/home/kao}"
 
+source "${KROOT}/lib/runtime/runtime_recovery.sh"
 source "${KROOT}/lib/runtime/runtime_mutation.sh"
 
 kao_runtime_state_file() {
@@ -92,5 +93,54 @@ kao_router_apply_gateway_decision() {
 
   kao_runtime_state_set KAO_ROUTER_GATEWAY "${gateway}"
   kao_runtime_state_set KAO_ROUTER_REASON "${reason}"
+}
+
+
+kao_router_detect_network() {
+
+  if ping -c1 -W1 8.8.8.8 >/dev/null 2>&1; then
+    echo online
+  else
+    echo offline
+  fi
+}
+
+kao_router_detect_local_llm() {
+
+  if ss -ltn | grep -q ":11434"; then
+    echo present
+  else
+    echo absent
+  fi
+}
+
+kao_router_journal() {
+
+  local msg="$1"
+  local journal="${KROOT}/state/runtime/runtime.journal"
+
+  mkdir -p "${KROOT}/state/runtime"
+  echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)|${msg}" >> "${journal}"
+}
+
+kao_router_refresh_connectivity() {
+
+  local net llm
+
+  net="$(kao_router_detect_network)"
+  llm="$(kao_router_detect_local_llm)"
+
+  kao_runtime_state_set KAO_CONNECTIVITY_NETWORK "${net}"
+  kao_runtime_state_set KAO_LOCAL_LLM "${llm}"
+
+  if [ "${net}" = "online" ]; then
+    kao_runtime_state_set KAO_CLOUD_ACCESS "available"
+  else
+    kao_runtime_state_set KAO_CLOUD_ACCESS "unavailable"
+  fi
+
+  kao_router_journal "connectivity_refresh network=${net} local_llm=${llm}"
+
+  kao_router_apply_gateway_decision
 }
 

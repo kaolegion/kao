@@ -2,16 +2,18 @@
 
 KROOT="${KROOT:-/home/kao}"
 
-source "${KROOT}/lib/runtime/runtime_transaction.sh"
+# hard dependency — runtime mutation requires recovery layer
 source "${KROOT}/lib/runtime/runtime_recovery.sh"
+
+# hard dependency — runtime mutation requires recovery layer
+
+
+source "${KROOT}/lib/runtime/runtime_transaction.sh"
 
 kao_runtime_mutation_begin() {
   local current_lock_pid=""
 
-  kao_runtime_tx_require_paths
-
-  kao_runtime_recovery_assert_lock_safe || return 1
-  kao_runtime_lock_assert_or_recover || return 1
+  kao_runtime_tx_require_paths  kao_runtime_lock_assert_or_recover || return 1
 
   if kao_runtime_lock_is_held; then
     current_lock_pid="$(kao_runtime_lock_owner_pid)"
