@@ -31,3 +31,8 @@
 2026-03-15T15:30:55Z|tx=tx-20260315-153054-28959|action=commit|detail=runtime-mutation
 2026-03-15T15:30:55Z|tx=tx-20260315-153055-11865|action=begin|detail=runtime-mutation
 2026-03-15T15:30:55Z|tx=tx-20260315-153055-11865|action=commit|detail=runtime-mutation
+AUTHORITY_PULSE|ts=2026-03-15T16:04:33Z|type=test-authority|detail=kernel_surface_ready
+AUTHORITY_PULSE|ts=2026-03-15T16:16:45Z|type=router-canonized|detail=provider=local;agent=local-reflex;intent=rel-sys cognitive reflex;confidence=0.51
+AUTHORITY_PULSE|ts=2026-03-15T16:38:29Z|type=router-canonized|detail=provider=local;agent=local-reflex;intent=rel-sys authority bind repaired;confidence=0.51
+AUTHORITY_PULSE|ts=2026-03-15T17:40:31Z|type=router-canonized|detail=provider=local;agent=local-reflex;intent=rel-sys canonical router pulse;confidence=0.51
+AUTHORITY_PULSE|ts=2026-03-15T17:41:35Z|type=router-canonized|detail=provider=local;agent=local-reflex;intent=rel-sys final validation;confidence=0.51

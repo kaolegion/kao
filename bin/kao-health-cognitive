@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+KROOT="${KROOT:-/home/kao}"
+
+RUNTIME_STATE="${KROOT}/state/runtime/runtime.state"
+ROUTER_STATE="${KROOT}/state/router/router.cognitive.state"
+JOURNAL="${KROOT}/state/runtime/runtime.journal"
+
+echo "COGNITIVE HEALTH"
+echo "----------------"
+
+# runtime phase
+grep KAO_RUNTIME_PHASE "$RUNTIME_STATE" 2>/dev/null || echo "phase : unknown"
+
+# last authority
+grep KAO_RUNTIME_LAST_AUTHORITY_TYPE "$RUNTIME_STATE" 2>/dev/null || true
+grep KAO_RUNTIME_LAST_AUTHORITY_TS "$RUNTIME_STATE" 2>/dev/null || true
+
+# router cognitive memory
+if [ -f "$ROUTER_STATE" ]; then
+    echo "router memory : present"
+else
+    echo "router memory : none"
+fi
+
+# last authority pulse
+grep AUTHORITY_PULSE "$JOURNAL" 2>/dev/null | tail -n 1 || true

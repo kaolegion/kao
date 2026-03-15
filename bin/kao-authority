@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+KROOT="${KROOT:-/home/kao}"
+JOURNAL="${KROOT}/state/runtime/runtime.journal"
+
+echo "AUTHORITY STATUS"
+echo "----------------"
+
+if [ ! -f "$JOURNAL" ]; then
+    echo "no authority journal"
+    exit 0
+fi
+
+grep AUTHORITY_PULSE "$JOURNAL" | tail -n 1 | while read -r line; do
+    echo "last_pulse : $line"
+done

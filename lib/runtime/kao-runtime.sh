@@ -297,3 +297,27 @@ kao_runtime_cli() {
       ;;
   esac
 }
+
+# ==========================================================
+# ==========================================================
+# REL-SYS-1 — Runtime Authority Pulse Surface
+# ==========================================================
+
+kao_runtime_authority_pulse() {
+    local pulse_type="${1:-runtime-authority}"
+    local pulse_detail="${2:-none}"
+    local ts
+
+    ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+    printf 'AUTHORITY_PULSE|ts=%s|type=%s|detail=%s\n' \
+        "${ts}" \
+        "${pulse_type}" \
+        "${pulse_detail}" \
+        >> "${KROOT}/state/runtime/runtime.journal"
+
+    {
+        echo "KAO_RUNTIME_LAST_AUTHORITY_TYPE=${pulse_type}"
+        echo "KAO_RUNTIME_LAST_AUTHORITY_TS=${ts}"
+    } >> "${KROOT}/state/runtime/runtime.state"
+}

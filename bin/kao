@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
 KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 cmd="${1:-}"
@@ -9,76 +10,41 @@ shift || true
 
 case "${cmd}" in
 
-owner)
-    sub="${1:-current}"
+router)
+    sub="${1:-status}"
     shift || true
-    if [ "${sub}" = "status" ]; then
-        exec "${KROOT}/bin/kao-owner" current "$@"
-    else
-        exec "${KROOT}/bin/kao-owner" "${sub}" "$@"
-    fi
+
+    source "${KROOT}/lib/router/router_dispatch.sh"
+
+    case "${sub}" in
+        dispatch)
+            router_dispatch "$@"
+            ;;
+        *)
+            echo "usage: kao router dispatch <intent>"
+            exit 1
+            ;;
+    esac
+    ;;
+
+health)
+    exec "${KROOT}/bin/kao-health-cognitive" "$@"
+    ;;
+
+authority)
+    exec "${KROOT}/bin/kao-authority" "$@"
+    ;;
+
+owner)
+    exec "${KROOT}/bin/kao-owner" "$@"
     ;;
 
 user)
-    sub="${1:-current}"
-    shift || true
-    if [ "${sub}" = "status" ]; then
-        exec "${KROOT}/bin/kao-user" current "$@"
-    else
-        exec "${KROOT}/bin/kao-user" "${sub}" "$@"
-    fi
-    ;;
-
-lock)
-    sub="${1:-status}"
-    shift || true
-    source "${KROOT}/lib/runtime/runtime_lock.sh"
-    case "${sub}" in
-        status)
-            kao_runtime_lock_status
-            ;;
-        *)
-            echo "unknown lock command"
-            exit 1
-            ;;
-    esac
-    ;;
-
-transaction|tx)
-    sub="${1:-status}"
-    shift || true
-    source "${KROOT}/lib/runtime/runtime_transaction.sh"
-    case "${sub}" in
-        status)
-            echo "RUNTIME TRANSACTION STATUS"
-            if kao_runtime_lock_is_held; then
-                echo "lock : held"
-            else
-                echo "lock : free"
-            fi
-            ;;
-        begin)
-            kao_runtime_tx_begin
-            ;;
-        *)
-            echo "unknown transaction command"
-            exit 1
-            ;;
-    esac
+    exec "${KROOT}/bin/kao-user" "$@"
     ;;
 
 runtime)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        consistency)
-            source "${KROOT}/lib/runtime/runtime_consistency.sh"
-            kao_runtime_consistency_cli "$@"
-            ;;
-        *)
-            exec "${KROOT}/bin/kao-runtime" "${sub}" "$@"
-            ;;
-    esac
+    exec "${KROOT}/bin/kao-runtime" "$@"
     ;;
 
 *)
