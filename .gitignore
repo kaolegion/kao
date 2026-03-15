@@ -19,3 +19,13 @@ board/health/
 board/id/
 state/e2e/
 state/ksl/
+
+# router cognitive runtime memory
+state/router/
+
+# test fixtures / temp timelines
+state/runtime/*.bak*
+
+# test outputs
+state/test-output/
+
