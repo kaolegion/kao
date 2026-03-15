@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+source "${KROOT}/lib/runtime/kao-runtime.sh"
+
+kao_runtime_cli "$@"

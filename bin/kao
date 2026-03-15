@@ -1,136 +1,89 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-KROOT="${KROOT:-/home/kao}"
-RUNTIME_STATE="${KROOT}/state/runtime/runtime.state"
-ROUTER_COCKPIT_BIN="${KROOT}/bin/kao-router-cockpit"
-ROUTER_TIMELINE_BIN="${KROOT}/bin/kao-router-timeline"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-runtime_set_key() {
+cmd="${1:-}"
+shift || true
 
-    local key="$1"
-    local value="$2"
-    local tmp
+case "${cmd}" in
 
-    tmp="$(mktemp)"
-    grep -v "^${key}=" "$RUNTIME_STATE" > "$tmp" || true
-    echo "${key}=${value}" >> "$tmp"
-    cat "$tmp" > "$RUNTIME_STATE"
-    rm -f "$tmp"
-}
-
-kao_runtime_mode_status() {
-
-    grep '^KAO_RUNTIME_CONNECTIVITY_MODE=' "$RUNTIME_STATE" \
-        || echo "KAO_RUNTIME_CONNECTIVITY_MODE=auto"
-}
-
-kao_runtime_mode_set() {
-
-    runtime_set_key "KAO_RUNTIME_CONNECTIVITY_MODE" "$1"
-    echo "runtime connectivity mode set to $1"
-}
-
-kao_gateway_status_block() {
-
-    local provider level net
-
-    provider=$(grep '^KAO_GATEWAY_PROVIDER=' "$RUNTIME_STATE" | cut -d= -f2)
-    level=$(grep '^KAO_GATEWAY_COGNITIVE_LEVEL=' "$RUNTIME_STATE" | cut -d= -f2)
-    net=$(grep '^KAO_GATEWAY_CONNECTIVITY=' "$RUNTIME_STATE" | cut -d= -f2)
-
-    echo "gateway_provider  : ${provider:-unknown}"
-    echo "gateway_level     : ${level:-unknown}"
-    echo "gateway_net       : ${net:-unknown}"
-}
-
-kao_router_status() {
-
-    echo "ROUTER STATUS"
-    echo "-------------"
-
-    kao_gateway_status_block
-}
-
-kao_router_cockpit() {
-
-    if [ ! -x "${ROUTER_COCKPIT_BIN}" ]; then
-        echo "router cockpit unavailable"
-        return 1
+owner)
+    sub="${1:-current}"
+    shift || true
+    if [ "${sub}" = "status" ]; then
+        exec "${KROOT}/bin/kao-owner" current "$@"
+    else
+        exec "${KROOT}/bin/kao-owner" "${sub}" "$@"
     fi
+    ;;
 
-    "${ROUTER_COCKPIT_BIN}"
-}
-
-kao_router_timeline() {
-
-    if [ ! -x "${ROUTER_TIMELINE_BIN}" ]; then
-        echo "router timeline unavailable"
-        return 1
+user)
+    sub="${1:-current}"
+    shift || true
+    if [ "${sub}" = "status" ]; then
+        exec "${KROOT}/bin/kao-user" current "$@"
+    else
+        exec "${KROOT}/bin/kao-user" "${sub}" "$@"
     fi
+    ;;
 
-    "${ROUTER_TIMELINE_BIN}" "$1"
-}
+lock)
+    sub="${1:-status}"
+    shift || true
+    source "${KROOT}/lib/runtime/runtime_lock.sh"
+    case "${sub}" in
+        status)
+            kao_runtime_lock_status
+            ;;
+        *)
+            echo "unknown lock command"
+            exit 1
+            ;;
+    esac
+    ;;
 
-kao_gateway_status() {
+transaction|tx)
+    sub="${1:-status}"
+    shift || true
+    source "${KROOT}/lib/runtime/runtime_transaction.sh"
+    case "${sub}" in
+        status)
+            echo "RUNTIME TRANSACTION STATUS"
+            if kao_runtime_lock_is_held; then
+                echo "lock : held"
+            else
+                echo "lock : free"
+            fi
+            ;;
+        begin)
+            kao_runtime_tx_begin
+            ;;
+        *)
+            echo "unknown transaction command"
+            exit 1
+            ;;
+    esac
+    ;;
 
-    echo "GATEWAY STATUS"
-    echo "--------------"
+runtime)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        consistency)
+            source "${KROOT}/lib/runtime/runtime_consistency.sh"
+            kao_runtime_consistency_cli "$@"
+            ;;
+        *)
+            exec "${KROOT}/bin/kao-runtime" "${sub}" "$@"
+            ;;
+    esac
+    ;;
 
-    grep '^KAO_GATEWAY_' "${RUNTIME_STATE}" 2>/dev/null | sed 's/^KAO_GATEWAY_//'
-}
+*)
+    echo "KAO CLI"
+    exit 1
+    ;;
 
-case "$1" in
-
-    runtime)
-        case "$2" in
-            mode)
-                case "$3" in
-                    status)
-                        kao_runtime_mode_status
-                        ;;
-                    set)
-                        kao_runtime_mode_set "$4"
-                        ;;
-                    *)
-                        echo "usage: kao runtime mode status|set <auto|offline|online>"
-                        ;;
-                esac
-                ;;
-            *)
-                echo "usage: kao runtime mode status|set <auto|offline|online>"
-                ;;
-        esac
-        ;;
-
-    router)
-        case "$2" in
-            status)
-                kao_router_status
-                ;;
-            cockpit)
-                kao_router_cockpit
-                ;;
-            timeline)
-                kao_router_timeline "$3"
-                ;;
-            *)
-                echo "usage: kao router status|cockpit|timeline"
-                ;;
-        esac
-        ;;
-
-    gateway)
-        case "$2" in
-            status)
-                kao_gateway_status
-                ;;
-            *)
-                echo "usage: kao gateway status"
-                ;;
-        esac
-        ;;
-
-    *)
-        echo "KAO CLI"
-        ;;
 esac
