@@ -7,17 +7,30 @@ ROUTER_STATE_FILE="${ROUTER_STATE_DIR}/router.cognitive.state"
 router_state_init() {
 mkdir -p "${ROUTER_STATE_DIR}"
 if [ ! -f "${ROUTER_STATE_FILE}" ]; then
-echo "router cognitive state missing"
+cat <<'EOF_STATE' > "${ROUTER_STATE_FILE}"
+ROUTER_MODE=UNKNOWN
+ROUTER_NETWORK=UNKNOWN
+ROUTER_PROVIDER=UNKNOWN
+ROUTER_AGENT=UNKNOWN
+ROUTER_INTENT=UNKNOWN
+ROUTER_COGNITIVE_LEVEL=0
+ROUTER_CONFIDENCE=0
+ROUTER_LATENCY=0
+ROUTER_HEALTH=INIT
+EOF_STATE
 fi
 }
 
 router_state_read() {
-[ -f "${ROUTER_STATE_FILE}" ] && cat "${ROUTER_STATE_FILE}"
+router_state_init
+cat "${ROUTER_STATE_FILE}"
 }
 
 router_state_write() {
 key="$1"
 value="$2"
+
+router_state_init
 
 tmp="$(mktemp)"
 

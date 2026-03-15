@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 KROOT="${KROOT:-/home/kao}"
+source "${KROOT}/lib/router/router_cognitive_state.sh"
 STATE_FILE="${KROOT}/state/router/router.cognitive.state"
+
+router_state_init
 
 getv () {
 grep "^$1=" "$STATE_FILE" | cut -d= -f2-
