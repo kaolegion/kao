@@ -5,6 +5,10 @@ KROOT="${KROOT:-/home/kao}"
 source "${KROOT}/lib/runtime/runtime_recovery.sh"
 source "${KROOT}/lib/runtime/runtime_mutation.sh"
 source "${KROOT}/lib/runtime/snapshot_manager.sh"
+source "${KROOT}/lib/runtime/runtime_lock.sh"
+source "${KROOT}/lib/runtime/runtime_transaction.sh"
+source "${KROOT}/lib/runtime/runtime_consistency.sh"
+source "${KROOT}/lib/runtime/session_manager.sh"
 
 kao_runtime_state_file() {
   printf '%s/state/runtime/runtime.state\n' "${KROOT}"
@@ -23,15 +27,44 @@ kao_runtime_state_require() {
   touch "$(kao_runtime_state_file)"
 }
 
-kao_runtime_state_field() {
-  local key="${1:-}"
-  local file
-  file="$(kao_runtime_state_file)"
+kao_runtime_read_field_from_file() {
+  local file="${1:-}"
+  local key="${2:-}"
 
+  [ -n "${file}" ] || return 1
   [ -n "${key}" ] || return 1
   [ -f "${file}" ] || return 1
 
   awk -F= -v key="${key}" '$1 == key { print substr($0, index($0, "=") + 1); exit }' "${file}"
+}
+
+kao_runtime_state_field() {
+  local key="${1:-}"
+  kao_runtime_read_field_from_file "$(kao_runtime_state_file)" "${key}"
+}
+
+kao_runtime_snapshot_field() {
+  local key="${1:-}"
+  kao_runtime_read_field_from_file "$(kao_runtime_snapshot_file)" "${key}"
+}
+
+kao_runtime_best_field() {
+  local key="${1:-}"
+  local value=""
+
+  value="$(kao_runtime_state_field "${key}" 2>/dev/null || true)"
+  if [ -n "${value}" ]; then
+    printf '%s\n' "${value}"
+    return 0
+  fi
+
+  value="$(kao_runtime_snapshot_field "${key}" 2>/dev/null || true)"
+  if [ -n "${value}" ]; then
+    printf '%s\n' "${value}"
+    return 0
+  fi
+
+  return 1
 }
 
 kao_runtime_state_set() {
@@ -193,11 +226,16 @@ kao_runtime_snapshot_refresh() {
 kao_runtime_status() {
   local actor provider level net phase snapshot_status session_id session_provider session_agent
 
-  actor="$(kao_runtime_state_field KAO_RUNTIME_ACTIVE_ACTOR 2>/dev/null || printf 'unknown')"
-  provider="$(kao_runtime_state_field KAO_GATEWAY_PROVIDER 2>/dev/null || printf 'unknown')"
-  level="$(kao_runtime_state_field KAO_GATEWAY_COGNITIVE_LEVEL 2>/dev/null || printf 'unknown')"
-  net="$(kao_runtime_state_field KAO_GATEWAY_CONNECTIVITY 2>/dev/null || printf 'unknown')"
-  phase="$(kao_runtime_state_field KAO_RUNTIME_PHASE 2>/dev/null || printf 'unknown')"
+  actor="$(kao_runtime_best_field KAO_RUNTIME_ACTIVE_ACTOR 2>/dev/null || printf 'unknown')"
+  phase="$(kao_runtime_best_field KAO_RUNTIME_PHASE 2>/dev/null || printf 'unknown')"
+
+  provider="$(kao_runtime_best_field KAO_GATEWAY_PROVIDER 2>/dev/null || true)"
+  [ -n "${provider}" ] || provider="$(kao_runtime_best_field KAO_ROUTER_GATEWAY 2>/dev/null || printf 'unknown')"
+
+  level="$(kao_runtime_best_field KAO_GATEWAY_COGNITIVE_LEVEL 2>/dev/null || printf 'unknown')"
+
+  net="$(kao_runtime_best_field KAO_GATEWAY_CONNECTIVITY 2>/dev/null || true)"
+  [ -n "${net}" ] || net="$(kao_runtime_best_field KAO_CONNECTIVITY_NETWORK 2>/dev/null || printf 'unknown')"
 
   if [ -f "$(kao_runtime_snapshot_file)" ]; then
     snapshot_status="PRESENT"
@@ -210,9 +248,9 @@ kao_runtime_status() {
     session_provider="$(awk -F= '$1=="GATEWAY_PROVIDER"{print substr($0,index($0,"=")+1); exit}' "$(kao_runtime_session_current_file)")"
     session_agent="$(awk -F= '$1=="GATEWAY_AGENT"{print substr($0,index($0,"=")+1); exit}' "$(kao_runtime_session_current_file)")"
   else
-    session_id="none"
-    session_provider="none"
-    session_agent="none"
+    session_id="$(kao_runtime_best_field SNAPSHOT_SESSION_ID 2>/dev/null || printf 'none')"
+    session_provider="$(kao_runtime_best_field SNAPSHOT_SESSION_GATEWAY_PROVIDER 2>/dev/null || printf 'none')"
+    session_agent="$(kao_runtime_best_field SNAPSHOT_SESSION_GATEWAY_AGENT 2>/dev/null || printf 'none')"
   fi
 
   printf 'RUNTIME STATUS\n'
@@ -250,6 +288,71 @@ kao_runtime_mode_set() {
   kao_runtime_state_set KAO_RUNTIME_CONNECTIVITY_MODE "${mode}"
   kao_runtime_snapshot_refresh >/dev/null
   printf 'RUNTIME MODE SET : %s\n' "${mode}"
+}
+
+kao_runtime_lock_cli() {
+  case "${1:-status}" in
+    ""|status)
+      kao_runtime_lock_status
+      ;;
+    *)
+      printf "usage: kao lock status
+" >&2
+      return 1
+      ;;
+  esac
+}
+
+kao_runtime_transaction_cli() {
+  case "${1:-status}" in
+    ""|status)
+      kao_runtime_tx_status
+      ;;
+    *)
+      printf "usage: kao transaction status
+" >&2
+      return 1
+      ;;
+  esac
+}
+
+kao_runtime_consistency_cli() {
+  case "${1:-status}" in
+    ""|status)
+      kao_runtime_consistency_run
+      ;;
+    *)
+      printf "usage: kao consistency status
+" >&2
+      return 1
+      ;;
+  esac
+}
+
+kao_runtime_session_cli() {
+  case "${1:-status}" in
+    ""|status)
+      if [ -f "$(kao_runtime_session_current_file)" ]; then
+        printf 'SESSION STATUS\n'
+        awk -F= '
+          $1=="SESSION_ID" { printf "session id        : %s\n", substr($0, index($0, "=") + 1) }
+          $1=="OPENED_AT" { printf "opened at         : %s\n", substr($0, index($0, "=") + 1) }
+          $1=="GATEWAY_PROVIDER" { printf "gateway provider  : %s\n", substr($0, index($0, "=") + 1) }
+          $1=="GATEWAY_AGENT" { printf "gateway agent     : %s\n", substr($0, index($0, "=") + 1) }
+        ' "$(kao_runtime_session_current_file)"
+      else
+        printf 'SESSION STATUS\n'
+        printf 'session id        : none\n'
+        printf 'opened at         : none\n'
+        printf 'gateway provider  : none\n'
+        printf 'gateway agent     : none\n'
+      fi
+      ;;
+    *)
+      printf 'usage: kao session status\n' >&2
+      return 1
+      ;;
+  esac
 }
 
 kao_runtime_cli() {
@@ -291,8 +394,20 @@ kao_runtime_cli() {
           ;;
       esac
       ;;
+    lock)
+      kao_runtime_lock_cli "$@"
+      ;;
+    transaction)
+      kao_runtime_transaction_cli "$@"
+      ;;
+    consistency)
+      kao_runtime_consistency_cli "$@"
+      ;;
+    session)
+      kao_runtime_session_cli "$@"
+      ;;
     *)
-      printf 'usage: kao runtime [status|refresh|snapshot|mode]\n' >&2
+      printf 'usage: kao runtime [status|refresh|snapshot|mode|lock|transaction|consistency|session]\n' >&2
       return 1
       ;;
   esac

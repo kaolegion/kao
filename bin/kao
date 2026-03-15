@@ -22,6 +22,11 @@ router)
             ;;
         *)
             echo "usage: kao router dispatch <intent>"
+printf '  kao pulse
+printf '  kao cockpit
+'
+'    printf '  kao cockpit
+'
             exit 1
             ;;
     esac
@@ -47,6 +52,44 @@ runtime)
     exec "${KROOT}/bin/kao-runtime" "$@"
     ;;
 
+cockpit)
+
+    exec "${KROOT}/bin/kao-cockpit" "$@"
+
+    ;;
+
+pulse)
+
+    exec "${KROOT}/bin/kao-pulse" "$@"
+
+    ;;
+
+status)
+    exec "${KROOT}/bin/kao-status" "$@"
+    ;;
+
+lock|transaction|consistency|session)
+    exec "${KROOT}/bin/kao-runtime" "${cmd}" "$@"
+    ;;
+
+""|help|-h|--help)
+    printf 'KAO CLI\n'
+    printf '\n'
+    printf 'usage:\n'
+    printf '  kao status\n'
+    printf '  kao runtime [status|refresh|snapshot|mode]\n'
+    printf '  kao lock status\n'
+    printf '  kao transaction status\n'
+    printf '  kao consistency status\n'
+    printf '  kao session status\n'
+    printf '  kao health\n'
+    printf '  kao owner\n'
+    printf '  kao user\n'
+    printf '  kao authority\n'
+    printf '  kao router dispatch <intent>\n'
+    printf '  kao pulse\n'
+    printf '  kao cockpit\n'
+    ;;
 *)
     echo "KAO CLI"
     exit 1

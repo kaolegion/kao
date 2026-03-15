@@ -29,3 +29,4 @@ state/runtime/*.bak*
 # test outputs
 state/test-output/
 
+config/user*

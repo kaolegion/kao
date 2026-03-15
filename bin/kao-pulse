@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+STATE="/home/kao/state/runtime/runtime.state"
+
+echo "KAO PULSE"
+echo "---------"
+
+if [ -f "$STATE" ]; then
+    source "$STATE"
+else
+    echo "runtime state: missing"
+    exit 1
+fi
+
+echo "actor    : ${KAO_RUNTIME_ACTIVE_ACTOR:-unknown}"
+echo "network  : ${KAO_CONNECTIVITY_NETWORK:-unknown}"
+echo "gateway  : ${KAO_ROUTER_GATEWAY:-unknown}"
+echo "cloud    : ${KAO_CLOUD_ACCESS:-unknown}"
+echo "localLLM : ${KAO_LOCAL_LLM:-unknown}"
+echo "reason   : ${KAO_ROUTER_REASON:-unknown}"
+
+if [ -n "${KAO_RUNTIME_LAST_AUTHORITY_TS:-}" ]; then
+    echo "last auth: ${KAO_RUNTIME_LAST_AUTHORITY_TYPE} @ ${KAO_RUNTIME_LAST_AUTHORITY_TS}"
+fi

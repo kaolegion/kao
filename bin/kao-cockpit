@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+echo "KAO COCKPIT"
+echo "==========="
+
+echo
+echo "[PULSE]"
+/home/kao/bin/kao-pulse
+
+echo
+echo "[SESSION]"
+kao session status 2>/dev/null || true
+
+echo
+echo "[CONSISTENCY]"
+kao consistency status 2>/dev/null || true
+
+echo
+echo "[RUNTIME]"
+kao runtime status 2>/dev/null || true
