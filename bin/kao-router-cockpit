@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+KROOT="${KROOT:-/home/kao}"
+STATE_FILE="${KROOT}/state/router/router.cognitive.state"
+
+getv () {
+grep "^$1=" "$STATE_FILE" | cut -d= -f2-
+}
+
+echo
+echo "ROUTER COGNITIVE DASHBOARD"
+echo "--------------------------"
+
+printf "Mode           : %s\n" "$(getv ROUTER_MODE)"
+printf "Network        : %s\n" "$(getv ROUTER_NETWORK)"
+printf "Provider       : %s\n" "$(getv ROUTER_PROVIDER)"
+printf "Agent          : %s\n" "$(getv ROUTER_AGENT)"
+printf "Intent         : %s\n" "$(getv ROUTER_INTENT)"
+printf "Level          : %s\n" "$(getv ROUTER_COGNITIVE_LEVEL)"
+printf "Confidence     : %s\n" "$(getv ROUTER_CONFIDENCE)"
+printf "Latency        : %s ms\n" "$(getv ROUTER_LATENCY)"
+printf "Health         : %s\n" "$(getv ROUTER_HEALTH)"
+
+echo

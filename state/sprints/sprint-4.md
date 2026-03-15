@@ -701,3 +701,29 @@ ROUT-4 prepares:
 - competitive provider arbitration
 - richer hybrid operator cockpit surfaces
 
+
+
+# SPRINT CORE — Router Operator Surface
+
+## ROUT-5 — Cognitive Router Dashboard
+
+### Mission
+
+Expose router cognition as a first-class cockpit surface.
+
+### Delivered components
+
+- router cognitive state engine
+- router cockpit command
+- CLI integration (`kao router cockpit`)
+- E2E cognitive routing validation
+- runtime_surface crash hardening
+
+### Result
+
+Kao now owns a complete routing cognition loop:
+
+intent → gateway thinking → router execution → cognitive cockpit.
+
+This establishes the first production-grade mental model visibility for hybrid routing.
+

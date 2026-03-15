@@ -24,6 +24,7 @@ scenario_user_profile_source_flow
 scenario_user_patch_flow
 scenario_error_recovery
 scenario_gateway_infer
+scenario_router_cognition
 scenario_ray_surface
 scenario_ray_system_inspect
 scenario_ray_timeline

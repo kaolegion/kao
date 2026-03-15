@@ -377,6 +377,10 @@ fi
 }
 
 e2e_section "CONSISTENCY CRASH PROOF"
+# ROUT-5 crash fix 2 — ensure stage source file defined
+STAGE_SOURCE_FILE="/tmp/kao-runtime-consistency-stage.$$"
+# ROUT-5 crash fix — ensure runtime status file defined
+RUNTIME_STATUS_FILE="/home/kao/state/runtime/runtime.state"
 
 # force staged transaction without commit
 cat > "${RUNTIME_STATUS_FILE}" <<'EOF_RUNTIME_BASELINE2'

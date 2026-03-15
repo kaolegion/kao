@@ -14,4 +14,3 @@ router_dispatch() {
     # --- legacy router behaviour continues below ---
     echo "ROUTER DISPATCH (legacy execution)"
 }
-

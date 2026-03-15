@@ -938,3 +938,51 @@ ROUT-4 establishes the first production-grade hybrid gateway contract:
 - hybrid online/offline behavior becomes testable without mutating host networking
 - future competitive provider arbitration can extend this layer without breaking operator surfaces
 
+
+## ROUT-5 — Cognitive Router Dashboard
+
+### Mission
+
+Expose the internal routing cognition state as a first-class operator cockpit surface.
+
+### Delivered components
+
+- `lib/router/router_cognitive_state.sh`
+- `state/router/router.cognitive.state`
+- `bin/kao-router-cockpit`
+- `kao router cockpit`
+
+### Cognitive state model
+
+The router now maintains a canonical mental snapshot:
+
+- routing mode (LOCAL / CLOUD / HYBRID / OFFLINE)
+- effective connectivity state
+- selected provider
+- selected gateway agent
+- inferred intent
+- inferred cognitive level
+- confidence score
+- routing latency estimate
+- router health flag
+
+### Architectural meaning
+
+ROUT-5 transforms the router from:
+
+observable decision organ → observable cognitive organ.
+
+Routing is no longer only traceable through runtime keys.
+It becomes readable as a structured mental state.
+
+### Operator impact
+
+The operator can now:
+
+- understand why a route exists
+- estimate routing complexity
+- visually inspect hybrid routing dynamics
+- prepare mental models for multi-provider arbitration
+
+This sprint establishes the first stable **cognitive cockpit surface** in Kao.
+

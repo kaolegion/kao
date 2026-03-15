@@ -256,3 +256,28 @@ case "${provider_detected}" in
     ;;
 esac
 }
+
+scenario_router_cognition() {
+
+echo "[E2E] router cognition surface"
+
+cognitive_before="$(cat /home/kao/state/router/router.cognitive.state 2>/dev/null || echo missing)"
+
+source /home/kao/lib/router/router_dispatch.sh
+router_dispatch "open e2e workspace"
+
+cognitive_after="$(cat /home/kao/state/router/router.cognitive.state)"
+
+printf '%s\n' "${cognitive_after}" | grep -q "ROUTER_PROVIDER" \
+    && e2e_ok "router cognitive provider written" \
+    || e2e_error "router cognitive provider missing"
+
+printf '%s\n' "${cognitive_after}" | grep -q "ROUTER_COGNITIVE_LEVEL" \
+    && e2e_ok "router cognitive level written" \
+    || e2e_error "router cognitive level missing"
+
+printf '%s\n' "${cognitive_after}" | grep -q "ROUTER_MODE" \
+    && e2e_ok "router cognitive mode written" \
+    || e2e_error "router cognitive mode missing"
+
+}

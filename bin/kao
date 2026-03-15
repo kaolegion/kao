@@ -2,6 +2,7 @@
 
 KROOT="${KROOT:-/home/kao}"
 RUNTIME_STATE="${KROOT}/state/runtime/runtime.state"
+ROUTER_COCKPIT_BIN="${KROOT}/bin/kao-router-cockpit"
 
 runtime_set_key() {
 
@@ -49,6 +50,16 @@ kao_router_status() {
     kao_gateway_status_block
 }
 
+kao_router_cockpit() {
+
+    if [ ! -x "${ROUTER_COCKPIT_BIN}" ]; then
+        echo "router cockpit unavailable"
+        return 1
+    fi
+
+    "${ROUTER_COCKPIT_BIN}"
+}
+
 kao_gateway_status() {
 
     echo "GATEWAY STATUS"
@@ -81,6 +92,12 @@ case "$1" in
         case "$2" in
             status)
                 kao_router_status
+                ;;
+            cockpit)
+                kao_router_cockpit
+                ;;
+            *)
+                echo "usage: kao router status|cockpit"
                 ;;
         esac
         ;;

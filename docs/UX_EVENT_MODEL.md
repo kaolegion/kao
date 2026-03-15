@@ -546,3 +546,40 @@ This prepares future cockpit surfaces such as:
 - heat mapping of cognitive routing intensity
 - future multi-agent or multi-provider competition traces
 
+
+## ROUT-5 — Router Cognitive Cockpit Surface
+
+ROUT-5 introduces a structured cognitive dashboard for routing decisions.
+
+### Canonical cognitive keys
+
+- `ROUTER_MODE`
+- `ROUTER_NETWORK`
+- `ROUTER_PROVIDER`
+- `ROUTER_AGENT`
+- `ROUTER_INTENT`
+- `ROUTER_COGNITIVE_LEVEL`
+- `ROUTER_CONFIDENCE`
+- `ROUTER_LATENCY`
+- `ROUTER_HEALTH`
+
+### UX semantics
+
+The cockpit now represents:
+
+- not only that routing happened
+- but the internal reasoning posture of the routing system.
+
+### Event-loop projection
+
+Future UX layers may derive:
+
+- routing cognitive timelines
+- routing heat-maps
+- provider arbitration waves
+- session-level routing cognition summaries
+
+ROUT-5 therefore marks the transition from:
+
+gateway observability → routing cognition visibility.
+
