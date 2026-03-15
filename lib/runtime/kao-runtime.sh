@@ -332,24 +332,35 @@ kao_runtime_consistency_cli() {
 kao_runtime_session_cli() {
   case "${1:-status}" in
     ""|status)
+      printf 'SESSION STATUS
+'
       if [ -f "$(kao_runtime_session_current_file)" ]; then
-        printf 'SESSION STATUS\n'
-        awk -F= '
-          $1=="SESSION_ID" { printf "session id        : %s\n", substr($0, index($0, "=") + 1) }
-          $1=="OPENED_AT" { printf "opened at         : %s\n", substr($0, index($0, "=") + 1) }
-          $1=="GATEWAY_PROVIDER" { printf "gateway provider  : %s\n", substr($0, index($0, "=") + 1) }
-          $1=="GATEWAY_AGENT" { printf "gateway agent     : %s\n", substr($0, index($0, "=") + 1) }
-        ' "$(kao_runtime_session_current_file)"
+        session_id="$(grep '^SESSION_ID=' "$(kao_runtime_session_current_file)" | cut -d= -f2)"
+        opened_at="$(grep '^OPENED_AT=' "$(kao_runtime_session_current_file)" | cut -d= -f2)"
+        printf 'session id        : %s
+' "${session_id}"
+        printf 'opened at         : %s
+' "${opened_at}"
       else
-        printf 'SESSION STATUS\n'
-        printf 'session id        : none\n'
-        printf 'opened at         : none\n'
-        printf 'gateway provider  : none\n'
-        printf 'gateway agent     : none\n'
+        printf 'session id        : none
+'
+        printf 'opened at         : none
+'
       fi
       ;;
+    open)
+      kao_session_open
+      printf 'SESSION OPENED
+'
+      ;;
+    close)
+      kao_session_close
+      printf 'SESSION CLOSED
+'
+      ;;
     *)
-      printf 'usage: kao session status\n' >&2
+      printf 'usage: kao session [open|close|status]
+' >&2
       return 1
       ;;
   esac

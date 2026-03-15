@@ -4,9 +4,8 @@ KROOT="${KROOT:-/home/kao}"
 STATE_DIR="${KROOT}/state/runtime"
 TIMELINE_FILE="${STATE_DIR}/session.timeline"
 
-# load semantic event ontology
-# shellcheck disable=SC1091
 . "${KROOT}/lib/runtime/event_normalizer.sh"
+. "${KROOT}/lib/runtime/ksl_hook.sh"
 
 kao_session_emit() {
     local event_type detail semantic_line ts session_id
@@ -30,6 +29,8 @@ kao_session_emit() {
         "${event_type}" \
         "${semantic_line}" \
         >> "${TIMELINE_FILE}"
+
+    kao_runtime_ksl_emit_from_session_event "${event_type}" "unknown" "${semantic_line}"
 }
 
 kao_session_touch() {
@@ -37,6 +38,11 @@ kao_session_touch() {
 }
 
 kao_session_open() {
+
+    if [ -f "${STATE_DIR}/session.current" ]; then
+        return 0
+    fi
+
     local session_id ts
 
     ts="$(date -u +"%Y%m%d-%H%M%S")"
@@ -53,8 +59,11 @@ EOT
 }
 
 kao_session_close() {
-    if [ -f "${STATE_DIR}/session.current" ]; then
-        kao_session_emit "session-close" "runtime_session_closed"
-        rm -f "${STATE_DIR}/session.current"
+
+    if [ ! -f "${STATE_DIR}/session.current" ]; then
+        return 0
     fi
+
+    kao_session_emit "session-close" "runtime_session_closed"
+    rm -f "${STATE_DIR}/session.current"
 }
