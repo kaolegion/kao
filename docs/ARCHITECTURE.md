@@ -829,3 +829,38 @@ This closes the first kernel safety cycle:
 - deterministic repair
 - health verification
 
+
+## Reliability kernel surface — health layer (REL-1.5)
+
+The reliability kernel now exposes a deterministic **health surface**.
+
+This surface provides:
+
+- snapshot freshness evaluation
+- runtime directory write capability validation
+- runtime lock integrity inspection
+- runtime journal structural validation
+- session timeline presence validation
+
+Health evaluation produces a compact operator level:
+
+- STRONG → kernel fully operational
+- DEGRADED → kernel operational but with drift or stale signals
+- CRITICAL → kernel safety guarantees compromised
+
+Two operator surfaces now exist:
+
+- detailed surface → `kao-health status`
+- compact cockpit surface → `kao-health`
+
+This health layer is designed as a prerequisite for:
+
+- future brain extraction
+- repository cognition surfaces
+- hybrid routing reliability guarantees
+- UX dashboard signal convergence
+
+The reliability kernel therefore evolves from:
+
+transaction safety → consistency discipline → health observability layer.
+

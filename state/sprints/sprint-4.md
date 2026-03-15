@@ -593,3 +593,49 @@ This foundation prepares:
 - reliability cockpit surfaces
 - cognitive runtime health modeling
 
+
+
+# SPRINT RELIABILITY 1.5 — Kernel Health Surface + Compact Operator Status
+
+## Mission
+
+Expose a deterministic runtime kernel health evaluation layer.
+
+## Delivered surfaces
+
+- `lib/runtime/runtime_health.sh`
+- `bin/kao-health`
+- `kao health` CLI routing
+
+## Health evaluation scope
+
+The kernel health engine validates:
+
+- runtime snapshot freshness
+- runtime directory write capability
+- runtime lock structural integrity
+- runtime journal semantic validity
+- session timeline operational presence
+
+## Operator result
+
+An operator can now instantly understand:
+
+- if the kernel is safe to operate
+- if cognitive runtime signals remain trustworthy
+- if recovery discipline may be required
+- if UX signal layers can rely on runtime state
+
+## Kernel evolution impact
+
+This sprint marks the transition from:
+
+reliability discipline → reliability observability.
+
+It prepares:
+
+- brain module extraction
+- repository cognition introspection
+- hybrid online/offline routing guarantees
+- future cockpit-level system awareness
+

@@ -169,6 +169,10 @@ gateway_dispatch() {
   gateway_cli "${1:-status}"
 }
 
+health_dispatch() {
+  exec "${KROOT}/bin/kao-health" "${1:-compact}"
+}
+
 case "${mode}" in
   boot)
     exec "${KROOT}/bin/kao-boot"
@@ -227,6 +231,11 @@ case "${mode}" in
   gateway)
     shift || true
     gateway_dispatch "${1:-status}"
+    ;;
+
+  health)
+    shift || true
+    health_dispatch "${1:-compact}"
     ;;
 
   hud)

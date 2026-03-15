@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+. "${KROOT}/lib/runtime/runtime_health.sh"
+
+kao_health_compact() {
+  kao_runtime_health_compute
+
+  printf 'KERNEL HEALTH : %s\n' "${KAO_RUNTIME_HEALTH_LEVEL}"
+  printf 'runtime       : %s\n' "${KAO_RUNTIME_HEALTH_WRITABLE_STATE}"
+  printf 'tx            : %s\n' "${KAO_RUNTIME_HEALTH_LOCK_STATE}"
+  printf 'snapshot      : %s\n' "${KAO_RUNTIME_HEALTH_SNAPSHOT_STATE}"
+  printf 'timeline      : %s\n' "${KAO_RUNTIME_HEALTH_TIMELINE_STATE}"
+  printf 'journal       : %s\n' "${KAO_RUNTIME_HEALTH_JOURNAL_STATE}"
+}
+
+kao_health_dispatch() {
+  case "${1:-compact}" in
+    ""|compact)
+      kao_health_compact
+      ;;
+    status)
+      kao_runtime_health_status
+      ;;
+    env)
+      kao_runtime_health_env
+      ;;
+    *)
+      printf 'ERROR: unknown kao-health subcommand: %s\n' "${1:-}" >&2
+      printf 'USAGE: kao-health [compact|status|env]\n' >&2
+      return 1
+      ;;
+  esac
+}
+
+kao_health_dispatch "${1:-compact}"
