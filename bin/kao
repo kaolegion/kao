@@ -100,39 +100,49 @@ transaction_dispatch() {
       ;;
     stage)
       if [ -z "${txid}" ] || [ -z "${target}" ] || [ -z "${source_file}" ]; then
-        printf 'ERROR: transaction id, target and source file required\n' >&2
-        printf 'USAGE: kao transaction stage <txid> <target> <source-file>\n' >&2
+        printf 'ERROR: transaction id, target and source file required
+' >&2
+        printf 'USAGE: kao transaction stage <txid> <target> <source-file>
+' >&2
         return 1
       fi
       kao_runtime_tx_stage_file "${txid}" "${target}" "${source_file}"
       ;;
     commit)
       if [ -z "${txid}" ]; then
-        printf 'ERROR: transaction id required\n' >&2
-        printf 'USAGE: kao transaction commit <txid>\n' >&2
+        printf 'ERROR: transaction id required
+' >&2
+        printf 'USAGE: kao transaction commit <txid>
+' >&2
         return 1
       fi
       kao_runtime_tx_commit "${txid}"
       ;;
     rollback)
       if [ -z "${txid}" ]; then
-        printf 'ERROR: transaction id required\n' >&2
-        printf 'USAGE: kao transaction rollback <txid>\n' >&2
+        printf 'ERROR: transaction id required
+' >&2
+        printf 'USAGE: kao transaction rollback <txid>
+' >&2
         return 1
       fi
       kao_runtime_tx_rollback "${txid}"
+      ;;
+    recover)
+      kao_runtime_transaction_recover_all
       ;;
     status|"")
       kao_runtime_tx_status
       ;;
     *)
-      printf 'ERROR: unknown transaction subcommand: %s\n' "${subcommand}" >&2
-      printf 'USAGE: kao transaction [begin|stage <txid> <target> <source-file>|commit <txid>|rollback <txid>|status]\n' >&2
+      printf 'ERROR: unknown transaction subcommand: %s
+' "${subcommand}" >&2
+      printf 'USAGE: kao transaction [begin|stage <txid> <target> <source-file>|commit <txid>|rollback <txid>|recover|status]
+' >&2
       return 1
       ;;
   esac
 }
-
 
 lock_dispatch() {
   . "${KROOT}/lib/runtime/runtime_lock.sh"
@@ -147,6 +157,11 @@ lock_dispatch() {
       return 1
       ;;
   esac
+}
+
+consistency_dispatch() {
+  . "${KROOT}/lib/runtime/runtime_consistency.sh"
+  kao_runtime_consistency_cli "${1:-status}"
 }
 
 gateway_dispatch() {
@@ -202,6 +217,11 @@ case "${mode}" in
   lock)
     shift || true
     lock_dispatch "${1:-status}"
+    ;;
+
+  consistency)
+    shift || true
+    consistency_dispatch "${1:-status}"
     ;;
 
   gateway)

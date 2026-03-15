@@ -509,3 +509,34 @@ kao_runtime_tx_status() {
 
   return 0
 }
+
+kao_runtime_transaction_recover_all() {
+  local txdir="${RUNTIME_TX_DIR}"
+  [ -d "${txdir}" ] || {
+    printf 'RECOVERY COMPLETE
+'
+    return 0
+  }
+
+  local tx txid state
+  for tx in "${txdir}"/*; do
+    [ -d "${tx}" ] || continue
+    txid="$(basename "${tx}")"
+    state="$(kao_runtime_tx_field "${txid}" STATE 2>/dev/null || true)"
+
+    case "${state}" in
+      open|committing)
+        printf 'RECOVER: rollback %s
+' "${txid}"
+        if ! kao_runtime_tx_rollback "${txid}" >/dev/null 2>&1; then
+          printf 'ERROR: recovery rollback failed for %s
+' "${txid}" >&2
+          return 1
+        fi
+        ;;
+    esac
+  done
+
+  printf 'RECOVERY COMPLETE
+'
+}
