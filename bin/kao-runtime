@@ -1,9 +1,61 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
 KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-source "${KROOT}/lib/runtime/kao-runtime.sh"
+cmd="${1:-}"
+shift || true
 
-kao_runtime_cli "$@"
+case "${cmd}" in
+
+session)
+
+    sub="${1:-status}"
+    shift || true
+
+    . "${KROOT}/lib/runtime/session_manager.sh"
+    . "${KROOT}/lib/runtime/session_memory_recall.sh"
+
+    case "${sub}" in
+
+        open)
+            kao_session_open
+            ;;
+
+        close)
+            kao_session_close
+            ;;
+
+        status)
+            . "${KROOT}/lib/runtime/session_cognitive_state.sh"
+            kao_session_cognitive_state
+            ;;
+
+        recall)
+            kao_session_memory_recall "$@"
+            ;;
+
+        summary)
+            kao_session_memory_recall --summary
+            ;;
+
+        *)
+            echo "usage:"
+            echo "  kao session open"
+            echo "  kao session close"
+            echo "  kao session status"
+            echo "  kao session recall"
+            echo "  kao session summary"
+            exit 1
+            ;;
+
+    esac
+    ;;
+
+*)
+    exec "${KROOT}/bin/kao" "${cmd}" "$@"
+    ;;
+
+esac

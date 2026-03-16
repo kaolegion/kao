@@ -5,7 +5,7 @@
 This document defines the current V0/V1 cognitive interpretation layer of Kao.
 
 Kao is not only a command surface.
-Kao is a runtime that perceives and classifies its own session lifecycle.
+Kao is a runtime that perceives, classifies, and now summarizes its own session lifecycle.
 
 ## Current session cognition
 
@@ -24,7 +24,7 @@ These fields are rendered through:
 
 Kao currently supports the following cognitive loop:
 
-`OPEN -> LIVE COGNITION -> CLOSE -> MEMORY WRITE -> RECALL`
+`OPEN -> LIVE COGNITION -> CLOSE -> MEMORY WRITE -> RECALL -> SUMMARY`
 
 This means that Kao can:
 
@@ -33,6 +33,7 @@ This means that Kao can:
 - freeze the final state on close
 - persist a memory artifact
 - recall the last recorded memory
+- summarize the last recorded memory in operator-readable form
 
 ## Session memory artifact
 
@@ -49,11 +50,28 @@ The current artifact stores:
 - `FINAL_MEMORY_CLASS`
 - `FINAL_INTENSITY`
 
+## Session summary layer
+
+Kao now exposes a first summary interpretation layer through:
+
+- `kao session summary`
+- `kao session recall --summary`
+
+The current summary renders:
+
+- session duration
+- final heat state
+- final memory class
+- final intensity
+- short final interpretation
+
+This establishes the first human-readable cognitive synthesis surface for session memory.
+
 ## Next evolution
 
-The next logical step is a summary layer:
+The next logical step is a richer interpretation layer:
 
-- human-readable session summary
 - session phase interpretation
-- richer timeline synthesis
+- timeline event count
+- active / cooling / idle reading
 - future router influence

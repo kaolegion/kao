@@ -3,7 +3,11 @@
 KROOT="${KROOT:-/home/kao}"
 SESSION_DIR="${KROOT}/state/sessions"
 
+. "${KROOT}/lib/runtime/session_summary_engine.sh"
+
 kao_session_memory_recall() {
+
+    local mode="${1:-raw}"
     local last_session mem_file
 
     [ -d "${SESSION_DIR}" ] || {
@@ -24,6 +28,11 @@ kao_session_memory_recall() {
         echo "NO MEMORY FILE"
         return 0
     }
+
+    if [ "${mode}" = "--summary" ]; then
+        kao_session_summary_render "${mem_file}"
+        return 0
+    fi
 
     echo "SESSION RECALL"
     echo "--------------"

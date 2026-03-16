@@ -247,6 +247,9 @@ Main commands:
 
 - `kao status`
 - `kao hud`
+- `kao session recall`
+- `kao session recall --summary`
+- `kao session summary`
 
 Reading rules:
 
@@ -258,6 +261,32 @@ Reading rules:
 Visible KSL domains include:
 
 - session lifecycle
+
+## Understand session recall and session summary
+
+Kao now exposes two complementary memory reading surfaces:
+
+- `kao session recall`
+- `kao session summary`
+
+Reading rules:
+
+- `kao session recall` reads the last raw persisted session memory
+- `kao session recall --summary` reads the same memory through the cognitive summary layer
+- `kao session summary` is the direct operator shortcut for the summary view
+
+Current summary fields include:
+
+- session duration
+- final heat
+- final memory class
+- final intensity
+- short end-state interpretation
+
+Operational meaning:
+
+- recall preserves the raw artifact
+- summary exposes the first readable meaning layer for the operator
 - network state
 - router selection
 - agent execution
