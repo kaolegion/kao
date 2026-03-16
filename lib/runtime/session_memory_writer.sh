@@ -3,6 +3,7 @@
 KROOT="${KROOT:-/home/kao}"
 STATE_DIR="${KROOT}/state/runtime"
 SESSION_DIR="${KROOT}/state/sessions"
+. "${KROOT}/lib/runtime/session_phase_engine.sh"
 
 . "${KROOT}/lib/runtime/session_heat_engine.sh"
 . "${KROOT}/lib/runtime/session_cognitive_state.sh"
@@ -21,6 +22,13 @@ kao_session_memory_write() {
     target_dir="${SESSION_DIR}/${session_id}"
     mkdir -p "${target_dir}"
 
+
+    AGE_SECONDS="${age}"
+    FINAL_INTENSITY="${intensity}"
+    FINAL_HEAT="${heat}"
+
+    kao_session_phase_compute
+
     cat > "${target_dir}/session.memory" <<EOT
 SESSION_ID=${session_id}
 CLOSED_AT=${closed_at}
@@ -28,6 +36,7 @@ AGE_SECONDS=${age}
 FINAL_HEAT=${heat}
 FINAL_MEMORY_CLASS=${memory}
 FINAL_INTENSITY=${intensity}
+SESSION_PHASE=${SESSION_PHASE}
 EOT
 
 }
