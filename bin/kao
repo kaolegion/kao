@@ -86,6 +86,25 @@ sense)
     esac
     ;;
 
+feedback)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        record)
+            python3 "${KROOT}/runtime/kao_feedback.py" record "$@"
+            ;;
+        log)
+            python3 "${KROOT}/runtime/kao_feedback.py" log
+            ;;
+        state)
+            python3 "${KROOT}/runtime/kao_feedback.py" state
+            ;;
+        *)
+            echo "usage: kao feedback [record|log|state]"
+            ;;
+    esac
+    ;;
+
 ask)
     exec "${KROOT}/bin/brain" infer "$@"
     ;;
