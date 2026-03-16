@@ -1,0 +1,67 @@
+[
+  {
+    "ts": 1773684784,
+    "type": "goal",
+    "ref": "goal_2803873d"
+  },
+  {
+    "ts": 1773684784,
+    "type": "goal",
+    "ref": "goal_4af38f44"
+  },
+  {
+    "ts": 1773684791,
+    "type": "goal",
+    "ref": "goal_6ef6d195"
+  },
+  {
+    "ts": 1773696414,
+    "type": "action",
+    "ref": "action_c9a50995"
+  },
+  {
+    "ts": 1773696533,
+    "type": "action",
+    "ref": "action_c9a50995"
+  },
+  {
+    "ts": 1773699123,
+    "type": "signal",
+    "ref": "day4_operator_signal"
+  },
+  {
+    "ts": 1773699123,
+    "type": "signal",
+    "ref": "runtime_perception_test"
+  },
+  {
+    "ts": 1773699202,
+    "type": "signal",
+    "ref": "day4_e2e_signal_1"
+  },
+  {
+    "ts": 1773699202,
+    "type": "signal",
+    "ref": "day4_e2e_signal_2"
+  },
+  {
+    "ts": 1773699504,
+    "type": "action",
+    "ref": "action_c9a50995"
+  },
+  {
+    "ts": 1773699504,
+    "type": "feedback",
+    "ref": "action_c9a50995"
+  },
+  {
+    "ts": 1773699553,
+    "type": "action",
+    "ref": "action_c9a50995"
+  },
+  {
+    "ts": 1773699553,
+    "type": "feedback",
+    "ref": "action_c9a50995"
+  }
+]

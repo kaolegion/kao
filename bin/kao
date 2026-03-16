@@ -121,6 +121,22 @@ priority)
     esac
     ;;
 
+timeline)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        show)
+            python3 "${KROOT}/runtime/kao_timeline.py" show
+            ;;
+        state)
+            python3 "${KROOT}/runtime/kao_timeline.py" state
+            ;;
+        *)
+            echo "usage: kao timeline [show|state]"
+            ;;
+    esac
+    ;;
+
 ask)
     exec "${KROOT}/bin/brain" infer "$@"
     ;;
