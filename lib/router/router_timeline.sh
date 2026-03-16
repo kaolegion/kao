@@ -13,10 +13,10 @@ router_timeline_emit() {
 
     if [ -n "${ROUTER_BEHAVIOR_MODE}" ]; then
         event_normalizer_emit_router_dispatch \
-            "behavior" \
+            "behavior-mode" \
             "${ROUTER_BEHAVIOR_MODE}" \
-            "session_influence" \
-            "1.0"
+            "strategy" \
+            "contextual"
     fi
 
     event_normalizer_emit_router_dispatch \
