@@ -529,3 +529,32 @@ kao_runtime_authority_pulse() {
         echo "KAO_RUNTIME_LAST_AUTHORITY_TS=${ts}"
     } >> "${KROOT}/state/runtime/runtime.state"
 }
+
+kao_runtime_signals_file() {
+  printf '%s/state/runtime/runtime.signals.log\n' "${KROOT}"
+}
+
+kao_runtime_signals_require() {
+  mkdir -p "${KROOT}/state/runtime"
+}
+
+kao_runtime_signals_render() {
+  local f
+  f="$(kao_runtime_signals_file)"
+
+  if [ ! -f "${f}" ]; then
+    echo "RUNTIME SIGNAL STREAM"
+    echo "status : empty"
+    echo "note   : no runtime signals recorded"
+    return 0
+  fi
+
+  echo "RUNTIME SIGNAL STREAM"
+  tail -n 40 "${f}"
+}
+
+kao_runtime_signals_cli() {
+  kao_runtime_signals_require
+  kao_runtime_signals_render
+}
+

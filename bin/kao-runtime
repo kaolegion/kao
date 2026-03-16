@@ -10,6 +10,11 @@ shift || true
 
 case "${cmd}" in
 
+signals)
+    . "${KROOT}/lib/runtime/kao-runtime.sh"
+    kao_runtime_signals_cli
+    ;;
+
 status)
     . "${KROOT}/lib/kao-runtime.sh"
     kao_runtime_status
@@ -58,6 +63,11 @@ session)
     case "${sub}" in
         open) kao_session_open ;;
         close) kao_session_close ;;
+signals)
+    . "${KROOT}/lib/runtime/kao-runtime.sh"
+    kao_runtime_signals_cli
+    ;;
+
         status)
             . "${KROOT}/lib/runtime/session_cognitive_state.sh"
             kao_session_cognitive_state

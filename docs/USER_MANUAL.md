@@ -440,3 +440,26 @@ Exemple :
     [KAO:owner|cloud|online]
 
 Cette surface sert de repère permanent pour l'opérateur.
+
+---
+
+## Understand runtime signals
+
+Kao exposes a runtime perception surface:
+
+- `kao runtime signals`
+
+This command renders a synthetic readable stream of runtime stability events.
+
+Reading intent:
+
+- understand recent system mutations
+- detect safety-relevant transitions
+- observe runtime awareness signals
+
+Runtime signals are:
+
+- derived runtime perception artifacts
+- ephemeral and not part of versioned source
+- complementary to session timeline and runtime journal
+

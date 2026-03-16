@@ -424,3 +424,37 @@ without compromising system operability.
 Kao now exposes a first baseline metrics surface through `kao metrics`.
 This surface tracks hardware/runtime context and documentation growth,
 preparing future cockpit, monitoring and cognitive perception layers.
+
+---
+
+## Runtime signal layer (V0)
+
+Kao introduces a synthetic runtime perception layer called runtime signals.
+
+A runtime signal is:
+
+- a cognitively readable interpretation of a runtime mutation or stability event
+- derived from low-level runtime journal, transaction state or recovery actions
+- intended for operator awareness and future agent reasoning
+
+Runtime signals do not replace:
+
+- runtime journal (technical mutation log)
+- session timeline (operator narrative)
+- runtime snapshot (diagnostic capture)
+
+They provide:
+
+- a system safety perception surface
+- a stability awareness stream
+- a future cognitive routing signal source
+
+Runtime signals are stored in:
+
+state/runtime/runtime.signals.log
+
+This artifact is considered:
+
+- ephemeral runtime state
+- non-versioned diagnostic perception data
+

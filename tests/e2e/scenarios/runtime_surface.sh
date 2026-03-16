@@ -1,3 +1,7 @@
+e2e_ok() {
+  echo "OK";
+}
+
 #!/usr/bin/env bash
 scenario_runtime_surface() {
 
@@ -384,3 +388,17 @@ else
   e2e_error "consistency did not restore STRONG"
 fi
 
+
+echo
+echo "===== TEST: runtime signals surface ====="
+if ! bin/kao runtime signals >/tmp/runtime-signals.out 2>&1; then
+  echo "FAIL: runtime signals command crashed"
+  exit 1
+fi
+
+if ! grep -q "RUNTIME SIGNAL STREAM" /tmp/runtime-signals.out; then
+  echo "FAIL: runtime signals header missing"
+  exit 1
+fi
+
+echo "OK: runtime signals surface"

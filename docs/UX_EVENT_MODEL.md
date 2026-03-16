@@ -640,3 +640,29 @@ ROUT-7 establishes the transition from:
 
 temporal cognition → behavioral cognition visibility.
 
+
+---
+
+## Runtime signal perception surface
+
+In addition to canonical session timeline events, Kao introduces a runtime signal stream.
+
+This stream represents:
+
+- system stability perception
+- transaction safety awareness
+- recovery confirmation signals
+- runtime consistency interpretation
+
+Runtime signals are:
+
+- not narrative session events
+- not low-level technical logs
+- synthetic operator-readable system perception cues
+
+Future UX surfaces may include:
+
+- runtime safety HUD strips
+- stability heat indicators
+- agent awareness feeds
+
