@@ -33,6 +33,13 @@ check_transaction_integrity() {
     fi
 
     case "${state}:${barrier}" in
+      committed:none)
+        if [ "${resource_count}" = "0" ]; then
+          :
+        else
+          return 1
+        fi
+        ;;
       committed:applied|aborted:reverted|rolled_back:reverted)
         :
         ;;
@@ -44,7 +51,7 @@ check_transaction_integrity() {
       committing:staged|committing:apply-ready)
         return 1
         ;;
-      committed:apply-running|committed:none|committed:staged)
+      committed:apply-running|committed:staged)
         return 1
         ;;
       aborted:*|rolled_back:*)

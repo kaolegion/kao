@@ -22,16 +22,12 @@ router)
             ;;
         *)
             echo "usage: kao router dispatch <intent>"
-printf '  kao pulse
-printf '  kao cockpit
-'
-'    printf '  kao cockpit
-'
+            echo "  kao pulse"
+            echo "  kao cockpit"
             exit 1
             ;;
     esac
     ;;
-
 health)
     exec "${KROOT}/bin/kao-health-cognitive" "$@"
     ;;
