@@ -10,148 +10,18 @@ shift || true
 
 case "${cmd}" in
 
-memory)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        add)
-            python3 "${KROOT}/runtime/kao_memory.py" add "$*"
-            ;;
-        search)
-            python3 "${KROOT}/runtime/kao_memory.py" search "$*"
-            ;;
-        recall)
-            python3 "${KROOT}/runtime/kao_memory.py" recall "$1"
-            ;;
-        *)
-            echo "usage: kao memory [add|search|recall]"
-            ;;
-    esac
-    ;;
+memory) python3 "${KROOT}/runtime/kao_memory.py" "$@" ;;
+goal) python3 "${KROOT}/runtime/kao_goal.py" "$@" ;;
+action) python3 "${KROOT}/runtime/kao_action.py" "$@" ;;
+sense) python3 "${KROOT}/runtime/kao_sense.py" "$@" ;;
+feedback) python3 "${KROOT}/runtime/kao_feedback.py" "$@" ;;
+priority) python3 "${KROOT}/runtime/kao_priority.py" "$@" ;;
+timeline) python3 "${KROOT}/runtime/kao_timeline.py" "$@" ;;
+pulse) python3 "${KROOT}/runtime/kao_pulse.py" "$@" ;;
+workspace) python3 "${KROOT}/runtime/kao_workspace.py" "$@" ;;
 
-goal)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        create)
-            python3 "${KROOT}/runtime/kao_goal.py" create "$@"
-            ;;
-        list)
-            python3 "${KROOT}/runtime/kao_goal.py" list
-            ;;
-        complete)
-            python3 "${KROOT}/runtime/kao_goal.py" complete "$1"
-            ;;
-        *)
-            echo "usage: kao goal [create|list|complete]"
-            ;;
-    esac
-    ;;
-
-action)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        register)
-            python3 "${KROOT}/runtime/kao_action.py" register "$@"
-            ;;
-        list)
-            python3 "${KROOT}/runtime/kao_action.py" list
-            ;;
-        run)
-            python3 "${KROOT}/runtime/kao_action.py" run "$1"
-            ;;
-        *)
-            echo "usage: kao action [register|list|run]"
-            ;;
-    esac
-    ;;
-
-sense)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        capture)
-            python3 "${KROOT}/runtime/kao_sense.py" capture "$*"
-            ;;
-        list)
-            python3 "${KROOT}/runtime/kao_sense.py" list
-            ;;
-        state)
-            python3 "${KROOT}/runtime/kao_sense.py" state
-            ;;
-        *)
-            echo "usage: kao sense [capture|list|state]"
-            ;;
-    esac
-    ;;
-
-feedback)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        record)
-            python3 "${KROOT}/runtime/kao_feedback.py" record "$@"
-            ;;
-        log)
-            python3 "${KROOT}/runtime/kao_feedback.py" log
-            ;;
-        state)
-            python3 "${KROOT}/runtime/kao_feedback.py" state
-            ;;
-        *)
-            echo "usage: kao feedback [record|log|state]"
-            ;;
-    esac
-    ;;
-
-priority)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        list)
-            python3 "${KROOT}/runtime/kao_priority.py" list
-            ;;
-        state)
-            python3 "${KROOT}/runtime/kao_priority.py" state
-            ;;
-        *)
-            echo "usage: kao priority [list|state]"
-            ;;
-    esac
-    ;;
-
-timeline)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        show)
-            python3 "${KROOT}/runtime/kao_timeline.py" show
-            ;;
-        state)
-            python3 "${KROOT}/runtime/kao_timeline.py" state
-            ;;
-        *)
-            echo "usage: kao timeline [show|state]"
-            ;;
-    esac
-    ;;
-
-pulse)
-    python3 "${KROOT}/runtime/kao_pulse.py"
-    ;;
-
-workspace)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        state)
-            python3 "${KROOT}/runtime/kao_workspace.py" state
-            ;;
-        *)
-            python3 "${KROOT}/runtime/kao_workspace.py"
-            ;;
-    esac
+tools)
+    python3 "${KROOT}/runtime/kao_tools.py"
     ;;
 
 ask)

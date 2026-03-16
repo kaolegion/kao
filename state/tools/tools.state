@@ -1,0 +1,122 @@
+[
+  {
+    "name": "kao-cockpit",
+    "path": "/home/kao/bin/kao-cockpit"
+  },
+  {
+    "name": "kao-sprint",
+    "path": "/home/kao/bin/kao-sprint"
+  },
+  {
+    "name": "kao-status",
+    "path": "/home/kao/bin/kao-status"
+  },
+  {
+    "name": "kao-owner",
+    "path": "/home/kao/bin/kao-owner"
+  },
+  {
+    "name": "kao-open",
+    "path": "/home/kao/bin/kao-open"
+  },
+  {
+    "name": "kao-preferences",
+    "path": "/home/kao/bin/kao-preferences"
+  },
+  {
+    "name": "kao-boot",
+    "path": "/home/kao/bin/kao-boot"
+  },
+  {
+    "name": "kao-metrics",
+    "path": "/home/kao/bin/kao-metrics"
+  },
+  {
+    "name": "kao-pulse",
+    "path": "/home/kao/bin/kao-pulse"
+  },
+  {
+    "name": "kao-list",
+    "path": "/home/kao/bin/kao-list"
+  },
+  {
+    "name": "kao-router-cockpit",
+    "path": "/home/kao/bin/kao-router-cockpit"
+  },
+  {
+    "name": "kao-hud",
+    "path": "/home/kao/bin/kao-hud"
+  },
+  {
+    "name": "kao-where",
+    "path": "/home/kao/bin/kao-where"
+  },
+  {
+    "name": "brain",
+    "path": "/home/kao/bin/brain"
+  },
+  {
+    "name": "kao-health-cognitive",
+    "path": "/home/kao/bin/kao-health-cognitive"
+  },
+  {
+    "name": "kao-router-timeline",
+    "path": "/home/kao/bin/kao-router-timeline"
+  },
+  {
+    "name": "ray",
+    "path": "/home/kao/bin/ray"
+  },
+  {
+    "name": "kao",
+    "path": "/home/kao/bin/kao"
+  },
+  {
+    "name": "kao-check",
+    "path": "/home/kao/bin/kao-check"
+  },
+  {
+    "name": "kao-install-hints",
+    "path": "/home/kao/bin/kao-install-hints"
+  },
+  {
+    "name": "kao-env",
+    "path": "/home/kao/bin/kao-env"
+  },
+  {
+    "name": "kao-context",
+    "path": "/home/kao/bin/kao-context"
+  },
+  {
+    "name": "kao-runtime",
+    "path": "/home/kao/bin/kao-runtime"
+  },
+  {
+    "name": "kao-columns",
+    "path": "/home/kao/bin/kao-columns"
+  },
+  {
+    "name": "kao-user",
+    "path": "/home/kao/bin/kao-user"
+  },
+  {
+    "name": "kao-authority",
+    "path": "/home/kao/bin/kao-authority"
+  },
+  {
+    "name": "kao-health",
+    "path": "/home/kao/bin/kao-health"
+  },
+  {
+    "name": "router-heat-daemon",
+    "path": "/home/kao/bin/router-heat-daemon"
+  },
+  {
+    "name": "kaobox-shell",
+    "path": "/opt/kaobox/bin/kaobox-shell"
+  },
+  {
+    "name": "brain",
+    "path": "/opt/kaobox/bin/brain"
+  }
+]
