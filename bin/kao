@@ -10,6 +10,21 @@ shift || true
 
 case "${cmd}" in
 
+env)
+    exec "${KROOT}/bin/kao-env"
+    ;;
+
+
+
+ask)
+    if [ "$#" -eq 0 ]; then
+        echo 'usage: kao ask "prompt"'
+        exit 1
+    fi
+    exec "${KROOT}/bin/brain" infer "$@"
+    ;;
+
+
 router)
     sub="${1:-status}"
     shift || true
