@@ -600,3 +600,40 @@ kao_runtime_transaction_recover_all() {
 
   printf 'RECOVERY COMPLETE\n'
 }
+
+kao_runtime_transaction_cli() {
+  local action="${1:-}"
+  shift || true
+
+  case "${action}" in
+
+    begin)
+      kao_runtime_tx_begin "$@"
+      ;;
+
+    stage)
+      kao_runtime_tx_stage_file "$@"
+      ;;
+
+    commit)
+      kao_runtime_tx_commit "$@"
+      ;;
+
+    rollback)
+      kao_runtime_tx_rollback "$@"
+      ;;
+
+    recover)
+      kao_runtime_transaction_recover_all "$@"
+      ;;
+
+    status|"")
+      kao_runtime_tx_status "$@"
+      ;;
+
+    *)
+      echo "usage: kao transaction <begin|stage|commit|rollback|recover|status>"
+      return 1
+      ;;
+  esac
+}

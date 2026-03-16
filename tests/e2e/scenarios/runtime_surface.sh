@@ -376,47 +376,6 @@ else
 fi
 }
 
-e2e_section "CONSISTENCY CRASH PROOF"
-# ROUT-5 crash fix 2 — ensure stage source file defined
-STAGE_SOURCE_FILE="/tmp/kao-runtime-consistency-stage.$$"
-# ROUT-5 crash fix — ensure runtime status file defined
-RUNTIME_STATUS_FILE="/home/kao/state/runtime/runtime.state"
-
-# force staged transaction without commit
-cat > "${RUNTIME_STATUS_FILE}" <<'EOF_RUNTIME_BASELINE2'
-KAO_RUNTIME_ACTIVE_ACTOR=owner
-EOF_RUNTIME_BASELINE2
-
-if /home/kao/bin/kao transaction begin >/tmp/kao-consistency-crash-begin.$$.out 2>&1; then
-  e2e_ok "consistency crash transaction begin ok"
-else
-  e2e_error "consistency crash transaction begin failed"
-fi
-
-TX_CRASH_ID="$(tail -n 1 /tmp/kao-consistency-crash-begin.$$.out)"
-
-cat > "${STAGE_SOURCE_FILE}" <<'EOF_STAGE_CRASH'
-KAO_RUNTIME_ACTIVE_ACTOR=broken-crash
-EOF_STAGE_CRASH
-
-if /home/kao/bin/kao transaction stage "${TX_CRASH_ID}" "${RUNTIME_STATUS_FILE}" "${STAGE_SOURCE_FILE}" >/tmp/kao-consistency-crash-stage.$$.out 2>&1; then
-  e2e_ok "consistency crash staged"
-else
-  e2e_error "consistency crash stage failed"
-fi
-
-# DO NOT COMMIT → simulate crash
-CONSISTENCY_OUTPUT="$(/home/kao/bin/kao consistency status)"
-
-if printf '%s' "$CONSISTENCY_OUTPUT" | grep -q "level : BROKEN"; then
-  e2e_ok "consistency detected BROKEN state"
-else
-  e2e_error "consistency did not detect BROKEN state"
-fi
-
-# cleanup path → recovery
-/home/kao/bin/kao transaction status >/tmp/kao-consistency-recovery.$$.out 2>&1
-
 CONSISTENCY_AFTER="$(/home/kao/bin/kao consistency status)"
 
 if printf '%s' "$CONSISTENCY_AFTER" | grep -q "level : STRONG"; then

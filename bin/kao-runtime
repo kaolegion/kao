@@ -10,8 +10,42 @@ shift || true
 
 case "${cmd}" in
 
-session)
+status)
+    . "${KROOT}/lib/kao-runtime.sh"
+    kao_runtime_status
+    ;;
 
+activate)
+    . "${KROOT}/lib/kao-runtime.sh"
+    kao_runtime_activate_user "$@"
+    ;;
+
+snapshot)
+    . "${KROOT}/lib/kao-runtime.sh"
+    kao_runtime_snapshot
+    ;;
+
+diff)
+    . "${KROOT}/lib/kao-runtime.sh"
+    kao_runtime_diff
+    ;;
+
+transaction)
+    . "${KROOT}/lib/runtime/runtime_transaction.sh"
+    kao_runtime_transaction_cli "$@"
+    ;;
+
+lock)
+    . "${KROOT}/lib/runtime/runtime_lock.sh"
+    kao_runtime_lock_status
+    ;;
+
+consistency)
+    . "${KROOT}/lib/runtime/runtime_consistency.sh"
+    kao_runtime_consistency_cli "$@"
+    ;;
+
+session)
     sub="${1:-status}"
     shift || true
 
@@ -22,53 +56,21 @@ session)
     . "${KROOT}/lib/runtime/session_insight_engine.sh"
 
     case "${sub}" in
-
-        open)
-            kao_session_open
-            ;;
-
-        close)
-            kao_session_close
-            ;;
-
+        open) kao_session_open ;;
+        close) kao_session_close ;;
         status)
             . "${KROOT}/lib/runtime/session_cognitive_state.sh"
             kao_session_cognitive_state
             ;;
-
-        recall)
-            kao_session_memory_recall "$@"
-            ;;
-
-        summary)
-            kao_session_memory_recall --summary
-            ;;
-
-        history)
-            kao_session_phase_history
-            ;;
-
-        stats)
-            kao_session_phase_stats
-            ;;
-
-        insight)
-            kao_session_behavior_insight
-            ;;
-
+        recall) kao_session_memory_recall "$@" ;;
+        summary) kao_session_memory_recall --summary ;;
+        history) kao_session_phase_history ;;
+        stats) kao_session_phase_stats ;;
+        insight) kao_session_behavior_insight ;;
         *)
-            echo "usage:"
-            echo "  kao session open"
-            echo "  kao session close"
-            echo "  kao session status"
-            echo "  kao session recall"
-            echo "  kao session summary"
-            echo "  kao session history"
-            echo "  kao session stats"
-            echo "  kao session insight"
+            echo "usage: kao session <open|close|status|recall|summary|history|stats|insight>"
             exit 1
             ;;
-
     esac
     ;;
 
