@@ -137,6 +137,10 @@ timeline)
     esac
     ;;
 
+pulse)
+    python3 "${KROOT}/runtime/kao_pulse.py"
+    ;;
+
 ask)
     exec "${KROOT}/bin/brain" infer "$@"
     ;;
