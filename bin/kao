@@ -10,104 +10,34 @@ shift || true
 
 case "${cmd}" in
 
-env)
-    exec "${KROOT}/bin/kao-env"
-    ;;
-
-
-
-ask)
-    if [ "$#" -eq 0 ]; then
-        echo 'usage: kao ask "prompt"'
-        exit 1
-    fi
-    exec "${KROOT}/bin/brain" infer "$@"
-    ;;
-
-
-router)
-    sub="${1:-status}"
+memory)
+    sub="${1:-}"
     shift || true
-
-    source "${KROOT}/lib/router/router_dispatch.sh"
-
     case "${sub}" in
-        dispatch)
-            router_dispatch "$@"
+        add)
+            python3 "${KROOT}/runtime/kao_memory.py" add "$*"
+            ;;
+        search)
+            python3 "${KROOT}/runtime/kao_memory.py" search "$*"
+            ;;
+        recall)
+            python3 "${KROOT}/runtime/kao_memory.py" recall "$1"
             ;;
         *)
-            echo "usage: kao router dispatch <intent>"
-            echo "  kao pulse"
-            echo "  kao cockpit"
-            exit 1
+            echo "usage: kao memory [add|search|recall]"
             ;;
     esac
     ;;
-metrics)
-    exec "${KROOT}/bin/kao-metrics" "$@"
-    ;;
-health)
-    exec "${KROOT}/bin/kao-health-cognitive" "$@"
-    ;;
 
-authority)
-    exec "${KROOT}/bin/kao-authority" "$@"
-    ;;
-
-owner)
-    exec "${KROOT}/bin/kao-owner" "$@"
-    ;;
-
-user)
-    exec "${KROOT}/bin/kao-user" "$@"
-    ;;
-
-runtime)
-    exec "${KROOT}/bin/kao-runtime" "$@"
-    ;;
-
-cockpit)
-
-    exec "${KROOT}/bin/kao-cockpit" "$@"
-
-    ;;
-
-pulse)
-
-    exec "${KROOT}/bin/kao-pulse" "$@"
-
+ask)
+    exec "${KROOT}/bin/brain" infer "$@"
     ;;
 
 status)
     exec "${KROOT}/bin/kao-status" "$@"
     ;;
 
-lock|transaction|consistency|session)
-    exec "${KROOT}/bin/kao-runtime" "${cmd}" "$@"
-    ;;
-
-""|help|-h|--help)
-    printf 'KAO CLI\n'
-    printf '\n'
-    printf 'usage:\n'
-    printf '  kao status\n'
-    printf '  kao runtime [status|refresh|snapshot|mode]\n'
-    printf '  kao lock status\n'
-    printf '  kao transaction status\n'
-    printf '  kao consistency status\n'
-    printf '  kao session status\n'
-    printf '  kao metrics\n'
-    printf '  kao health\n'
-    printf '  kao owner\n'
-    printf '  kao user\n'
-    printf '  kao authority\n'
-    printf '  kao router dispatch <intent>\n'
-    printf '  kao pulse\n'
-    printf '  kao cockpit\n'
-    ;;
 *)
     echo "KAO CLI"
-    exit 1
     ;;
-
 esac
