@@ -1076,3 +1076,9 @@ Cette couche réduit la charge mentale de l'opérateur et prépare les surfaces 
 - observation UI / DOM
 - cockpit visuel futur
 - projection cognitive desktop / web
+
+## Session cognition and memory surface
+
+Kao now exposes a session cognition surface through `kao session status`
+and persists a session memory artifact on close. This establishes the first
+observable continuity loop between runtime experience and stored memory.

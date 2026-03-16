@@ -1,0 +1,80 @@
+# KAO DOC INVENTORY
+
+Generated at: 2026-03-16T07:14:30Z
+
+Total markdown files: 68
+
+## Count by top-level area
+
+- /: 68
+
+## Full inventory
+
+- `CHANGELOG.md`
+- `CODE_OF_CONDUCT.md`
+- `CONTRIBUTING.md`
+- `ISSUES.md`
+- `MANIFESTE.md`
+- `METHODE.md`
+- `PROJECT.md`
+- `PULL_REQUESTS.md`
+- `README.md`
+- `RELEASE.md`
+- `ROADMAP.md`
+- `SECURITY.md`
+- `SUPPORT.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DEV_WORKFLOW.md`
+- `docs/FOUNDER_NOTES.md`
+- `docs/KAO_ARCHITECTURE.md`
+- `docs/KAO_RUNTIME_MODEL.md`
+- `docs/MANIFESTE.md`
+- `docs/OPERATOR_ONBOARDING.md`
+- `docs/PHILOSOPHY.md`
+- `docs/README.md`
+- `docs/TERMINAL_FIRST_DOCTRINE.md`
+- `docs/USER_MANUAL.md`
+- `docs/UX_EVENT_MODEL.md`
+- `docs/VISION.md`
+- `docs/WHY-KAO.md`
+- `docs/lab/ksl/KSL-LAB-MANIFESTE.md`
+- `kao-note.md`
+- `lib/ksl/lab/README.md`
+- `state/sprints/sprint-0.3.md`
+- `state/sprints/sprint-0.4.md`
+- `state/sprints/sprint-0.5.md`
+- `state/sprints/sprint-0.6.md`
+- `state/sprints/sprint-0.7.md`
+- `state/sprints/sprint-0.8.md`
+- `state/sprints/sprint-0.9.md`
+- `state/sprints/sprint-1.1.md`
+- `state/sprints/sprint-1.2.md`
+- `state/sprints/sprint-1.3.md`
+- `state/sprints/sprint-1.4.md`
+- `state/sprints/sprint-1.5.md`
+- `state/sprints/sprint-1.6.md`
+- `state/sprints/sprint-1.7.md`
+- `state/sprints/sprint-1.8.md`
+- `state/sprints/sprint-1.9.md`
+- `state/sprints/sprint-2.0.md`
+- `state/sprints/sprint-2.1.md`
+- `state/sprints/sprint-2.2.md`
+- `state/sprints/sprint-2.3.md`
+- `state/sprints/sprint-2.4.md`
+- `state/sprints/sprint-2.5.md`
+- `state/sprints/sprint-2.6.md`
+- `state/sprints/sprint-2.7.md`
+- `state/sprints/sprint-2.8.md`
+- `state/sprints/sprint-2.9.md`
+- `state/sprints/sprint-3.0.md`
+- `state/sprints/sprint-3.1.md`
+- `state/sprints/sprint-3.2.md`
+- `state/sprints/sprint-3.3.md`
+- `state/sprints/sprint-3.4.md`
+- `state/sprints/sprint-3.5.md`
+- `state/sprints/sprint-4.md`
+- `state/sprints/sprint-doc-1.md`
+- `state/sprints/sprint-doc-2.md`
+- `state/sprints/sprint-ux-micro-surface.md`
+- `templates/md/base.md`
+- `test-doc.md`

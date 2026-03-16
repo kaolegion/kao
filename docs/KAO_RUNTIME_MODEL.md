@@ -418,3 +418,9 @@ The current model is a stable base.
 
 It prepares a broader cognitive architecture
 without compromising system operability.
+
+## Metrics baseline
+
+Kao now exposes a first baseline metrics surface through `kao metrics`.
+This surface tracks hardware/runtime context and documentation growth,
+preparing future cockpit, monitoring and cognitive perception layers.

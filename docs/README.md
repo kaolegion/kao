@@ -89,3 +89,9 @@ vision, philosophy, and architecture.
 
 The four documents above are the canonical runtime/operator base.
 
+## Canonical cognition and metrics docs
+
+- `docs/COGNITION_MODEL.md`
+- `docs/METRICS_BASELINE.md`
+- `state/docs/doc_inventory.md`
+

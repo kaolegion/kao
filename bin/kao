@@ -43,6 +43,9 @@ router)
             ;;
     esac
     ;;
+metrics)
+    exec "${KROOT}/bin/kao-metrics" "$@"
+    ;;
 health)
     exec "${KROOT}/bin/kao-health-cognitive" "$@"
     ;;
@@ -93,6 +96,7 @@ lock|transaction|consistency|session)
     printf '  kao transaction status\n'
     printf '  kao consistency status\n'
     printf '  kao session status\n'
+    printf '  kao metrics\n'
     printf '  kao health\n'
     printf '  kao owner\n'
     printf '  kao user\n'
