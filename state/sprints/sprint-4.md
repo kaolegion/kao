@@ -780,3 +780,18 @@ Routing cognition heat is now:
 This prepares adaptive routing policy layers and
 future competitive provider arbitration mechanisms.
 
+
+## ROUTER BEHAVIORAL COGNITION — SPRINT
+
+Router now adapts strategy based on session thermal state.
+
+Modes introduced:
+
+- AGGRESSIVE (HOT session)
+- BALANCED (WARM session)
+- ECONOMY (COLD session)
+
+Router emits cognitive narrative events and exposes behavior in cockpit.
+
+This marks the transition from structural routing to behavioral routing.
+

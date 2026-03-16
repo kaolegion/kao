@@ -2,6 +2,7 @@
 
 KROOT="${KROOT:-/home/kao}"
 
+source "${KROOT}/lib/router/router_behavior_engine.sh"
 source "${KROOT}/lib/runtime/kao-runtime.sh"
 source "${KROOT}/lib/runtime/event_normalizer.sh"
 source "${KROOT}/lib/router/gateway_intelligence.sh"
@@ -14,6 +15,10 @@ router_dispatch() {
 
     # --- cognitive evaluation ---
     gateway_intelligence_evaluate "$intent"
+
+    # --- behavioral cognition ---
+    router_behavior_compute
+
 
     # values expected from gateway layer (safe defaults)
     provider="${GATEWAY_SELECTED_PROVIDER:-unknown}"

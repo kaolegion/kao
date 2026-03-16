@@ -11,6 +11,14 @@ router_timeline_emit() {
     local intent="$3"
     local confidence="$4"
 
+    if [ -n "${ROUTER_BEHAVIOR_MODE}" ]; then
+        event_normalizer_emit_router_dispatch \
+            "behavior" \
+            "${ROUTER_BEHAVIOR_MODE}" \
+            "session_influence" \
+            "1.0"
+    fi
+
     event_normalizer_emit_router_dispatch \
         "$provider" \
         "$agent" \
