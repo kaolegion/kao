@@ -17,6 +17,9 @@ session)
 
     . "${KROOT}/lib/runtime/session_manager.sh"
     . "${KROOT}/lib/runtime/session_memory_recall.sh"
+    . "${KROOT}/lib/runtime/session_history_engine.sh"
+    . "${KROOT}/lib/runtime/session_stats_engine.sh"
+    . "${KROOT}/lib/runtime/session_insight_engine.sh"
 
     case "${sub}" in
 
@@ -41,6 +44,18 @@ session)
             kao_session_memory_recall --summary
             ;;
 
+        history)
+            kao_session_phase_history
+            ;;
+
+        stats)
+            kao_session_phase_stats
+            ;;
+
+        insight)
+            kao_session_behavior_insight
+            ;;
+
         *)
             echo "usage:"
             echo "  kao session open"
@@ -48,6 +63,9 @@ session)
             echo "  kao session status"
             echo "  kao session recall"
             echo "  kao session summary"
+            echo "  kao session history"
+            echo "  kao session stats"
+            echo "  kao session insight"
             exit 1
             ;;
 
