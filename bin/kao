@@ -48,6 +48,25 @@ goal)
     esac
     ;;
 
+action)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        register)
+            python3 "${KROOT}/runtime/kao_action.py" register "$@"
+            ;;
+        list)
+            python3 "${KROOT}/runtime/kao_action.py" list
+            ;;
+        run)
+            python3 "${KROOT}/runtime/kao_action.py" run "$1"
+            ;;
+        *)
+            echo "usage: kao action [register|list|run]"
+            ;;
+    esac
+    ;;
+
 ask)
     exec "${KROOT}/bin/brain" infer "$@"
     ;;
