@@ -399,6 +399,8 @@ kao_runtime_consistency_cli() {
 }
 
 kao_runtime_session_cli() {
+  local session_id opened_at
+
   case "${1:-status}" in
     ""|status)
       printf 'SESSION STATUS
@@ -416,6 +418,13 @@ kao_runtime_session_cli() {
         printf 'opened at         : none
 '
       fi
+
+      printf '
+'
+      if [ -f "${KROOT}/lib/runtime/session_cognitive_state.sh" ]; then
+        . "${KROOT}/lib/runtime/session_cognitive_state.sh"
+        kao_session_cognitive_state
+      fi
       ;;
     open)
       kao_session_open
@@ -427,8 +436,12 @@ kao_runtime_session_cli() {
       printf 'SESSION CLOSED
 '
       ;;
+    recall)
+      . "${KROOT}/lib/runtime/session_memory_recall.sh"
+      kao_session_memory_recall
+      ;;
     *)
-      printf 'usage: kao session [open|close|status]
+      printf 'usage: kao session [open|close|status|recall]
 ' >&2
       return 1
       ;;

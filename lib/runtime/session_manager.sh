@@ -72,5 +72,8 @@ kao_session_close() {
 
     kao_session_heat_close_freeze
     kao_session_emit "session-close" "runtime_session_closed"
+    . "${KROOT}/lib/runtime/session_memory_writer.sh"
+    kao_session_memory_write
+
     rm -f "${STATE_DIR}/session.current"
 }
