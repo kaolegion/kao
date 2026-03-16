@@ -29,6 +29,25 @@ memory)
     esac
     ;;
 
+goal)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        create)
+            python3 "${KROOT}/runtime/kao_goal.py" create "$@"
+            ;;
+        list)
+            python3 "${KROOT}/runtime/kao_goal.py" list
+            ;;
+        complete)
+            python3 "${KROOT}/runtime/kao_goal.py" complete "$1"
+            ;;
+        *)
+            echo "usage: kao goal [create|list|complete]"
+            ;;
+    esac
+    ;;
+
 ask)
     exec "${KROOT}/bin/brain" infer "$@"
     ;;
