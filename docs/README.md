@@ -35,6 +35,7 @@ The following documents remain essential for runtime operation:
 - `docs/TERMINAL_FIRST_DOCTRINE.md`
 - `docs/OPERATOR_ONBOARDING.md`
 - `docs/USER_MANUAL.md`
+- Surgical operating doctrine → `doc/operating/SURGICAL_METHOD.md`
 
 These documents define practical operator workflows.
 
