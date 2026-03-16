@@ -201,3 +201,107 @@ Atomic documents build clarity.
 A main source builds continuity.
 
 Kao must preserve both.
+
+
+---
+
+## 11 — Boot perception
+
+The first contact with Kao must feel like a manifestation.
+
+Boot is not only a technical start.
+
+Boot is:
+
+- context discovery
+- memory continuity check
+- operator presence acknowledgement
+- readiness signal emission
+
+The perception of a living runtime begins at boot.
+
+This perception defines long-term trust.
+
+---
+
+## 12 — Runtime presence
+
+Kao presence exists in three modes:
+
+- latent
+- active
+- projected
+
+Latent presence means:
+
+- identity preserved
+- memory intact
+- cognition suspended
+
+Active presence means:
+
+- operator interaction possible
+- runtime observable
+- transitions governable
+
+Projected presence means:
+
+- Kao may appear through multiple surfaces
+- terminal remains canonical origin
+
+---
+
+## 13 — Operator ritual
+
+The operator must always:
+
+- inspect before mutation
+- confirm before commit
+- observe drift signals
+- maintain cognitive discipline
+
+Kao is not a hidden automation system.
+
+Kao is a visible cognitive partner.
+
+Operator awareness is part of runtime safety.
+
+---
+
+## 14 — Evolution cycle
+
+Kao evolves through controlled cycles.
+
+Each cycle includes:
+
+1. observation
+2. action
+3. recording
+4. stabilization
+5. doctrine convergence
+
+Atomic documents accumulate insight.
+
+Periodic convergence creates clarity.
+
+Future canonical convergence may produce:
+
+- consolidated doctrine versions
+- historical evolution layers
+- cognitive maturity signals
+
+---
+
+## 15 — Long continuity principle
+
+A mature Kao instance should be able to:
+
+- migrate across machines
+- preserve identity
+- accumulate operational memory
+- increase reliability over time
+
+Continuity is the ultimate product signal.
+
+A long-living Kao is a trusted Kao.
+
