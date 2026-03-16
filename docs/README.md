@@ -1,97 +1,49 @@
-# KAO — Documentation Map
+# KAO — Documentation Entry
 
-This directory contains the canonical product documentation for Kao.
+This directory contains the canonical documentation of Kao.
 
-Kao is a terminal-first operator system.
-Its documentation is organized to help an operator:
+## Main entrypoint
 
-- understand the system
-- read the runtime scene
-- act safely
-- diagnose drift
-- stabilize and govern runtime
+The central doctrine entrypoint is:
 
----
+- `docs/KAO_MAIN_SOURCE.md`
 
-## Core reading path
+All operators, contributors, and future agents should start reading from this document.
 
-Read these documents in this order:
-
-1. `TERMINAL_FIRST_DOCTRINE.md`
-2. `KAO_RUNTIME_MODEL.md`
-3. `OPERATOR_ONBOARDING.md`
-4. `USER_MANUAL.md`
-
-This sequence defines the canonical operator path:
-
-- doctrine
-- model
-- onboarding
-- manual
+It provides the minimal coherent overview of Kao.
 
 ---
 
-## Document roles
+## Core canonical reading path
 
-### `TERMINAL_FIRST_DOCTRINE.md`
+After the main source, the recommended reading order is:
 
-Defines the terminal-first doctrine of Kao.
-
-Use it to understand:
-
-- what Kao is
-- what Kao rejects
-- why inspection comes before action
-- how runtime governance is approached
-
-### `KAO_RUNTIME_MODEL.md`
-
-Defines the runtime model used by Kao.
-
-Use it to understand:
-
-- the machine / system / owner / user scene
-- source versus runtime
-- snapshots and living state
-- activation and deactivation
-- drift and stabilization
-
-### `OPERATOR_ONBOARDING.md`
-
-Introduces Kao to a real operator.
-
-Use it to learn:
-
-- how to read the startup scene
-- how to begin safely
-- how to activate and deactivate actors
-- how to avoid common mistakes
-
-### `USER_MANUAL.md`
-
-Provides the operational reference manual.
-
-Use it to:
-
-- understand the main tree
-- use the main command flow
-- inspect sources
-- govern runtime
-- diagnose and repair drift
-- maintain operator trace
+1. `docs/KAO_DOCUMENT_EVOLUTION_PROTOCOL.md`
+2. `docs/KAO_FIRST_BOOT_EXPERIENCE.md`
+3. `docs/KAO_RUNTIME_MODEL.md`
+4. `docs/ARCHITECTURE.md`
+5. `docs/VISION.md`
+6. `docs/PHILOSOPHY.md`
+7. `docs/WHY-KAO.md`
 
 ---
 
-## Additional documents
+## Operator technical base
 
-Other documents in this directory provide broader project context,
-vision, philosophy, and architecture.
+The following documents remain essential for runtime operation:
 
-The four documents above are the canonical runtime/operator base.
+- `docs/TERMINAL_FIRST_DOCTRINE.md`
+- `docs/OPERATOR_ONBOARDING.md`
+- `docs/USER_MANUAL.md`
 
-## Canonical cognition and metrics docs
+These documents define practical operator workflows.
 
-- `docs/COGNITION_MODEL.md`
-- `docs/METRICS_BASELINE.md`
-- `state/docs/doc_inventory.md`
+---
 
+## Canonical rule
+
+Documentation evolves atomically.
+
+The main source provides continuity.
+
+Kao documentation must preserve both structure and clarity.

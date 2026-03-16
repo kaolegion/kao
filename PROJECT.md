@@ -27,7 +27,7 @@ Kao must remain:
 
 The canonical documentation base is:
 
-- `docs/TERMINAL_FIRST_DOCTRINE.md`
+- `docs/KAO_MAIN_SOURCE.md`
 - `docs/KAO_RUNTIME_MODEL.md`
 - `docs/OPERATOR_ONBOARDING.md`
 - `docs/USER_MANUAL.md`
@@ -42,7 +42,7 @@ The canonical documentation base is:
 - docs/MANIFESTE.md
 - docs/VISION.md
 - docs/ARCHITECTURE.md
-- docs/TERMINAL_FIRST_DOCTRINE.md
+- docs/KAO_MAIN_SOURCE.md
 - docs/KAO_RUNTIME_MODEL.md
 - docs/OPERATOR_ONBOARDING.md
 - docs/USER_MANUAL.md
