@@ -105,6 +105,22 @@ feedback)
     esac
     ;;
 
+priority)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        list)
+            python3 "${KROOT}/runtime/kao_priority.py" list
+            ;;
+        state)
+            python3 "${KROOT}/runtime/kao_priority.py" state
+            ;;
+        *)
+            echo "usage: kao priority [list|state]"
+            ;;
+    esac
+    ;;
+
 ask)
     exec "${KROOT}/bin/brain" infer "$@"
     ;;
