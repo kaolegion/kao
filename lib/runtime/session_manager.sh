@@ -6,6 +6,7 @@ TIMELINE_FILE="${STATE_DIR}/session.timeline"
 
 . "${KROOT}/lib/runtime/event_normalizer.sh"
 . "${KROOT}/lib/runtime/ksl_hook.sh"
+. "${KROOT}/lib/runtime/session_heat_engine.sh"
 
 kao_session_emit() {
     local event_type detail semantic_line ts session_id
@@ -34,6 +35,10 @@ kao_session_emit() {
 }
 
 kao_session_touch() {
+    if [ -f "${STATE_DIR}/session.current" ]; then
+        kao_session_heat_touch
+    fi
+
     kao_session_emit "session-touch" "operator_interaction"
 }
 
@@ -55,6 +60,7 @@ SESSION_ID=${session_id}
 OPENED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOT
 
+    kao_session_heat_init
     kao_session_emit "session-open" "runtime_session_started"
 }
 
@@ -64,6 +70,7 @@ kao_session_close() {
         return 0
     fi
 
+    kao_session_heat_close_freeze
     kao_session_emit "session-close" "runtime_session_closed"
     rm -f "${STATE_DIR}/session.current"
 }

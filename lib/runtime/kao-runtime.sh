@@ -22,6 +22,37 @@ kao_runtime_session_current_file() {
   printf '%s/state/runtime/session.current\n' "${KROOT}"
 }
 
+kao_runtime_session_field() {
+  local key="${1:-}"
+  kao_runtime_read_field_from_file "$(kao_runtime_session_current_file)" "${key}"
+}
+
+kao_runtime_format_duration() {
+  local total="${1:-0}"
+  local hours minutes seconds
+
+  case "${total}" in
+    ''|*[!0-9]*)
+      printf 'unknown\n'
+      return 0
+      ;;
+  esac
+
+  hours="$((total / 3600))"
+  minutes="$(((total % 3600) / 60))"
+  seconds="$((total % 60))"
+
+  printf '%02dh:%02dm:%02ds\n' "${hours}" "${minutes}" "${seconds}"
+}
+
+kao_runtime_session_age_seconds() {
+  kao_session_heat_age_seconds
+}
+
+kao_runtime_session_idle_seconds() {
+  kao_session_heat_idle_seconds
+}
+
 kao_runtime_state_require() {
   mkdir -p "${KROOT}/state/runtime"
   touch "$(kao_runtime_state_file)"
@@ -213,6 +244,10 @@ kao_runtime_snapshot_refresh() {
       awk -F= '
         $1=="SESSION_ID" { printf "SNAPSHOT_SESSION_ID=%s\n", substr($0, index($0, "=") + 1) }
         $1=="OPENED_AT" { printf "SNAPSHOT_SESSION_OPENED_AT=%s\n", substr($0, index($0, "=") + 1) }
+        $1=="SESSION_STARTED_AT" { printf "SNAPSHOT_SESSION_STARTED_AT=%s\n", substr($0, index($0, "=") + 1) }
+        $1=="SESSION_LAST_ACTIVITY_AT" { printf "SNAPSHOT_SESSION_LAST_ACTIVITY_AT=%s\n", substr($0, index($0, "=") + 1) }
+        $1=="SESSION_HEAT_LEVEL" { printf "SNAPSHOT_SESSION_HEAT_LEVEL=%s\n", substr($0, index($0, "=") + 1) }
+        $1=="SESSION_MEMORY_CLASS" { printf "SNAPSHOT_SESSION_MEMORY_CLASS=%s\n", substr($0, index($0, "=") + 1) }
         $1=="GATEWAY_PROVIDER" { printf "SNAPSHOT_SESSION_GATEWAY_PROVIDER=%s\n", substr($0, index($0, "=") + 1) }
         $1=="GATEWAY_AGENT" { printf "SNAPSHOT_SESSION_GATEWAY_AGENT=%s\n", substr($0, index($0, "=") + 1) }
       ' "${session_file}"
@@ -224,7 +259,14 @@ kao_runtime_snapshot_refresh() {
 }
 
 kao_runtime_status() {
-  local actor provider level net phase snapshot_status session_id session_provider session_agent
+  local actor provider level net phase snapshot_status
+  local session_id session_provider session_agent
+  local session_started_at session_last_activity_at session_heat_level session_memory_class
+  local session_age_seconds session_idle_seconds session_age_human session_idle_human
+
+  if [ -f "$(kao_runtime_session_current_file)" ]; then
+    kao_session_heat_refresh >/dev/null 2>&1 || true
+  fi
 
   actor="$(kao_runtime_best_field KAO_RUNTIME_ACTIVE_ACTOR 2>/dev/null || printf 'unknown')"
   phase="$(kao_runtime_best_field KAO_RUNTIME_PHASE 2>/dev/null || printf 'unknown')"
@@ -244,14 +286,35 @@ kao_runtime_status() {
   fi
 
   if [ -f "$(kao_runtime_session_current_file)" ]; then
-    session_id="$(awk -F= '$1=="SESSION_ID"{print substr($0,index($0,"=")+1); exit}' "$(kao_runtime_session_current_file)")"
-    session_provider="$(awk -F= '$1=="GATEWAY_PROVIDER"{print substr($0,index($0,"=")+1); exit}' "$(kao_runtime_session_current_file)")"
-    session_agent="$(awk -F= '$1=="GATEWAY_AGENT"{print substr($0,index($0,"=")+1); exit}' "$(kao_runtime_session_current_file)")"
+    session_id="$(kao_runtime_session_field SESSION_ID)"
+    session_provider="$(kao_runtime_session_field GATEWAY_PROVIDER)"
+    session_agent="$(kao_runtime_session_field GATEWAY_AGENT)"
+
+    session_started_at="$(kao_runtime_session_field SESSION_STARTED_AT)"
+    [ -n "${session_started_at}" ] || session_started_at="$(kao_runtime_session_field OPENED_AT)"
+
+    session_last_activity_at="$(kao_runtime_session_field SESSION_LAST_ACTIVITY_AT)"
+    session_heat_level="$(kao_runtime_session_field SESSION_HEAT_LEVEL)"
+    session_memory_class="$(kao_runtime_session_field SESSION_MEMORY_CLASS)"
+
+    session_age_seconds="$(kao_runtime_session_age_seconds)"
+    session_idle_seconds="$(kao_runtime_session_idle_seconds)"
   else
-    session_id="$(kao_runtime_best_field SNAPSHOT_SESSION_ID 2>/dev/null || printf 'none')"
-    session_provider="$(kao_runtime_best_field SNAPSHOT_SESSION_GATEWAY_PROVIDER 2>/dev/null || printf 'none')"
-    session_agent="$(kao_runtime_best_field SNAPSHOT_SESSION_GATEWAY_AGENT 2>/dev/null || printf 'none')"
+    session_id="$(kao_runtime_best_field SNAPSHOT_SESSION_ID || printf 'none')"
+    session_provider="$(kao_runtime_best_field SNAPSHOT_SESSION_GATEWAY_PROVIDER || printf 'none')"
+    session_agent="$(kao_runtime_best_field SNAPSHOT_SESSION_GATEWAY_AGENT || printf 'none')"
+
+    session_started_at="$(kao_runtime_best_field SNAPSHOT_SESSION_STARTED_AT)"
+    session_last_activity_at="$(kao_runtime_best_field SNAPSHOT_SESSION_LAST_ACTIVITY_AT)"
+    session_heat_level="$(kao_runtime_best_field SNAPSHOT_SESSION_HEAT_LEVEL)"
+    session_memory_class="$(kao_runtime_best_field SNAPSHOT_SESSION_MEMORY_CLASS)"
+
+    session_age_seconds="unknown"
+    session_idle_seconds="unknown"
   fi
+
+  session_age_human="$(kao_runtime_format_duration "${session_age_seconds}")"
+  session_idle_human="$(kao_runtime_format_duration "${session_idle_seconds}")"
 
   printf 'RUNTIME STATUS\n'
   printf 'actor             : %s\n' "${actor}"
@@ -263,6 +326,12 @@ kao_runtime_status() {
   printf 'session id        : %s\n' "${session_id}"
   printf 'session provider  : %s\n' "${session_provider}"
   printf 'session agent     : %s\n' "${session_agent}"
+  printf 'session started   : %s\n' "${session_started_at}"
+  printf 'last activity     : %s\n' "${session_last_activity_at}"
+  printf 'session age       : %s\n' "${session_age_human}"
+  printf 'session idle      : %s\n' "${session_idle_human}"
+  printf 'session heat      : %s\n' "${session_heat_level}"
+  printf 'session memory    : %s\n' "${session_memory_class}"
 }
 
 kao_runtime_mode_status() {

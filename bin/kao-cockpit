@@ -1,20 +1,65 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
+KROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+runtime_status="$("${KROOT}/bin/kao" runtime status 2>/dev/null || true)"
+pulse_output="$("${KROOT}/bin/kao-pulse" 2>/dev/null || true)"
+session_status="$("${KROOT}/bin/kao" session status 2>/dev/null || true)"
+consistency_status="$("${KROOT}/bin/kao" consistency status 2>/dev/null || true)"
+
+extract_runtime_field() {
+    local label="${1:-}"
+    printf '%s\n' "${runtime_status}" | awk -F': ' -v label="${label}" '$1 == label {print $2; exit}'
+}
+
+session_id="$(extract_runtime_field 'session id')"
+session_started="$(extract_runtime_field 'session started')"
+last_activity="$(extract_runtime_field 'last activity')"
+session_age="$(extract_runtime_field 'session age')"
+session_idle="$(extract_runtime_field 'session idle')"
+session_heat="$(extract_runtime_field 'session heat')"
+session_memory="$(extract_runtime_field 'session memory')"
+session_provider="$(extract_runtime_field 'session provider')"
+session_agent="$(extract_runtime_field 'session agent')"
+
+[ -n "${session_id:-}" ] || session_id="none"
+[ -n "${session_started:-}" ] || session_started="none"
+[ -n "${last_activity:-}" ] || last_activity="none"
+[ -n "${session_age:-}" ] || session_age="unknown"
+[ -n "${session_idle:-}" ] || session_idle="unknown"
+[ -n "${session_heat:-}" ] || session_heat="none"
+[ -n "${session_memory:-}" ] || session_memory="none"
+[ -n "${session_provider:-}" ] || session_provider="none"
+[ -n "${session_agent:-}" ] || session_agent="none"
 
 echo "KAO COCKPIT"
 echo "==========="
 
 echo
+echo "[THERMAL SESSION]"
+printf 'session id        : %s\n' "${session_id}"
+printf 'session started   : %s\n' "${session_started}"
+printf 'last activity     : %s\n' "${last_activity}"
+printf 'session age       : %s\n' "${session_age}"
+printf 'session idle      : %s\n' "${session_idle}"
+printf 'session heat      : %s\n' "${session_heat}"
+printf 'session memory    : %s\n' "${session_memory}"
+printf 'session provider  : %s\n' "${session_provider}"
+printf 'session agent     : %s\n' "${session_agent}"
+
+echo
 echo "[PULSE]"
-/home/kao/bin/kao-pulse
+printf '%s\n' "${pulse_output}"
 
 echo
 echo "[SESSION]"
-kao session status 2>/dev/null || true
+printf '%s\n' "${session_status}"
 
 echo
 echo "[CONSISTENCY]"
-kao consistency status 2>/dev/null || true
+printf '%s\n' "${consistency_status}"
 
 echo
 echo "[RUNTIME]"
-kao runtime status 2>/dev/null || true
+printf '%s\n' "${runtime_status}"
