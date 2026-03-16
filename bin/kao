@@ -67,6 +67,25 @@ action)
     esac
     ;;
 
+sense)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        capture)
+            python3 "${KROOT}/runtime/kao_sense.py" capture "$*"
+            ;;
+        list)
+            python3 "${KROOT}/runtime/kao_sense.py" list
+            ;;
+        state)
+            python3 "${KROOT}/runtime/kao_sense.py" state
+            ;;
+        *)
+            echo "usage: kao sense [capture|list|state]"
+            ;;
+    esac
+    ;;
+
 ask)
     exec "${KROOT}/bin/brain" infer "$@"
     ;;

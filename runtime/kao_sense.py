@@ -1,34 +1,53 @@
 #!/usr/bin/env python3
 import os
 import sys
-from pathlib import Path
+import json
+import time
 
-HOME = Path.home().resolve()
-PWD = Path.cwd().resolve()
+KROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATE_DIR = os.path.join(KROOT, "state", "sense")
+REGISTRY = os.path.join(STATE_DIR, "signals.log")
 
-def main():
-    print("===== KAO SENSE =====")
-    print(f"HOME ROOT       : {HOME}")
-    print(f"CURRENT PATH    : {PWD}")
+def ensure():
+    os.makedirs(STATE_DIR, exist_ok=True)
 
-    if PWD == HOME:
-        state = "ON_ROOT"
-        suggestion = "already at canonical root"
-    elif str(PWD).startswith(str(HOME) + os.sep):
-        state = "INSIDE_ROOT"
-        suggestion = "inside canonical root"
-    else:
-        state = "DRIFT"
-        suggestion = f"cd {HOME}"
+def capture(msg):
+    ensure()
+    event = {
+        "ts": int(time.time()),
+        "type": "operator",
+        "message": msg
+    }
+    with open(REGISTRY, "a") as f:
+        f.write(json.dumps(event) + "\n")
+    print("sense captured")
 
-    print(f"STATE           : {state}")
-    print(f"SUGGESTION      : {suggestion}")
+def list_signals():
+    ensure()
+    if not os.path.exists(REGISTRY):
+        print("no signals")
+        return
+    with open(REGISTRY) as f:
+        for line in f:
+            print(line.strip())
 
-    try:
-        relative = PWD.relative_to(HOME)
-        print(f"RELATIVE PATH   : /{relative}")
-    except ValueError:
-        print("RELATIVE PATH   : outside /home/kao")
+def state():
+    ensure()
+    count = 0
+    if os.path.exists(REGISTRY):
+        with open(REGISTRY) as f:
+            count = len(f.readlines())
+    print("sense_state")
+    print("signals:", count)
 
 if __name__ == "__main__":
-    main()
+    cmd = sys.argv[1] if len(sys.argv) > 1 else None
+
+    if cmd == "capture":
+        capture(" ".join(sys.argv[2:]))
+    elif cmd == "list":
+        list_signals()
+    elif cmd == "state":
+        state()
+    else:
+        print("usage: sense [capture|list|state]")
