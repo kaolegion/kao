@@ -25,12 +25,17 @@ presence)
     sub="${1:-}"
     shift || true
     case "${sub}" in
-        state)
-            python3 "${KROOT}/runtime/kao_presence.py" state
-            ;;
-        *)
-            python3 "${KROOT}/runtime/kao_presence.py"
-            ;;
+        state) python3 "${KROOT}/runtime/kao_presence.py" state ;;
+        *) python3 "${KROOT}/runtime/kao_presence.py" ;;
+    esac
+    ;;
+
+stream)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        state) python3 "${KROOT}/runtime/kao_stream.py" state ;;
+        *) python3 "${KROOT}/runtime/kao_stream.py" ;;
     esac
     ;;
 

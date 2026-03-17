@@ -1,0 +1,40 @@
+{
+  "presence": {
+    "events": 13,
+    "intensity": 0.0024952015355086373,
+    "workspace": "/home/kao",
+    "top_priority": "goal_4af38f44"
+  },
+  "pulse": {
+    "events": 13,
+    "recency": 5210,
+    "intensity": 0.0024952015355086373
+  },
+  "last_events": [
+    {
+      "ts": 1773699202,
+      "type": "signal",
+      "ref": "day4_e2e_signal_2"
+    },
+    {
+      "ts": 1773699504,
+      "type": "action",
+      "ref": "action_c9a50995"
+    },
+    {
+      "ts": 1773699504,
+      "type": "feedback",
+      "ref": "action_c9a50995"
+    },
+    {
+      "ts": 1773699553,
+      "type": "action",
+      "ref": "action_c9a50995"
+    },
+    {
+      "ts": 1773699553,
+      "type": "feedback",
+      "ref": "action_c9a50995"
+    }
+  ]
+}
