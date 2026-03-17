@@ -20,32 +20,12 @@ timeline) python3 "${KROOT}/runtime/kao_timeline.py" "$@" ;;
 pulse) python3 "${KROOT}/runtime/kao_pulse.py" "$@" ;;
 workspace) python3 "${KROOT}/runtime/kao_workspace.py" "$@" ;;
 tools) python3 "${KROOT}/runtime/kao_tools.py" "$@" ;;
+presence) python3 "${KROOT}/runtime/kao_presence.py" "$@" ;;
+stream) python3 "${KROOT}/runtime/kao_stream.py" "$@" ;;
+surface) python3 "${KROOT}/runtime/kao_surface.py" "$@" ;;
 
-presence)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        state) python3 "${KROOT}/runtime/kao_presence.py" state ;;
-        *) python3 "${KROOT}/runtime/kao_presence.py" ;;
-    esac
-    ;;
-
-stream)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        state) python3 "${KROOT}/runtime/kao_stream.py" state ;;
-        *) python3 "${KROOT}/runtime/kao_stream.py" ;;
-    esac
-    ;;
-
-surface)
-    sub="${1:-}"
-    shift || true
-    case "${sub}" in
-        state) python3 "${KROOT}/runtime/kao_surface.py" state ;;
-        *) python3 "${KROOT}/runtime/kao_surface.py" ;;
-    esac
+cockpit)
+    python3 "${KROOT}/runtime/kao_cockpit.py"
     ;;
 
 ask)
