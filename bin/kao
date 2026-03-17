@@ -39,6 +39,15 @@ stream)
     esac
     ;;
 
+surface)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        state) python3 "${KROOT}/runtime/kao_surface.py" state ;;
+        *) python3 "${KROOT}/runtime/kao_surface.py" ;;
+    esac
+    ;;
+
 ask)
     exec "${KROOT}/bin/brain" infer "$@"
     ;;
