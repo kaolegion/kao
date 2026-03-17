@@ -19,9 +19,19 @@ priority) python3 "${KROOT}/runtime/kao_priority.py" "$@" ;;
 timeline) python3 "${KROOT}/runtime/kao_timeline.py" "$@" ;;
 pulse) python3 "${KROOT}/runtime/kao_pulse.py" "$@" ;;
 workspace) python3 "${KROOT}/runtime/kao_workspace.py" "$@" ;;
+tools) python3 "${KROOT}/runtime/kao_tools.py" "$@" ;;
 
-tools)
-    python3 "${KROOT}/runtime/kao_tools.py"
+presence)
+    sub="${1:-}"
+    shift || true
+    case "${sub}" in
+        state)
+            python3 "${KROOT}/runtime/kao_presence.py" state
+            ;;
+        *)
+            python3 "${KROOT}/runtime/kao_presence.py"
+            ;;
+    esac
     ;;
 
 ask)
