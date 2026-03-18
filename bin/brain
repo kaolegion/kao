@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
+AGENT_CONTEXT_LIB="${KROOT}/lib/agents/context_builder.sh"
 
 if [ ! -f "${ROUTER_LIB}" ]; then
   printf 'BRAIN_ERROR gateway router missing: %s\n' "${ROUTER_LIB}" >&2
@@ -12,6 +13,9 @@ fi
 
 # shellcheck disable=SC1090
 . "${ROUTER_LIB}"
+
+# shellcheck disable=SC1090
+[ -f "${AGENT_CONTEXT_LIB}" ] && . "${AGENT_CONTEXT_LIB}"
 
 brain_usage() {
   printf 'Usage:\n'
@@ -28,8 +32,15 @@ case "${mode}" in
       brain_usage >&2
       exit 1
     fi
+
     query="$*"
-    gateway_infer "${query}"
+
+    if declare -F kao_agent_context_build >/dev/null 2>&1; then
+        context="$(kao_agent_context_build)"
+        gateway_infer "${context}${query}"
+    else
+        gateway_infer "${query}"
+    fi
     ;;
   help|-h|--help)
     brain_usage
