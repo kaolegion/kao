@@ -305,3 +305,31 @@ Continuity is the ultimate product signal.
 
 A long-living Kao is a trusted Kao.
 
+
+---
+
+## 11 — Kao-OS-One doctrinal core
+
+The Kao-OS-One doctrinal core defines the sovereign cognitive architecture of Kao.
+
+It is structured as atomic canonical documents:
+
+- `docs/kao-os-one/01-frontier.md`
+- `docs/kao-os-one/02-manifeste.md`
+- `docs/kao-os-one/03-runtime.md`
+- `docs/kao-os-one/04-agents-cosmos.md`
+- `docs/kao-os-one/05-ux-surfaces.md`
+- `docs/kao-os-one/06-memory.md`
+- `docs/kao-os-one/07-capabilities.md`
+- `docs/kao-os-one/08-architecture-canonique.md`
+
+These documents define:
+
+- sovereign execution hierarchy
+- cognitive lifecycle
+- capability evolution logic
+- multi-surface UX doctrine
+- agent and cosmos orchestration
+- canonical system layering
+
+They represent the progressive stabilization of Kao as a cognitive operating system.

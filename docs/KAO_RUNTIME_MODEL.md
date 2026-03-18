@@ -458,3 +458,59 @@ This artifact is considered:
 - ephemeral runtime state
 - non-versioned diagnostic perception data
 
+
+---
+
+## Runtime thinking layer
+
+Kao runtime now formally introduces an internal thinking phase.
+
+Thinking is a transient cognitive runtime activity.
+
+It exists between:
+
+- cognitive perception
+- execution intention
+
+The canonical cognitive execution chain becomes:
+
+signal
+→ perception
+→ cognition
+→ thinking
+→ intention
+→ routing
+→ dispatch
+→ execution
+→ observation
+→ memory
+
+Thinking may:
+
+- simulate execution paths
+- expose ambiguity
+- delay unsafe action
+- refine intention
+- prepare strategic routing
+
+Thinking must remain:
+
+- lightweight
+- observable
+- append-only in trace form
+- non-blocking for simple deterministic actions
+- independent from heavy external intelligence
+
+Thinking does not replace routing.
+
+Router still decides the execution path.
+
+Thinking prepares intention.
+
+Thinking traces may use the canonical signal format:
+
+ts|kao|thinking|state|payload
+
+This phase enables future adaptive routing,
+operator-aligned cognition and controlled autonomy evolution.
+

@@ -7,6 +7,7 @@ TIMELINE_FILE="${STATE_DIR}/session.timeline"
 . "${KROOT}/lib/runtime/event_normalizer.sh"
 . "${KROOT}/lib/runtime/ksl_hook.sh"
 . "${KROOT}/lib/runtime/session_heat_engine.sh"
+. "${KROOT}/lib/runtime/live_capture.sh"
 
 kao_session_emit() {
     local event_type detail semantic_line ts session_id
@@ -62,6 +63,7 @@ EOT
 
     kao_session_heat_init
     kao_session_emit "session-open" "runtime_session_started"
+    kao_live_capture_session_open "runtime_session_started"
 }
 
 kao_session_close() {
@@ -72,6 +74,7 @@ kao_session_close() {
 
     kao_session_heat_close_freeze
     kao_session_emit "session-close" "runtime_session_closed"
+    kao_live_capture_session_close "runtime_session_closed"
     . "${KROOT}/lib/runtime/session_memory_writer.sh"
     kao_session_memory_write
 
