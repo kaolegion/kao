@@ -29,6 +29,10 @@ kao_cli_live_capture_finalize() {
 kao_live_capture_command_start "${cmd:-empty}"
 trap 'kao_cli_live_capture_finalize' EXIT
 
+source "${KROOT}/lib/router/router_dispatch.sh" 2>/dev/null || true
+source "${KROOT}/lib/router/router_intent_probe.sh" 2>/dev/null || true
+router_intent_probe "${cmd:-empty}"
+
 
 # =========================
 # 1 — COMMANDES VITALES

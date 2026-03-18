@@ -15,13 +15,6 @@ router_behavior_compute() {
         network="ONLINE"
     else
         network="OFFLINE"
-
-    # fallback network probe
-    if [ "${network}" = "OFFLINE" ]; then
-        if ping -c1 -W1 1.1.1.1 >/dev/null 2>&1; then
-            network="ONLINE"
-        fi
-    fi
     fi
 
     case "${network}-${heat}" in
