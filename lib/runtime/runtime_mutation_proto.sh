@@ -94,9 +94,74 @@ kao_mutation_proto_simulate() {
 }
 
 kao_mutation_proto_apply() {
-  printf 'RAY_ERROR mutate apply not implemented yet\n' >&2
-  return 1
+  local target txid archive_dir applied_at
+
+  [ -f "${MUTATION_PLAN_FILE}" ] || {
+    printf "RAY_ERROR no mutation plan
+" >&2
+    return 1
+  }
+
+  target="$(kao_mutation_proto_plan_target)"
+  [ -e "${target}" ] || {
+    printf "RAY_ERROR target not found
+" >&2
+    return 1
+  }
+
+  txid="$(kao_runtime_mutation_begin)" || return 1
+
+  archive_dir="${MUTATION_ARCHIVE_DIR}/${txid}"
+  mkdir -p "${archive_dir}"
+
+  cp -a "${target}" "${archive_dir}/preimage" || {
+    printf "RAY_ERROR archive failed
+" >&2
+    return 1
+  }
+
+  printf "# mutation-test-tx
+" >> "${target}"
+
+  kao_runtime_mutation_commit "${txid}" || {
+    printf "RAY_ERROR commit failed
+" >&2
+    return 1
+  }
+
+  applied_at="$(kao_mutation_proto_now_utc)"
+
+  {
+    printf "FORMAT_VERSION=1
+"
+    printf "TXID=%s
+" "${txid}"
+    printf "TARGET=%s
+" "${target}"
+    printf "ARCHIVE_DIR=%s
+" "${archive_dir}"
+    printf "APPLIED_AT=%s
+" "${applied_at}"
+    printf "STATUS=success
+"
+  } > "${archive_dir}/manifest"
+
+  {
+    printf "LAST_ACTION=apply-success
+"
+    printf "LAST_TARGET=%s
+" "${target}"
+    printf "LAST_AT=%s
+" "${applied_at}"
+  } > "${MUTATION_LAST_FILE}"
+
+  printf "MUTATION APPLIED SUCCESSFULLY
+"
+  printf "txid    : %s
+" "${txid}"
 }
+
+
 
 kao_mutation_proto_abort() {
   kao_mutation_proto_reset_plan
@@ -111,6 +176,55 @@ kao_mutation_proto_abort() {
 }
 
 kao_mutation_proto_rollback() {
-  printf 'RAY_ERROR mutate rollback not implemented yet\n' >&2
-  return 1
+  local last_manifest target archive_dir txid rollback_at
+
+  last_manifest="$(grep -l "STATUS=success" ${MUTATION_ARCHIVE_DIR}/*/manifest | tail -n1)"
+  [ -n "${last_manifest}" ] || {
+    printf "RAY_ERROR no successful mutation found
+" >&2
+    return 1
+  }
+
+  txid="$(sed -n "s/^TXID=//p" "${last_manifest}")"
+  target="$(sed -n "s/^TARGET=//p" "${last_manifest}")"
+  archive_dir="$(sed -n "s/^ARCHIVE_DIR=//p" "${last_manifest}")"
+
+  [ -e "${archive_dir}/preimage" ] || {
+    printf "RAY_ERROR preimage missing
+" >&2
+    return 1
+  }
+
+  kao_runtime_mutation_begin || return 1
+
+  cp -a "${archive_dir}/preimage" "${target}" || {
+    printf "RAY_ERROR restore failed
+" >&2
+    return 1
+  }
+
+  kao_runtime_mutation_commit "${txid}" || {
+    printf "RAY_ERROR rollback commit failed
+" >&2
+    return 1
+  }
+
+  rollback_at="$(kao_mutation_proto_now_utc)"
+
+  sed -i "s/STATUS=success/STATUS=rolled_back/" "${last_manifest}"
+
+  {
+    printf "LAST_ACTION=rollback
+"
+    printf "LAST_TARGET=%s
+" "${target}"
+    printf "LAST_AT=%s
+" "${rollback_at}"
+  } > "${MUTATION_LAST_FILE}"
+
+  printf "MUTATION ROLLED BACK
+"
+  printf "txid : %s
+" "${txid}"
 }
+
