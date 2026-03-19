@@ -36,7 +36,9 @@ COMMANDS
   ray session close            close current runtime session and archive it
   ray session history          show recent closed sessions
   ray session timeline         show canonical session event timeline
-  ray timeline <subcommand>    query canonical session timeline with cognitive filters
+  ray timeline <subcommand>
+  ray ask-grounded "<prompt>"
+  ray mission "<task>"    query canonical session timeline with cognitive filters
   ray system inspect           inspect canonical local system paths safely
   ray system repair            repair ownership and mode drift on canonical local paths
   ray system repair --dry-run  preview ownership and mode repair actions safely
@@ -225,6 +227,8 @@ ray_ask() {
     llm-light|llm-heavy)
       selected_provider="$(gateway_provider_select)"
       printf 'PROVIDER: %s\n' "${selected_provider}"
+      printf '\n'
+      ray_run_gateway "${prompt}"
       ;;
     *)
       printf 'PROVIDER: none\n'
@@ -249,7 +253,7 @@ ray_run_gateway() {
   selected_provider="$(gateway_provider_select)"
 
   kao_session_touch "${selected_provider}" "gateway-router,brain-infer" "action=execution-gateway"
-  kao_session_render_breathing
+  type kao_session_render_breathing >/dev/null 2>&1 && kao_session_render_breathing
   printf '\n'
 
   exec "${KROOT}/bin/brain" infer "${prompt}"
@@ -261,7 +265,7 @@ ray_run_local() {
 
   kao_session_touch "local-shell" "intent-router,execution-bridge,local-shell" "action=execution-local-shell"
   printf 'RAY RUN\n'
-  kao_session_render_breathing
+  type kao_session_render_breathing >/dev/null 2>&1 && kao_session_render_breathing
   printf '\n'
   printf 'local shell execution placeholder\n'
   printf 'prompt    : %s\n' "${prompt}"
@@ -470,3 +474,51 @@ main() {
 }
 
 main "$@"
+
+ray_ask_grounded() {
+  local prompt context grounded_prompt
+
+  if [ "$#" -eq 0 ]; then
+    printf 'RAY_ERROR missing prompt\n' >&2
+    return 1
+  fi
+
+  prompt="$*"
+
+  context="$(ray_timeline_query_last 20 2>/dev/null)"
+
+  grounded_prompt="Recent runtime context:
+${context}
+
+Operator question:
+${prompt}"
+
+  printf 'RAY ASK-GROUNDED\n'
+  printf '--- context injected ---\n'
+  printf '%s\n' "${context}"
+  printf '------------------------\n\n'
+
+  ray_run_gateway "${grounded_prompt}"
+}
+
+ray_mission() {
+  local prompt task_id
+
+  if [ "$#" -eq 0 ]; then
+    printf 'RAY_ERROR missing mission description\n' >&2
+    return 1
+  fi
+
+  prompt="$*"
+
+  kao_agent_task_attach
+  task_id="$(kao_agent_task_current_read)"
+
+  printf 'RAY MISSION\n'
+  printf 'task_id : %s\n' "${task_id}"
+  printf 'mission : %s\n\n' "${prompt}"
+
+  kao_session_emit "mission-start" "task=${task_id}"
+
+  ray_run_gateway "Mission assigned: ${prompt}"
+}

@@ -68,3 +68,35 @@ elif [ "${1:-}" = "append" ]; then
   shift
   kao_normalize_and_append "${*:-}"
 fi
+
+# --- timeline semantic compatibility layer ---
+
+kao_event_enrich_detail() {
+  local event_type="${1:-unknown}"
+  local detail="${2:-none}"
+
+  # minimal semantic fallback
+  local family="runtime_activity"
+  local scope="system"
+  local intensity="passive"
+  local surface="operator"
+
+  case "${event_type}" in
+    session-open|session-close)
+      family="session_lifecycle"
+      scope="environment"
+      intensity="narrative"
+      surface="system"
+      ;;
+    session-touch)
+      family="operator_surface"
+      scope="operator"
+      intensity="passive"
+      surface="operator"
+      ;;
+  esac
+
+  printf '%s;family=%s;scope=%s;intensity=%s;surface=%s\n' \
+    "${detail}" "${family}" "${scope}" "${intensity}" "${surface}"
+}
+
