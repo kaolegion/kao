@@ -32,3 +32,4 @@ state/test-output/
 config/user*
 state/archive/
 state/runtime/.tx.backup/
+state/
