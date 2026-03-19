@@ -462,6 +462,38 @@ ray_doctor() {
   printf '\nMinimal cognitive diagnostic complete.\n'
 }
 
+# --- MUTATION PROTO NAMESPACE (SPRINT DEV 4.1) ---
+ray_mutate() {
+  local sub="${1:-}"
+  shift || true
+  source "${KROOT}/lib/runtime/runtime_mutation_proto.sh"
+  case "${sub}" in
+    propose)
+      kao_mutation_proto_write_plan "$@"
+      ;;
+    simulate)
+      kao_mutation_proto_simulate "$@"
+      ;;
+    abort)
+      kao_mutation_proto_abort "$@"
+      ;;
+    apply)
+      kao_mutation_proto_apply "$@"
+      ;;
+    rollback)
+      kao_mutation_proto_rollback "$@"
+      ;;
+    *)
+      printf "RAY_ERROR unknown mutate subcommand
+" >&2
+      printf "available : propose simulate apply abort rollback
+" >&2
+      return 1
+      ;;
+  esac
+}
+
+
 main() {
   local command
 
@@ -471,6 +503,11 @@ main() {
   fi
 
   case "${1}" in
+    mutate)
+      shift
+      ray_mutate "$@"
+      ;;
+
     doctor)
       ;;
     install)
@@ -588,6 +625,8 @@ ray_mission() {
 
   ray_run_gateway "Mission assigned: ${prompt}"
 }
+
+
 
 
 
