@@ -302,6 +302,10 @@ ray_run() {
 ray_session() {
   case "${1:-status}" in
   doctor)
+      ;;
+    install)
+      shift
+      ray_install "$@"
     shift
     ray_doctor "$@"
     ;;
@@ -409,6 +413,31 @@ ray_system_repair() {
 }
 
 
+
+ray_install() {
+  target="${1:-}"
+
+  if [ -z "$target" ]; then
+    echo "usage: ray install <target-dir>"
+    return 1
+  fi
+
+  echo "[ray] installing to $target"
+
+  mkdir -p "$target"
+
+  cp -r "${KROOT}/bin" "$target/"
+  cp -r "${KROOT}/lib" "$target/"
+  cp -r "${KROOT}/docs" "$target/" 2>/dev/null || true
+
+  mkdir -p "$target/state/runtime"
+  mkdir -p "$target/logs"
+
+  ln -sf "$target/bin/ray" "$target/ray"
+
+  echo "[ray] install complete"
+}
+
 ray_doctor() {
   printf 'RAY DOCTOR\n\n'
 
@@ -443,6 +472,10 @@ main() {
 
   case "${1}" in
     doctor)
+      ;;
+    install)
+      shift
+      ray_install "$@"
       shift
       ray_doctor "$@"
       ;;
