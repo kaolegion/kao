@@ -301,6 +301,10 @@ ray_run() {
 
 ray_session() {
   case "${1:-status}" in
+  doctor)
+    shift
+    ray_doctor "$@"
+    ;;
     status)
       shift || true
       kao_session_render_status "$@"
@@ -404,6 +408,31 @@ ray_system_repair() {
   kao_system_repair_operator_surface "$@"
 }
 
+
+ray_doctor() {
+  printf 'RAY DOCTOR\n\n'
+
+  printf '[check] ray root .......... '
+  [ -d "${KROOT}/lib" ] && echo ok || echo missing
+
+  printf '[check] router gateway .... '
+  type gateway_provider_select >/dev/null 2>&1 && echo ok || echo missing
+
+  printf '[check] intent router ..... '
+  type intent_classify >/dev/null 2>&1 && echo ok || echo missing
+
+  printf '[check] session manager ... '
+  type kao_session_touch >/dev/null 2>&1 && echo ok || echo missing
+
+  printf '[check] runtime state ..... '
+  [ -d "${KROOT}/state/runtime" ] && echo ok || echo missing
+
+  printf '[check] timeline query .... '
+  type timeline_query >/dev/null 2>&1 && echo ok || echo missing
+
+  printf '\nMinimal cognitive diagnostic complete.\n'
+}
+
 main() {
   local command
 
@@ -413,6 +442,10 @@ main() {
   fi
 
   case "${1}" in
+    doctor)
+      shift
+      ray_doctor "$@"
+      ;;
     status)
       shift
       ray_status "$@"
@@ -522,3 +555,18 @@ ray_mission() {
 
   ray_run_gateway "Mission assigned: ${prompt}"
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
