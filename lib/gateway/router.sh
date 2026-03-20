@@ -384,7 +384,7 @@ gateway_provider_detected() {
 }
 
 gateway_provider_select() {
-  local forced_provider forced_state
+  local forced_provider forced_state p
   gateway_require_providers
   gateway_load_secrets silent >/dev/null 2>&1 || true
 
@@ -392,26 +392,46 @@ gateway_provider_select() {
   forced_state="$(gateway_forced_provider_state)"
 
   if [ "${forced_provider}" != "none" ]; then
-    printf '%s\n' "${forced_provider}"
+    p="${forced_provider}"
+    if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
+      p="$(kao_kernel_validate_provider "${p}")"
+    fi
+    printf '%s\n' "${p}"
     return 0
   fi
 
   if [ -n "${KAO_GATEWAY_PROVIDER:-}" ] && [ "${forced_state}" = "unsupported" ]; then
-    printf 'none\n'
+    p="none"
+    if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
+      p="$(kao_kernel_validate_provider "${p}")"
+    fi
+    printf '%s\n' "${p}"
     return 0
   fi
 
   if gateway_provider_mistral_available; then
-    printf 'mistral\n'
+    p="mistral"
+    if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
+      p="$(kao_kernel_validate_provider "${p}")"
+    fi
+    printf '%s\n' "${p}"
     return 0
   fi
 
   if gateway_provider_ollama_available; then
-    printf 'ollama\n'
+    p="ollama"
+    if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
+      p="$(kao_kernel_validate_provider "${p}")"
+    fi
+    printf '%s\n' "${p}"
     return 0
   fi
 
-  printf 'none\n'
+  p="none"
+  if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
+    p="$(kao_kernel_validate_provider "${p}")"
+  fi
+  printf '%s\n' "${p}"
 }
 
 gateway_selected_route() {

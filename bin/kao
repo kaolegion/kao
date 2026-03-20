@@ -14,10 +14,7 @@ shift || true
 kao_cli_live_capture_finalize() {
     local rc=$?
     local live_name="${cmd:-empty}"
-
-    case "${live_name}" in
-        "" ) live_name="empty" ;;
-    esac
+    [ -z "${live_name}" ] && live_name="empty"
 
     if [ "${rc}" -eq 0 ]; then
         kao_live_capture_command_end "${live_name}"
@@ -29,119 +26,13 @@ kao_cli_live_capture_finalize() {
 kao_live_capture_command_start "${cmd:-empty}"
 trap 'kao_cli_live_capture_finalize' EXIT
 
-source "${KROOT}/lib/router/router_dispatch.sh" 2>/dev/null || true
-source "${KROOT}/lib/router/router_intent_probe.sh" 2>/dev/null || true
-router_intent_probe "${cmd:-empty}"
-
-
-# =========================
-# 1 — COMMANDES VITALES
-# =========================
-
 case "${cmd}" in
-
-help)
-    echo "KAO — sovereign terminal dispatcher"
-    echo
-    echo "VITAL"
-    echo "  help doctrine status ask run"
-    echo
-    echo "ORGANS"
-    echo "  memory goal action sense feedback priority"
-    echo "  timeline pulse workspace tools presence stream surface"
-    echo
-    echo "SURFACE"
-    echo "  cockpit"
-    echo
-    echo "FALLBACK"
-    echo "  kao-<cmd> if executable"
-    exit 0
-    ;;
-
-doctrine)
-    kao_doctrine_show
-    exit 0
-    ;;
-
-status)
-    "${KROOT}/bin/kao-status" "$@"
-    exit 0
-    ;;
-
 ask)
-    "${KROOT}/bin/brain" infer "$@"
+    response="$("${KROOT}/bin/brain" infer "$@")"
+    echo "[KAO sovereign cognition]"
+    echo "${response}"
     exit 0
     ;;
-
-run)
-    if command -v ray >/dev/null 2>&1; then
-        ray run "$@"
-        exit 0
-    else
-        echo "ray not available"
-        exit 1
-    fi
-    ;;
-
 esac
 
-
-# =========================
-# 2 — ORGANES HISTORIQUES
-# =========================
-
-case "${cmd}" in
-memory) python3 "${KROOT}/runtime/kao_memory.py" "$@" ; exit 0 ;;
-goal) python3 "${KROOT}/runtime/kao_goal.py" "$@" ; exit 0 ;;
-action) python3 "${KROOT}/runtime/kao_action.py" "$@" ; exit 0 ;;
-sense) python3 "${KROOT}/runtime/kao_sense.py" "$@" ; exit 0 ;;
-feedback) python3 "${KROOT}/runtime/kao_feedback.py" "$@" ; exit 0 ;;
-priority) python3 "${KROOT}/runtime/kao_priority.py" "$@" ; exit 0 ;;
-timeline) python3 "${KROOT}/runtime/kao_timeline.py" "$@" ; exit 0 ;;
-pulse) python3 "${KROOT}/runtime/kao_pulse.py" "$@" ; exit 0 ;;
-workspace) python3 "${KROOT}/runtime/kao_workspace.py" "$@" ; exit 0 ;;
-tools) python3 "${KROOT}/runtime/kao_tools.py" "$@" ; exit 0 ;;
-presence) python3 "${KROOT}/runtime/kao_presence.py" "$@" ; exit 0 ;;
-stream) python3 "${KROOT}/runtime/kao_stream.py" "$@" ; exit 0 ;;
-surface) python3 "${KROOT}/runtime/kao_surface.py" "$@" ; exit 0 ;;
-cockpit) python3 "${KROOT}/runtime/kao_cockpit.py" ; exit 0 ;;
-esac
-
-
-# =========================
-# 3 — FALLBACK ORGANIQUE
-# =========================
-
-if [ -n "${cmd}" ] && [ -x "${KROOT}/bin/kao-${cmd}" ]; then
-    "${KROOT}/bin/kao-${cmd}" "$@"
-    exit 0
-fi
-
-
-# =========================
-# 4 — RACCOURCI OPERATOIRE
-# =========================
-
-if [ -n "${cmd}" ] && [ "$#" -gt 0 ]; then
-    if command -v ray >/dev/null 2>&1; then
-        ray run "${cmd} $*"
-        exit 0
-    fi
-fi
-
-
-# =========================
-# 5 — ERREUR PROPRE
-# =========================
-
-if [ -z "${cmd}" ]; then
-    echo "KAO — sovereign terminal dispatcher"
-    echo
-    echo "try: kao help"
-    exit 0
-fi
-
-echo "Unknown command: ${cmd}"
-echo "try: kao help"
-exit 1
-
+exec "${SCRIPT_DIR}/kao" "$cmd" "$@"

@@ -18,6 +18,15 @@ kao_runtime_snapshot_file() {
   printf '%s/state/runtime/runtime.snapshot\n' "${KROOT}"
 }
 
+kao_kernel_validate_provider() {
+  local proposed="${1:-none}"
+
+  # V0 authority policy:
+  # - passthrough decision from Ray/gateway
+  # - future sovereign policy engine can override here
+  printf '%s\n' "${proposed}"
+}
+
 kao_runtime_session_current_file() {
   printf '%s/state/runtime/session.current\n' "${KROOT}"
 }

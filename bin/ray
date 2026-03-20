@@ -7,6 +7,12 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # shellcheck disable=SC1091
 . "${KROOT}/lib/gateway/router.sh"
 # shellcheck disable=SC1091
+source "${KROOT}/lib/runtime/kao-runtime.sh"
+
+# ---- KAO ROUTER AUTHORITY ----
+kao_router_refresh_connectivity || true
+kao_router_apply_gateway_decision || true
+# --------------------------------
 . "${KROOT}/lib/cognition/intent_router.sh"
 # shellcheck disable=SC1091
 . "${KROOT}/lib/cognition/execution_bridge.sh"
@@ -15,6 +21,10 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # shellcheck disable=SC1091
 . "${KROOT}/lib/system/system_inspector.sh"
 # shellcheck disable=SC1091
+# ---- KAO ROUTER AUTHORITY ----
+kao_router_refresh_connectivity || true
+kao_router_apply_gateway_decision || true
+# --------------------------------
 . "${KROOT}/lib/runtime/session_manager.sh"
 # shellcheck disable=SC1091
 . "${KROOT}/lib/runtime/timeline_query.sh"

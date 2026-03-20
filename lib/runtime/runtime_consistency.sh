@@ -3,6 +3,10 @@
 KROOT="${KROOT:-/home/kao}"
 RUNTIME_DIR="${KROOT}/state/runtime"
 
+# connect real recovery layer
+source "${KROOT}/lib/runtime/runtime_recovery.sh"
+source "${KROOT}/lib/runtime/runtime_transaction.sh"
+
 check_transaction_integrity() {
   local txdir="${RUNTIME_DIR}/.tx"
   [ -d "${txdir}" ] || return 0
@@ -34,19 +38,12 @@ check_transaction_integrity() {
 
     case "${state}:${barrier}" in
       committed:none)
-        if [ "${resource_count}" = "0" ]; then
-          :
-        else
-          return 1
-        fi
+        [ "${resource_count}" = "0" ] || return 1
         ;;
       committed:applied|aborted:reverted|rolled_back:reverted)
-        :
         ;;
       open:none|open:staged)
-        if [ "${resource_count}" != "${manifest_count}" ]; then
-          return 1
-        fi
+        [ "${resource_count}" = "${manifest_count}" ] || return 1
         ;;
       committing:staged|committing:apply-ready)
         return 1
@@ -55,7 +52,6 @@ check_transaction_integrity() {
         return 1
         ;;
       aborted:*|rolled_back:*)
-        :
         ;;
       *)
         return 1
@@ -67,19 +63,16 @@ check_transaction_integrity() {
       [ -f "${wal_file}" ] || return 1
     fi
   done
-
-  return 0
 }
 
 check_wal_integrity() {
   local journal="${RUNTIME_DIR}/runtime.journal"
   [ -f "${journal}" ] || return 0
   grep -q "PENDING" "${journal}" && return 1
-  return 0
 }
 
 check_recovery_safety() {
-  "${KROOT}/lib/runtime/runtime_recovery.sh" --dry-run >/dev/null 2>&1
+  kao_runtime_transaction_recover_all >/dev/null 2>&1
 }
 
 check_runtime_writable() {
@@ -97,7 +90,7 @@ kao_runtime_consistency_run() {
 
   ! check_transaction_integrity && level="BROKEN" && report+=("transaction integrity violation") || report+=("transaction integrity : OK")
   ! check_wal_integrity && level="BROKEN" && report+=("wal ordering violation") || report+=("wal integrity : OK")
-  ! check_recovery_safety && level="BROKEN" && report+=("recovery safety violation") || report+=("recovery dry-run : OK")
+  ! check_recovery_safety && level="BROKEN" && report+=("recovery safety violation") || report+=("recovery engine : OK")
   ! check_runtime_writable && level="BROKEN" && report+=("runtime not writable") || report+=("runtime writable : OK")
   ! check_state_syntax && level="BROKEN" && report+=("runtime.state syntax invalid") || report+=("runtime.state syntax : OK")
 
