@@ -88,6 +88,12 @@ kao_event_enrich_detail() {
       intensity="narrative"
       surface="system"
       ;;
+    cognitive-event)
+      family="cognitive_activity"
+      scope="system"
+      intensity="active"
+      surface="system"
+      ;;
     session-touch)
       family="operator_surface"
       scope="operator"

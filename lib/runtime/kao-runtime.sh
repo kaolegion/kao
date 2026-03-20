@@ -1,3 +1,4 @@
+source "${KROOT}/lib/runtime/authority_policy.sh"
 #!/usr/bin/env bash
 
 KROOT="${KROOT:-/home/kao}"

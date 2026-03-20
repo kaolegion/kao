@@ -80,3 +80,16 @@ kao_session_close() {
 
     rm -f "${STATE_DIR}/session.current"
 }
+
+kao_session_signal_cognitive() {
+    local reason="${1:-cognitive_activity}"
+    "${KROOT}/lib/runtime/live_capture.sh" capture COGNITIVE_EVENT "${reason}"
+}
+
+
+kao_session_emit_cognitive() {
+    local detail="${1:-cognitive_activity}"
+    kao_session_heat_touch
+    kao_session_emit "cognitive-event" "${detail}"
+}
+

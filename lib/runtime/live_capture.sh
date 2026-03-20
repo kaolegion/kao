@@ -46,3 +46,12 @@ kao_live_capture_command_fail() {
   local rc="${2:-1}"
   kao_capture_event "COMMAND_FAIL" "${name}|${rc}"
 }
+
+kao_live_capture_session_open() {
+    return 0
+}
+
+kao_live_capture_session_close() {
+    return 0
+}
+

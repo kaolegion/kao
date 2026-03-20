@@ -47,7 +47,7 @@ kao_session_heat_iso_to_epoch() {
 }
 
 kao_session_heat_session_id() {
-    kao_session_heat_read_field "SESSION_ID" 2>/dev/null || printf 'none\n'
+    kao_session_heat_read_field "SESSION_ID" 2>/dev/null || printf "default_$(date +%s)\n"
 }
 
 kao_session_heat_age_seconds() {
@@ -177,6 +177,9 @@ kao_session_heat_emit_aging() {
     age_seconds="$(kao_session_heat_age_seconds 2>/dev/null || true)"
     idle_seconds="$(kao_session_heat_idle_seconds 2>/dev/null || true)"
     heat_level="$(kao_session_heat_read_field "SESSION_HEAT_LEVEL" 2>/dev/null || true)"
+    load="$(kao_session_heat_read_field SESSION_COGNITIVE_LOAD 2>/dev/null || echo 0)"
+    load="$((load + 1))"
+    kao_session_heat_upsert_field "SESSION_COGNITIVE_LOAD" "${load}"
     memory_class="$(kao_session_heat_read_field "SESSION_MEMORY_CLASS" 2>/dev/null || true)"
 
     [ -n "${age_seconds}" ] || age_seconds="unknown"
@@ -194,11 +197,17 @@ kao_session_heat_init() {
 
     now="$(kao_session_heat_now_utc)"
     previous_heat="$(kao_session_heat_read_field "SESSION_HEAT_LEVEL" 2>/dev/null || true)"
+    load="$(kao_session_heat_read_field SESSION_COGNITIVE_LOAD 2>/dev/null || echo 0)"
+    load="$((load + 1))"
+    kao_session_heat_upsert_field "SESSION_COGNITIVE_LOAD" "${load}"
     previous_memory="$(kao_session_heat_read_field "SESSION_MEMORY_CLASS" 2>/dev/null || true)"
 
     kao_session_heat_upsert_field "SESSION_STARTED_AT" "${now}"
     kao_session_heat_upsert_field "SESSION_LAST_ACTIVITY_AT" "${now}"
     kao_session_heat_upsert_field "SESSION_HEAT_LEVEL" "HOT"
+    load="$(kao_session_heat_read_field SESSION_COGNITIVE_LOAD 2>/dev/null || echo 0)"
+    load="$((load + 1))"
+    kao_session_heat_upsert_field "SESSION_COGNITIVE_LOAD" "${load}"
     kao_session_heat_upsert_field "SESSION_MEMORY_CLASS" "HOT"
 
     kao_session_heat_emit_transition "${previous_heat}" "HOT" "${previous_memory}" "HOT" "session_init"
@@ -210,10 +219,16 @@ kao_session_heat_touch() {
 
     now="$(kao_session_heat_now_utc)"
     previous_heat="$(kao_session_heat_read_field "SESSION_HEAT_LEVEL" 2>/dev/null || true)"
+    load="$(kao_session_heat_read_field SESSION_COGNITIVE_LOAD 2>/dev/null || echo 0)"
+    load="$((load + 1))"
+    kao_session_heat_upsert_field "SESSION_COGNITIVE_LOAD" "${load}"
     previous_memory="$(kao_session_heat_read_field "SESSION_MEMORY_CLASS" 2>/dev/null || true)"
 
     kao_session_heat_upsert_field "SESSION_LAST_ACTIVITY_AT" "${now}"
     kao_session_heat_upsert_field "SESSION_HEAT_LEVEL" "HOT"
+    load="$(kao_session_heat_read_field SESSION_COGNITIVE_LOAD 2>/dev/null || echo 0)"
+    load="$((load + 1))"
+    kao_session_heat_upsert_field "SESSION_COGNITIVE_LOAD" "${load}"
     kao_session_heat_upsert_field "SESSION_MEMORY_CLASS" "HOT"
 
     kao_session_heat_emit_transition "${previous_heat}" "HOT" "${previous_memory}" "HOT" "session_touch"
@@ -224,6 +239,9 @@ kao_session_heat_refresh() {
     local previous_heat previous_memory idle_seconds heat_level memory_class
 
     previous_heat="$(kao_session_heat_read_field "SESSION_HEAT_LEVEL" 2>/dev/null || true)"
+    load="$(kao_session_heat_read_field SESSION_COGNITIVE_LOAD 2>/dev/null || echo 0)"
+    load="$((load + 1))"
+    kao_session_heat_upsert_field "SESSION_COGNITIVE_LOAD" "${load}"
     previous_memory="$(kao_session_heat_read_field "SESSION_MEMORY_CLASS" 2>/dev/null || true)"
 
     idle_seconds="$(kao_session_heat_idle_seconds 2>/dev/null || true)"
@@ -231,6 +249,9 @@ kao_session_heat_refresh() {
     memory_class="$(kao_session_heat_compute_memory_class "${heat_level}")"
 
     kao_session_heat_upsert_field "SESSION_HEAT_LEVEL" "${heat_level}"
+    load="$(kao_session_heat_read_field SESSION_COGNITIVE_LOAD 2>/dev/null || echo 0)"
+    load="$((load + 1))"
+    kao_session_heat_upsert_field "SESSION_COGNITIVE_LOAD" "${load}"
     kao_session_heat_upsert_field "SESSION_MEMORY_CLASS" "${memory_class}"
 
     kao_session_heat_emit_transition "${previous_heat}" "${heat_level}" "${previous_memory}" "${memory_class}" "session_refresh"
