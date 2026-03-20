@@ -61,3 +61,9 @@ When a change significantly affects:
 - architecture direction
 
 it should be considered for inclusion here.
+- Sprint authority kernel validation converged
+- Router authority V0 implemented
+- Mutation engine convergence after rebase conflict
+- Sprint authority kernel validation converged
+- Router authority V0 implemented
+- Mutation engine convergence after rebase conflict
