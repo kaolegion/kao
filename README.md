@@ -299,3 +299,23 @@ Current provider state:
   - `blocked-no-model`
   - `stub-only`
   - `unavailable`
+
+---
+
+## CURRENT ARCHITECTURE STATE (post governance stabilisation)
+
+As of the latest stabilisation sprint:
+
+- **KAO** operates as the sovereign cognitive kernel and runtime authority.
+- **RAY** is currently restored as an operational agent layer interfacing with Kao.
+- Observation commands (e.g. `ray status`) are now read-only and do not trigger runtime mutation.
+- The runtime transaction model and event capture pipeline have been stabilised.
+
+### Next evolution phases
+
+- Extraction of a dedicated system agent (**BLOOM**).
+- Progressive mutation of **RAY** into a standalone kao-like open source distribution.
+- Refinement of test contracts (smoke vs advanced).
+- Further hardening of runtime mutation governance.
+
+This reflects the real current state of the system after recovery from runtime instability.

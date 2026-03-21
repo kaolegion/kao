@@ -199,3 +199,26 @@ Kao should evolve by keeping:
 - observation de la surface opérateur
 - layout terminal fondateur avancé
 - projection web du cockpit terminal
+
+---
+
+## Governance Recovery Milestone (Completed)
+
+- Runtime mutation loop resolved
+- Event capture pipeline stabilised (async + deterministic test mode)
+- Taxonomy alignment completed
+- Ray operational agent surface restored
+- Observation vs mutation rule introduced (readonly status)
+- Repository convergence and governance model recovery
+
+### Next Strategic Phases
+
+1. **Agent Extraction Phase**
+   - Design and introduce dedicated system agent (BLOOM)
+   - Separate operational agent responsibilities from Ray distribution
+
+2. **Ray Distribution Mutation Phase**
+   - Define minimal reproducible Ray organ set
+   - Split e2e contracts into smoke vs advanced
+   - Reduce implicit Kao dependencies
+   - Clarify hybrid runtime and provider scoring surfaces
