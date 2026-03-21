@@ -795,3 +795,20 @@ Router emits cognitive narrative events and exposes behavior in cockpit.
 
 This marks the transition from structural routing to behavioral routing.
 
+
+## Sprint addendum — Canon Architecture Freeze
+
+### Objective
+Freeze the current canonical reading of runtime and router architecture before deeper refactor work.
+
+### Decisions
+- `lib/runtime/kao-runtime.sh` is the current runtime canon candidate.
+- `lib/kao-runtime.sh` is currently treated as a legacy runtime identity layer.
+- `lib/cognition/kao_self_loop.sh` is the cognitive core candidate.
+- `lib/gateway/router.sh` is the gateway control plane, not yet a pure router-core.
+- `lib/gateway/model_registry.sh` is a static registry candidate.
+- `lib/router/router_dispatch.sh` is a transitional dispatch layer.
+
+### Outcome
+Architecture truth is now explicit in documentation before future mutation work.
+

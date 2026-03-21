@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# REKON-BOOTSTRAP-CRITICAL: session semantics depend on upstream runtime library load contract.
+# TODO(REKON-HARDEN): add explicit guard/fallback when kao_event_enrich_detail is unavailable.
+# TODO(REKON-TEST): keep a dedicated unit test for session manager dependency contract.
+
 KROOT="${KROOT:-/home/kao}"
 STATE_DIR="${KROOT}/state/runtime"
 TIMELINE_FILE="${STATE_DIR}/session.timeline"

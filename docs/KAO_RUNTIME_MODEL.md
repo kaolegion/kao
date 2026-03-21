@@ -514,3 +514,21 @@ ts|kao|thinking|state|payload
 This phase enables future adaptive routing,
 operator-aligned cognition and controlled autonomy evolution.
 
+---
+
+## Canonical runtime reading after architecture freeze
+
+The current canonical runtime reading is now:
+
+- runtime canon candidate: `lib/runtime/kao-runtime.sh`
+- legacy runtime identity layer: `lib/kao-runtime.sh`
+- session bootstrap critical layer: `lib/runtime/session_manager.sh`
+
+This means current runtime truth is not read from all historical files equally.
+
+The current execution-oriented runtime source-of-truth candidate is `lib/runtime/kao-runtime.sh`.
+
+The historical identity-oriented runtime layer in `lib/kao-runtime.sh` remains important, but is currently treated as a legacy-compatible layer until deeper canonisation work merges, retires, or isolates it explicitly.
+
+`lib/runtime/session_manager.sh` is a bootstrap-critical layer because session semantics currently depend on upstream library load order and event enrichment availability.
+

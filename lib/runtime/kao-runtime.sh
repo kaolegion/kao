@@ -1,8 +1,12 @@
-source "${KROOT}/lib/runtime/authority_policy.sh"
 #!/usr/bin/env bash
 
 KROOT="${KROOT:-/home/kao}"
 
+# REKON-CANONICAL-RUNTIME-CANDIDATE: current best runtime source-of-truth candidate.
+# TODO(REKON): split responsibilities into runtime-core / connectivity / runtime-cli / signals after canon decision.
+# TODO(REKON-FIX): keep shebang and load-order canonical during runtime core refactor.
+
+source "${KROOT}/lib/runtime/authority_policy.sh"
 source "${KROOT}/lib/runtime/runtime_recovery.sh"
 source "${KROOT}/lib/runtime/runtime_mutation.sh"
 source "${KROOT}/lib/runtime/snapshot_manager.sh"

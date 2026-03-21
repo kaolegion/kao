@@ -194,6 +194,23 @@ Kao must never depend on ambiguity to function.
 
 ---
 
+
+## 11 — Architecture freeze reading
+
+At the current stage of Kao evolution, the architecture must be read through explicit layer status:
+
+- runtime canon candidate
+- cognitive core candidate
+- gateway control plane
+- static registry candidate
+- transitional dispatch layer
+
+Kao must prefer explicit architectural truth over premature simplification.
+
+This rule exists to preserve continuity while the system converges toward a more unified sovereign core.
+
+---
+
 ## Canonical principle
 
 Atomic documents build clarity.

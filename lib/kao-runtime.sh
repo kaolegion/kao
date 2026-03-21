@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# REKON-LEGACY-CANDIDATE: historical runtime identity layer (owner/user/source-runtime model).
+# TODO(REKON): decide whether this file becomes compat-layer, merged identity module, or is retired after canonisation.
+
 kao_runtime_require_context() {
   if [ -z "${KROOT:-}" ]; then
     printf 'ERROR: KROOT is required for runtime context\n' >&2

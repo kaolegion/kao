@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# REKON-STATIC-REGISTRY-CANDIDATE: current embedded strategic provider catalog and scoring table.
+# TODO(REKON): evolve toward a dynamic registry engine once runtime observability and provider telemetry are canonical.
+# TODO(REKON-TEST): preserve registry score ordering and selected-provider stability during future refactors.
+
 if [ -n "${KAO_GATEWAY_MODEL_REGISTRY_LOADED:-}" ]; then
   return 0
 fi

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# REKON-TRANSITIONAL-DISPATCH: current dispatch layer emits timeline and authority pulses but still ends in legacy execution.
+# TODO(REKON): replace legacy tail with a canonical router execution contract once router-core is declared.
+# TODO(REKON-TEST): preserve pulse emission and provider/agent/confidence propagation during dispatch canonisation.
+
 KROOT="${KROOT:-/home/kao}"
 
 source "${KROOT}/lib/router/router_behavior_engine.sh"

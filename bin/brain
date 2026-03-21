@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# REKON-CANONICAL-CANDIDATE: current cognitive orchestration entrypoint.
+# TODO(REKON): extract infer pipeline into explicit named stages once runtime canon is declared.
+# TODO(REKON-TEST): preserve resolution order task_attach -> mission_gate -> self_answer -> self_llm_context -> gateway_infer.
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# REKON-COGNITIVE-CORE-CANDIDATE: current sovereign self-loop and local identity response layer.
+# TODO(REKON): introduce a stable self-state interface so this layer no longer reads raw router state files directly.
+# TODO(REKON-TEST): preserve sovereign self answers and kernel-first LLM context construction during cognitive core refactor.
+
 kao_self_router_field() {
     local key="${1:-}"
     local file="${KROOT:-/home/kao}/state/router/router.cognitive.state"

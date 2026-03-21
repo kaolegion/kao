@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# REKON-GATEWAY-CONTROL-PLANE: current provider selection, health and gateway policy facade.
+# TODO(REKON): split this control plane into provider-selection / provider-health / registry-bridge / gateway-policy modules.
+# TODO(REKON-TEST): preserve deterministic provider selection and forced-provider behavior across canonisation.
+
 if [ -n "${KAO_GATEWAY_ROUTER_LOADED:-}" ]; then
   return 0
 fi
