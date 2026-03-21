@@ -41,6 +41,12 @@ case "${mode}" in
       kao_agent_task_attach
     fi
 
+    if declare -F kao_mission_gate_handle >/dev/null 2>&1; then
+      if kao_mission_gate_handle "${query}"; then
+        exit 0
+      fi
+    fi
+
     if declare -F kao_self_can_answer >/dev/null 2>&1; then
       if kao_self_can_answer "${query}"; then
         kao_self_answer "${query}"
