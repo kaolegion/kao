@@ -33,8 +33,10 @@ When the operator asks something through Kao, the current high-level cognitive r
 3. `lib/agents/mission_kernel.sh` may open a governed mission gate
 4. `lib/cognition/kao_self_loop.sh` may answer locally
 5. `lib/cognition/intent_router.sh` classifies the request
-6. `lib/gateway/router.sh` selects the best available provider path
-7. provider execution occurs if local sovereign answer is insufficient
+6. `lib/router/router_core_contract.sh` produces explicit routing contract stage
+
+  7. `lib/gateway/router.sh` selects the best available provider path
+  8. provider execution occurs if local sovereign answer is insufficient
 
 ---
 

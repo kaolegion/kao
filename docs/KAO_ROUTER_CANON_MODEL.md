@@ -153,3 +153,23 @@ The future target is a cleaner model:
 But the current system has not yet fully reached that state.
 
 This document preserves the truth of the current architecture without pretending premature unification.
+
+---
+
+## 3bis — Router-core contract stage (V0)
+
+A minimal explicit router-core contract stage now exists:
+
+- `lib/router/router_core_contract.sh`
+
+Current role:
+
+- translate cognitive resolution into a stable routing contract
+- declare routing intent (self / local-agent / gateway-llm)
+- expose next execution transition (stop / dispatch / gateway)
+- provide operator-readable routing reason surface
+
+This stage does not yet unify the whole router architecture.
+
+It is an explicit transitional step toward a future unified router-core.
+

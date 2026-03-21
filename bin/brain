@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# REKON-CANONICAL-CANDIDATE: current cognitive orchestration entrypoint.
-# TODO(REKON): extract infer pipeline into explicit named stages once runtime canon is declared.
-# TODO(REKON-TEST): preserve resolution order task_attach -> mission_gate -> self_answer -> self_llm_context -> gateway_infer.
+# REKON-CANONICAL-CANDIDATE: cognitive orchestration entrypoint with explicit router-core stage.
+# TODO(SENTINEL): ensure router-core remains side-effect free.
+# TODO(SYFER): maintain clear boundary cognition → router → gateway.
+# TODO(AVA): keep operator-readable decision logs.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -12,6 +13,7 @@ ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
 SELF_LOOP_LIB="${KROOT}/lib/cognition/kao_self_loop.sh"
 AGENT_CONTEXT_LIB="${KROOT}/lib/agents/context_builder.sh"
 AGENT_MISSION_LIB="${KROOT}/lib/agents/mission_kernel.sh"
+ROUTER_CORE_LIB="${KROOT}/lib/router/router_core_contract.sh"
 
 if [ ! -f "${ROUTER_LIB}" ]; then
   printf 'BRAIN_ERROR gateway router missing: %s\n' "${ROUTER_LIB}" >&2
@@ -22,6 +24,7 @@ fi
 [ -f "${SELF_LOOP_LIB}" ] && . "${SELF_LOOP_LIB}"
 [ -f "${AGENT_CONTEXT_LIB}" ] && . "${AGENT_CONTEXT_LIB}"
 [ -f "${AGENT_MISSION_LIB}" ] && . "${AGENT_MISSION_LIB}"
+[ -f "${ROUTER_CORE_LIB}" ] && . "${ROUTER_CORE_LIB}"
 
 brain_usage() {
   printf 'Usage:\n'
@@ -60,6 +63,15 @@ case "${mode}" in
 
     if declare -F kao_self_llm_context_build >/dev/null 2>&1; then
       context="$(kao_self_llm_context_build "${query}")"
+
+      if declare -F router_core_contract_build >/dev/null 2>&1; then
+        router_core_contract_build "${query}"
+        printf 'ROUTER_CORE_DECISION=%s NEXT=%s REASON=%s\n' \
+          "${ROUTER_CORE_DECISION}" \
+          "${ROUTER_CORE_NEXT}" \
+          "${ROUTER_CORE_REASON}" >&2
+      fi
+
       gateway_infer "${context}"
       exit 0
     fi
