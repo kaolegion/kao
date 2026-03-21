@@ -269,3 +269,44 @@ But the core rule remains:
 
 The Router serves Kao sovereignty before capability expansion.
 
+
+
+---
+
+## Cognitive state qualification (V0)
+
+In addition to decision inputs, the Router maintains a minimal
+cognitive qualification surface stored in:
+
+state/router/router.cognitive.state
+
+This surface is managed by:
+
+lib/router/router_cognitive_state.sh
+
+Canonical fields currently include:
+
+- ROUTER_COGNITIVE_LEVEL  
+  expresses the overall cognitive engagement of the routing context
+
+- ROUTER_CONFIDENCE  
+  expresses the stability and trust level of the selected route
+
+- ROUTER_HEALTH  
+  expresses runtime stability from a cognitive continuity perspective
+
+This cognitive layer:
+
+- does **not take execution decisions**
+- does **not override safety doctrine**
+- exists to improve observability, continuity and future adaptive routing
+
+Decision authority remains in the Router runtime decision layers.
+
+This separation ensures:
+
+- deterministic execution  
+- explicit cognitive signals  
+- future extensibility without architectural breakage  
+
+---

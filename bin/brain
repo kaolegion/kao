@@ -5,6 +5,7 @@ set -euo pipefail
 # TODO(SENTINEL): ensure router-core remains side-effect free.
 # TODO(SYFER): maintain clear boundary cognition → router → gateway.
 # TODO(AVA): keep operator-readable decision logs.
+# TODO(REKON-HOTPATH): preserve the shortest truthful sovereign response path before any provider arbitration.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -14,6 +15,7 @@ SELF_LOOP_LIB="${KROOT}/lib/cognition/kao_self_loop.sh"
 AGENT_CONTEXT_LIB="${KROOT}/lib/agents/context_builder.sh"
 AGENT_MISSION_LIB="${KROOT}/lib/agents/mission_kernel.sh"
 ROUTER_CORE_LIB="${KROOT}/lib/router/router_core_contract.sh"
+RUNTIME_JOURNAL="${KROOT}/state/runtime/runtime.journal"
 
 if [ ! -f "${ROUTER_LIB}" ]; then
   printf 'BRAIN_ERROR gateway router missing: %s\n' "${ROUTER_LIB}" >&2
@@ -29,6 +31,37 @@ fi
 brain_usage() {
   printf 'Usage:\n'
   printf '  brain infer "<query>"\n'
+}
+
+brain_hotpath_log() {
+  local tier="${1:-unknown}"
+  local detail="${2:-none}"
+  local ts
+  ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+  mkdir -p "$(dirname "${RUNTIME_JOURNAL}")"
+  printf 'HOT_PATH|ts=%s|tier=%s|detail=%s\n' "${ts}" "${tier}" "${detail}" >> "${RUNTIME_JOURNAL}" 2>/dev/null || true
+}
+
+brain_hot_path_handle() {
+  local query="${1:-}"
+
+  if declare -F kao_mission_gate_handle >/dev/null 2>&1; then
+    if kao_mission_gate_handle "${query}"; then
+      brain_hotpath_log "MISSION_GATE" "governed-open"
+      return 0
+    fi
+  fi
+
+  if declare -F kao_self_can_answer >/dev/null 2>&1; then
+    if kao_self_can_answer "${query}"; then
+      brain_hotpath_log "LOCAL_IMMEDIATE" "self-loop"
+      kao_self_answer "${query}"
+      return 0
+    fi
+  fi
+
+  return 1
 }
 
 mode="${1:-help}"
@@ -48,17 +81,8 @@ case "${mode}" in
       kao_agent_task_attach
     fi
 
-    if declare -F kao_mission_gate_handle >/dev/null 2>&1; then
-      if kao_mission_gate_handle "${query}"; then
-        exit 0
-      fi
-    fi
-
-    if declare -F kao_self_can_answer >/dev/null 2>&1; then
-      if kao_self_can_answer "${query}"; then
-        kao_self_answer "${query}"
-        exit 0
-      fi
+    if brain_hot_path_handle "${query}"; then
+      exit 0
     fi
 
     if declare -F kao_self_llm_context_build >/dev/null 2>&1; then
@@ -72,14 +96,17 @@ case "${mode}" in
           "${ROUTER_CORE_REASON}" >&2
       fi
 
+      brain_hotpath_log "LLM_ARBITRATION" "gateway-context"
       gateway_infer "${context}"
       exit 0
     fi
 
     if declare -F kao_agent_context_build >/dev/null 2>&1; then
       context="$(kao_agent_context_build)"
+      brain_hotpath_log "LLM_ARBITRATION" "agent-context-fallback"
       gateway_infer "${context}${query}"
     else
+      brain_hotpath_log "LLM_ARBITRATION" "raw-query-fallback"
       gateway_infer "${query}"
     fi
     ;;

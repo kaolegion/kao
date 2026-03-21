@@ -8,6 +8,7 @@ echo "[UNIT] entrypoint"
 
 echo "[UNIT] mission gate"
 "${ROOT_DIR}/tests/unit/test_mission_gate.sh"
+"${ROOT_DIR}/tests/unit/test_hot_path_brain.sh"
 
 echo "[UNIT] router-core contract"
 "${ROOT_DIR}/tests/unit/test_router_core_contract.sh"

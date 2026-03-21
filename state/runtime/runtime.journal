@@ -851,3 +851,25 @@ AUTHORITY_PULSE|ts=2026-03-20T03:46:12Z|type=router-canonized|detail=provider=lo
 2026-03-21T04:16:28Z|connectivity_refresh network=online local_llm=absent
 2026-03-21T08:11:38Z|connectivity_refresh network=online local_llm=absent
 2026-03-21T08:12:07Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T11:22:51Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T14:04:15Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T14:07:04Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T14:24:11Z|connectivity_refresh network=online local_llm=absent
+HOT_PATH|ts=2026-03-21T16:24:23Z|tier=LOCAL_IMMEDIATE|detail=self-loop
+HOT_PATH|ts=2026-03-21T16:24:23Z|tier=MISSION_GATE|detail=governed-open
+HOT_PATH|ts=2026-03-21T16:24:23Z|tier=LLM_ARBITRATION|detail=gateway-context
+HOT_PATH|ts=2026-03-21T16:28:13Z|tier=LLM_ARBITRATION|detail=gateway-context
+HOT_PATH|ts=2026-03-21T16:37:03Z|tier=LOCAL_IMMEDIATE|detail=self-loop
+HOT_PATH|ts=2026-03-21T16:37:03Z|tier=MISSION_GATE|detail=governed-open
+HOT_PATH|ts=2026-03-21T16:37:03Z|tier=LLM_ARBITRATION|detail=gateway-context
+HOT_PATH|ts=2026-03-21T16:39:43Z|tier=LOCAL_IMMEDIATE|detail=self-loop
+HOT_PATH|ts=2026-03-21T16:39:43Z|tier=MISSION_GATE|detail=governed-open
+HOT_PATH|ts=2026-03-21T16:39:43Z|tier=LLM_ARBITRATION|detail=gateway-context
+HOT_PATH|ts=2026-03-21T16:42:14Z|tier=LOCAL_IMMEDIATE|detail=self-loop
+HOT_PATH|ts=2026-03-21T16:42:14Z|tier=MISSION_GATE|detail=governed-open
+HOT_PATH|ts=2026-03-21T16:42:14Z|tier=LLM_ARBITRATION|detail=gateway-context
+HOT_PATH|ts=2026-03-21T16:47:55Z|tier=LLM_ARBITRATION|detail=gateway-context
+HOT_PATH|ts=2026-03-21T16:48:56Z|tier=LLM_ARBITRATION|detail=gateway-context
+HOT_PATH|ts=2026-03-21T16:51:53Z|tier=LOCAL_IMMEDIATE|detail=self-loop
+HOT_PATH|ts=2026-03-21T16:51:54Z|tier=MISSION_GATE|detail=governed-open
+HOT_PATH|ts=2026-03-21T16:51:54Z|tier=LLM_ARBITRATION|detail=gateway-context

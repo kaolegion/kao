@@ -1,92 +1,89 @@
-# KAO — Cognitive Core
+# KAO — Cognitive Core (Canonical V0)
 
 ## Purpose
 
-This document defines the current canonical reading of Kao cognitive core.
+This document defines the **current runtime reality** of Kao cognitive core.
 
-It replaces placeholder content and establishes a stable reference for future cognitive work.
+The cognitive system is not a single engine.
+It is a **composition of observable cognitive state surfaces**.
 
----
+## Canonical cognitive surfaces
 
-## 1 — Current reality
+### Router cognitive state
 
-The current cognitive core is not yet a fully isolated single subsystem.
+File:
+state/router/router.cognitive.state
 
-However, one layer clearly acts as the strongest candidate:
+Maintained by:
+lib/router/router_cognitive_state.sh
 
-- `lib/cognition/kao_self_loop.sh`
+This surface provides minimal cognitive qualification:
 
-This layer currently provides:
+- ROUTER_COGNITIVE_LEVEL
+- ROUTER_CONFIDENCE
+- ROUTER_HEALTH
 
-- local sovereign self-answer capability
-- identity-preserving operator answers
-- kernel-first prompt framing for escalated inference
+This layer does **not decide execution**.
+It qualifies the runtime situation.
 
----
+### Session cognitive heat
 
-## 2 — Current cognitive flow
+Maintained by:
+lib/runtime/session_cognitive_state.sh
+and session_heat_engine.
 
-When the operator asks something through Kao, the current high-level cognitive reading is:
+This surface provides:
 
-1. `bin/kao` receives the operator command
-2. `bin/brain` orchestrates cognitive resolution
-3. `lib/agents/mission_kernel.sh` may open a governed mission gate
-4. `lib/cognition/kao_self_loop.sh` may answer locally
-5. `lib/cognition/intent_router.sh` classifies the request
-6. `lib/router/router_core_contract.sh` produces explicit routing contract stage
+- heat level
+- session age
+- memory class
+- cognitive intensity
 
-  7. `lib/gateway/router.sh` selects the best available provider path
-  8. provider execution occurs if local sovereign answer is insufficient
+It expresses **temporal cognitive activity**, not routing decision.
 
----
+### Sovereign self expression layer
 
-## 3 — Core doctrine
+lib/cognition/kao_self_loop.sh
 
-The cognitive core must remain:
+This layer enables:
 
-- sovereign-first
-- local-first when possible
-- explicit
-- inspectable
-- operator-readable
-- identity-preserving
+- local sovereign answers
+- identity-preserving reasoning
+- kernel-first cognition framing
 
-Kao must not answer as an anonymous external tool if local kernel identity can answer truthfully.
+It is **not the single cognitive core**,
+but one layer of the cognitive stack.
 
----
+## Cognitive doctrine V0
 
-## 4 — Current weakness
+- decision belongs to router and control flow
+- cognition qualifies state
+- narration explains cognition
+- runtime exposes cognitive signals
+- sovereignty is preserved when possible
 
-The current cognitive core still depends on raw router state files:
+## Target evolution
 
-- `state/router/router.cognitive.state`
-- `state/router/router.agent.selected`
+Future architecture may introduce:
 
-This makes the current self-loop powerful but not yet fully abstracted.
+- unified cognitive state interface
+- extended signal families
+- predictive cognition layers
+- adaptive routing influence
 
-Future work must introduce a stable self-state interface.
+But V0 remains:
 
----
+**minimal, observable, stable.**
 
-## 5 — Current canon
+## Sovereign Conversational Hot Path (V0)
 
-Current cognitive canon reading:
+Kao implements a synchronous sovereign hot-path allowing immediate local response before any LLM arbitration.
 
-- canonical cognitive orchestration entrypoint: `bin/brain`
-- cognitive core candidate: `lib/cognition/kao_self_loop.sh`
-- mission governance support: `lib/agents/mission_kernel.sh`
-- lexical intent support: `lib/cognition/intent_router.sh`
+Resolution order:
+1. mission gate
+2. local self cognition
+3. lightweight local resolution
+4. LLM arbitration (local-first)
+5. async governed mission
 
-This means the cognitive core is currently a layered composition, not yet a single isolated engine.
-
----
-
-## 6 — Future target
-
-The future target is a more stable cognitive architecture where:
-
-- self-state is abstracted
-- sovereign answers remain local
-- escalation is policy-aware
-- cognitive orchestration is decomposed into named stages
-- identity is preserved even during LLM escalation
+This tier ensures responsiveness, operator trust, and cognitive presence.
