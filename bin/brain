@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
+SELF_LOOP_LIB="${KROOT}/lib/cognition/kao_self_loop.sh"
 AGENT_CONTEXT_LIB="${KROOT}/lib/agents/context_builder.sh"
 AGENT_MISSION_LIB="${KROOT}/lib/agents/mission_kernel.sh"
 
@@ -14,6 +15,7 @@ if [ ! -f "${ROUTER_LIB}" ]; then
 fi
 
 . "${ROUTER_LIB}"
+[ -f "${SELF_LOOP_LIB}" ] && . "${SELF_LOOP_LIB}"
 [ -f "${AGENT_CONTEXT_LIB}" ] && . "${AGENT_CONTEXT_LIB}"
 [ -f "${AGENT_MISSION_LIB}" ] && . "${AGENT_MISSION_LIB}"
 
@@ -35,16 +37,28 @@ case "${mode}" in
 
     query="$*"
 
-    # attach mission runtime
     if declare -F kao_agent_task_attach >/dev/null 2>&1; then
-        kao_agent_task_attach
+      kao_agent_task_attach
+    fi
+
+    if declare -F kao_self_can_answer >/dev/null 2>&1; then
+      if kao_self_can_answer "${query}"; then
+        kao_self_answer "${query}"
+        exit 0
+      fi
+    fi
+
+    if declare -F kao_self_llm_context_build >/dev/null 2>&1; then
+      context="$(kao_self_llm_context_build "${query}")"
+      gateway_infer "${context}"
+      exit 0
     fi
 
     if declare -F kao_agent_context_build >/dev/null 2>&1; then
-        context="$(kao_agent_context_build)"
-        gateway_infer "${context}${query}"
+      context="$(kao_agent_context_build)"
+      gateway_infer "${context}${query}"
     else
-        gateway_infer "${query}"
+      gateway_infer "${query}"
     fi
     ;;
   help|-h|--help)
