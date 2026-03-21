@@ -388,54 +388,29 @@ gateway_provider_detected() {
 }
 
 gateway_provider_select() {
-  local forced_provider forced_state p
+  source /home/kao/lib/runtime/authority_policy.sh
+
   gateway_require_providers
   gateway_load_secrets silent >/dev/null 2>&1 || true
 
-  forced_provider="$(gateway_forced_provider)"
-  forced_state="$(gateway_forced_provider_state)"
-
-  if [ "${forced_provider}" != "none" ]; then
-    p="${forced_provider}"
-    if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
-      p="$(kao_kernel_validate_provider "${p}")"
+  if gateway_provider_ollama_available; then
+    if kao_policy_prefer_local; then
+      printf "ollama
+"
+      return 0
     fi
-    printf '%s\n' "${p}"
-    return 0
-  fi
-
-  if [ -n "${KAO_GATEWAY_PROVIDER:-}" ] && [ "${forced_state}" = "unsupported" ]; then
-    p="none"
-    if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
-      p="$(kao_kernel_validate_provider "${p}")"
-    fi
-    printf '%s\n' "${p}"
-    return 0
   fi
 
   if gateway_provider_mistral_available; then
-    p="mistral"
-    if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
-      p="$(kao_kernel_validate_provider "${p}")"
+    if kao_policy_cloud_allowed; then
+      printf "mistral
+"
+      return 0
     fi
-    printf '%s\n' "${p}"
-    return 0
   fi
 
-  if gateway_provider_ollama_available; then
-    p="ollama"
-    if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
-      p="$(kao_kernel_validate_provider "${p}")"
-    fi
-    printf '%s\n' "${p}"
-    return 0
-  fi
-
-  p="none"
-  if declare -F kao_kernel_validate_provider >/dev/null 2>&1; then
-    p="$(kao_kernel_validate_provider "${p}")"
-  fi
-  printf '%s\n' "${p}"
+  printf "none
+"
 }
 
 gateway_selected_route() {
@@ -559,7 +534,7 @@ gateway_execution_mode() {
 }
 
 gateway_selection_policy() {
-  printf 'best-available-by-state\n'
+  printf 'local-first-authority\n'
 }
 
 gateway_decision_state() {
@@ -932,7 +907,7 @@ gateway_status() {
   log_line_count="$(gateway_log_lines)"
   last_log_event="$(gateway_last_log_event)"
 
-  fallback_policy="best-available-by-state"
+  fallback_policy="local-first-authority"
   fallback_status="$(gateway_fallback_status)"
 
   diagnostic_hint="run 'kao gateway health' then 'kao gateway logs' for deeper diagnostics"
@@ -977,6 +952,8 @@ gateway_status() {
   gateway_log_preview
 }
 
+
+
 gateway_run_provider() {
   local provider prompt
   provider="${1:-none}"
@@ -1014,9 +991,13 @@ gateway_infer() {
   label="$(gateway_provider_label "${provider}")"
 
   printf 'gateway -> %s\n' "${label}"
+
+
+  provider_selected="${provider:-none}"
+  echo "PROVIDER_DECISION|provider=${provider_selected}|ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> state/runtime/runtime.journal
+
   gateway_run_provider "${provider}" "${prompt}"
 }
-
 gateway_help() {
   cat <<'USAGE'
 USAGE: kao gateway [status|health|logs]

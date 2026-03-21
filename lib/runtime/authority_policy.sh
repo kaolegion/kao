@@ -1,28 +1,31 @@
 #!/usr/bin/env bash
 
-KAO_ROOT="${KAO_ROOT:-/home/kao}"
-POLICY_FILE="${KAO_ROOT}/config/authority_policy.env"
+# ==========================================================
+# KAO AUTHORITY POLICY — CANON LOCAL FIRST
+# source unique de vérité exécutable
+# ==========================================================
 
-kao_authority_validate_provider() {
+kao_authority_mode="${KAO_AUTHORITY_MODE:-LOCAL_FIRST}"
 
-    local proposed="${1:-none}"
-    local fallback=""
+kao_policy_local_allowed() {
+    return 0
+}
 
-    if [ -f "${POLICY_FILE}" ]; then
-        fallback="$(grep '^FALLBACK_PROVIDER=' "${POLICY_FILE}" | cut -d= -f2)"
-    fi
-
-    if [ -z "${fallback}" ]; then
-        printf '%s\n' "${proposed}"
+kao_policy_cloud_allowed() {
+    # cloud autorisé seulement si explicitement permis
+    if [ "${KAO_ALLOW_CLOUD:-0}" = "1" ]; then
         return 0
     fi
-
-    case "${proposed}" in
-        forbidden)
-            printf '%s\n' "${fallback}"
-            return 0
-            ;;
-    esac
-
-    printf '%s\n' "${proposed}"
+    return 1
 }
+
+kao_policy_prefer_local() {
+    # règle centrale : toujours préférer local
+    return 0
+}
+
+kao_policy_sync_hot_path() {
+    # opérateur → réponse immédiate locale
+    return 0
+}
+
