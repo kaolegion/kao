@@ -35,3 +35,19 @@ Créer une surface terminal fondateur vivante permettant :
 - affichage cognitive heat
 - observation DOM / desktop
 - layout terminal fondateur avancé
+
+## memory-first response gate v1
+- `bin/brain` now preserves a sovereign memory-first branch before provider arbitration
+- `lib/cognition/kao_self_loop.sh` now answers natural operator prompts such as `tu es la ?` and `quel est ton état actuel ?`
+- simple sovereign prompts now return local self answers without calling gateway
+- cognitive/heavier prompts still fall back to gateway arbitration
+- mission gate and router core regressions remain green
+- added unit coverage at `tests/unit/test_brain_memory_first.sh`
+
+## validated runtime proofs
+- `bin/kao ask "tu es la ?"` -> `SELF_ANSWER`
+- `bin/kao ask "quel est ton état actuel ?"` -> `SELF_ANSWER`
+- `bin/kao ask "analyse cette architecture"` -> `LLM_ARBITRATION`
+
+## next sprint candidate
+- answer pipeline closure v1

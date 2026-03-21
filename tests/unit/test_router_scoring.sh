@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 source /home/kao/lib/router/router_cognitive_state.sh
 
@@ -9,6 +10,10 @@ echo "$out" | grep -q "^65"
 echo "[TEST] cloud allowed fallback"
 out=$(kao_router_score_provider cloud 0 1 cloud)
 echo "$out" | grep -q "^35"
+
+echo "[TEST] cloud forbidden stays operator-only bonus"
+out=$(kao_router_score_provider cloud 0 0 cloud)
+echo "$out" | grep -q "^15"
 
 echo "[TEST] deterministic result"
 a=$(kao_router_score_provider local 1 1 local)

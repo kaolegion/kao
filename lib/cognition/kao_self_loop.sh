@@ -38,10 +38,13 @@ kao_self_can_answer() {
         "tu es qui ?"|"tu es qui"|"qui es-tu ?"|"qui es-tu"|"qui es tu"|"qui est tu"|"who are you"|"what are you")
             return 0
             ;;
+        "tu es la ?"|"tu es la"|"tu es là ?"|"tu es là"|"es tu la ?"|"es tu la"|"es tu là ?"|"es tu là")
+            return 0
+            ;;
         "où suis-je ?"|"ou suis-je ?"|"où suis-je"|"ou suis-je"|"where am i"|"ou suis je")
             return 0
             ;;
-        "quel est ton état ?"|"quel est ton etat ?"|"quel est ton état"|"quel est ton etat"|"status"|"etat")
+        "quel est ton état ?"|"quel est ton etat ?"|"quel est ton état"|"quel est ton etat"|"quel est ton état actuel ?"|"quel est ton état actuel"|"quel est ton etat actuel ?"|"quel est ton etat actuel"|"status"|"etat"|"etat systeme"|"etat systeme actuel"|"comment vas tu"|"comment vas-tu")
             return 0
             ;;
         *)
@@ -66,7 +69,7 @@ kao_self_answer() {
     workspace="$(kao_self_workspace_root)"
 
     case "${normalized}" in
-        "tu es qui ?"|"tu es qui"|"qui es-tu ?"|"qui es-tu"|"qui es tu"|"qui est tu"|"who are you"|"what are you")
+        "tu es qui ?"|"tu es qui"|"qui es-tu ?"|"qui es-tu"|"qui es tu"|"qui est tu"|"who are you"|"what are you"|"tu es la ?"|"tu es la"|"tu es là ?"|"tu es là"|"es tu la ?"|"es tu la"|"es tu là ?"|"es tu là")
             cat <<EOT
 Je suis Kao, le noyau cognitif souverain du système.
 Je supervise l'environnement local, ses organes, ses agents et ses outils.
@@ -96,7 +99,7 @@ Workspace courant : ${workspace}
 EOT
             return 0
             ;;
-        "quel est ton état ?"|"quel est ton etat ?"|"quel est ton état"|"quel est ton etat"|"status"|"etat")
+        "quel est ton état ?"|"quel est ton etat ?"|"quel est ton état"|"quel est ton etat"|"quel est ton état actuel ?"|"quel est ton état actuel"|"quel est ton etat actuel ?"|"quel est ton etat actuel"|"status"|"etat"|"etat systeme"|"etat systeme actuel"|"comment vas tu"|"comment vas-tu")
             cat <<EOT
 État courant de Kao :
 - mode : ${mode}
@@ -116,6 +119,7 @@ EOT
 
 kao_self_llm_context_build() {
     local mode network provider intent health workspace
+    local prompt
     prompt="${*:-}"
 
     mode="$(kao_self_router_field ROUTER_MODE 2>/dev/null || echo unknown)"

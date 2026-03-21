@@ -280,4 +280,16 @@ printf '%s\n' "${cognitive_after}" | grep -q "ROUTER_MODE" \
     && e2e_ok "router cognitive mode written" \
     || e2e_error "router cognitive mode missing"
 
+printf '%s\n' "${cognitive_after}" | grep -Eq "ROUTER_AGENT=(local-reflex|cloud-expert|no-provider)" \
+    && e2e_ok "router cognitive agent written" \
+    || e2e_error "router cognitive agent missing"
+
+printf '%s\n' "${cognitive_after}" | grep -Eq "ROUTER_CONFIDENCE=(0\.91|0\.76|0\.00)" \
+    && e2e_ok "router cognitive confidence written" \
+    || e2e_error "router cognitive confidence missing"
+
+printf '%s\n' "${cognitive_after}" | grep -q "ROUTER_SOVEREIGN_STATE=best-available-by-state" \
+    && e2e_ok "router sovereign selection policy written" \
+    || e2e_error "router sovereign selection policy missing"
+
 }
