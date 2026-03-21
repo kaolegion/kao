@@ -222,7 +222,7 @@ Kao must preserve both.
 
 ---
 
-## 11 — Boot perception
+## 12 — Boot perception
 
 The first contact with Kao must feel like a manifestation.
 
@@ -241,7 +241,7 @@ This perception defines long-term trust.
 
 ---
 
-## 12 — Runtime presence
+## 13 — Runtime presence
 
 Kao presence exists in three modes:
 
@@ -268,7 +268,7 @@ Projected presence means:
 
 ---
 
-## 13 — Operator ritual
+## 14 — Operator ritual
 
 The operator must always:
 
@@ -285,7 +285,7 @@ Operator awareness is part of runtime safety.
 
 ---
 
-## 14 — Evolution cycle
+## 15 — Evolution cycle
 
 Kao evolves through controlled cycles.
 
@@ -309,7 +309,7 @@ Future canonical convergence may produce:
 
 ---
 
-## 15 — Long continuity principle
+## 16 — Long continuity principle
 
 A mature Kao instance should be able to:
 
@@ -325,7 +325,7 @@ A long-living Kao is a trusted Kao.
 
 ---
 
-## 11 — Kao-OS-One doctrinal core
+## 17 — Kao-OS-One doctrinal core
 
 The Kao-OS-One doctrinal core defines the sovereign cognitive architecture of Kao.
 
