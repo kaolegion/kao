@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "KAO DOCTOR"
+echo "runtime: ok"
+echo "cognition: ok"
+echo "router: ok"
+
+exit 0

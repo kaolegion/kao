@@ -647,3 +647,203 @@ AUTHORITY_PULSE|ts=2026-03-20T03:46:12Z|type=router-canonized|detail=provider=lo
 2026-03-20T16:59:02Z|tx=tx-20260320-165902-24297|action=commit|detail=runtime-mutation
 2026-03-20T16:59:05Z|tx=tx-20260320-165905-3072|action=begin|detail=runtime-mutation
 2026-03-20T16:59:05Z|tx=tx-20260320-165905-3072|action=commit|detail=runtime-mutation
+2026-03-21T00:14:30Z|tx=tx-20260321-001430-26812|action=begin|detail=runtime-mutation
+2026-03-21T00:14:30Z|tx=tx-20260321-001430-26812|action=commit|detail=runtime-mutation
+2026-03-21T00:14:33Z|tx=tx-20260321-001433-18250|action=begin|detail=runtime-mutation
+2026-03-21T00:14:33Z|tx=tx-20260321-001433-18250|action=commit|detail=runtime-mutation
+2026-03-21T00:14:36Z|tx=tx-20260321-001436-15201|action=begin|detail=runtime-mutation
+2026-03-21T00:14:36Z|tx=tx-20260321-001436-15201|action=commit|detail=runtime-mutation
+2026-03-21T00:14:36Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:44:20Z|tx=tx-20260321-004420-11002|action=begin|detail=runtime-mutation
+2026-03-21T00:44:20Z|tx=tx-20260321-004420-11002|action=commit|detail=runtime-mutation
+2026-03-21T00:44:23Z|tx=tx-20260321-004423-17109|action=begin|detail=runtime-mutation
+2026-03-21T00:44:23Z|tx=tx-20260321-004423-17109|action=commit|detail=runtime-mutation
+2026-03-21T00:44:26Z|tx=tx-20260321-004426-27477|action=begin|detail=runtime-mutation
+2026-03-21T00:44:26Z|tx=tx-20260321-004426-27477|action=commit|detail=runtime-mutation
+2026-03-21T00:44:26Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:44:29Z|tx=tx-20260321-004429-21348|action=begin|detail=runtime-mutation
+2026-03-21T00:44:29Z|tx=tx-20260321-004429-21348|action=commit|detail=runtime-mutation
+2026-03-21T00:44:33Z|tx=tx-20260321-004433-7348|action=begin|detail=runtime-mutation
+2026-03-21T00:44:33Z|tx=tx-20260321-004433-7348|action=commit|detail=runtime-mutation
+2026-03-21T00:44:36Z|tx=tx-20260321-004436-4375|action=begin|detail=runtime-mutation
+2026-03-21T00:44:36Z|tx=tx-20260321-004436-4375|action=commit|detail=runtime-mutation
+2026-03-21T00:44:39Z|tx=tx-20260321-004439-17740|action=begin|detail=runtime-mutation
+2026-03-21T00:44:39Z|tx=tx-20260321-004439-17740|action=commit|detail=runtime-mutation
+2026-03-21T00:44:43Z|tx=tx-20260321-004442-12640|action=begin|detail=runtime-mutation
+2026-03-21T00:44:43Z|tx=tx-20260321-004442-12640|action=commit|detail=runtime-mutation
+2026-03-21T00:44:46Z|tx=tx-20260321-004446-23767|action=begin|detail=runtime-mutation
+2026-03-21T00:44:46Z|tx=tx-20260321-004446-23767|action=commit|detail=runtime-mutation
+2026-03-21T00:44:49Z|tx=tx-20260321-004449-14843|action=begin|detail=runtime-mutation
+2026-03-21T00:44:49Z|tx=tx-20260321-004449-14843|action=commit|detail=runtime-mutation
+2026-03-21T00:44:49Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:44:53Z|tx=tx-20260321-004452-32760|action=begin|detail=runtime-mutation
+2026-03-21T00:44:53Z|tx=tx-20260321-004452-32760|action=commit|detail=runtime-mutation
+2026-03-21T00:44:56Z|tx=tx-20260321-004456-15675|action=begin|detail=runtime-mutation
+2026-03-21T00:44:56Z|tx=tx-20260321-004456-15675|action=commit|detail=runtime-mutation
+2026-03-21T00:45:00Z|tx=tx-20260321-004500-21957|action=begin|detail=runtime-mutation
+2026-03-21T00:45:00Z|tx=tx-20260321-004500-21957|action=commit|detail=runtime-mutation
+2026-03-21T00:45:03Z|tx=tx-20260321-004503-20377|action=begin|detail=runtime-mutation
+2026-03-21T00:45:03Z|tx=tx-20260321-004503-20377|action=commit|detail=runtime-mutation
+2026-03-21T00:45:09Z|tx=tx-20260321-004509-4572|action=begin|detail=runtime-mutation
+2026-03-21T00:45:09Z|tx=tx-20260321-004509-4572|action=commit|detail=runtime-mutation
+2026-03-21T00:45:12Z|tx=tx-20260321-004512-139|action=begin|detail=runtime-mutation
+2026-03-21T00:45:12Z|tx=tx-20260321-004512-139|action=commit|detail=runtime-mutation
+2026-03-21T00:45:16Z|tx=tx-20260321-004516-17028|action=begin|detail=runtime-mutation
+2026-03-21T00:45:16Z|tx=tx-20260321-004516-17028|action=commit|detail=runtime-mutation
+2026-03-21T00:45:16Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:48:22Z|tx=tx-20260321-004822-11865|action=begin|detail=runtime-mutation
+2026-03-21T00:48:22Z|tx=tx-20260321-004822-11865|action=commit|detail=runtime-mutation
+2026-03-21T00:48:26Z|tx=tx-20260321-004826-7653|action=begin|detail=runtime-mutation
+2026-03-21T00:48:26Z|tx=tx-20260321-004826-7653|action=commit|detail=runtime-mutation
+2026-03-21T00:48:29Z|tx=tx-20260321-004829-842|action=begin|detail=runtime-mutation
+2026-03-21T00:48:29Z|tx=tx-20260321-004829-842|action=commit|detail=runtime-mutation
+2026-03-21T00:48:29Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:48:32Z|tx=tx-20260321-004832-19958|action=begin|detail=runtime-mutation
+2026-03-21T00:48:32Z|tx=tx-20260321-004832-19958|action=commit|detail=runtime-mutation
+2026-03-21T00:48:36Z|tx=tx-20260321-004836-19055|action=begin|detail=runtime-mutation
+2026-03-21T00:48:36Z|tx=tx-20260321-004836-19055|action=commit|detail=runtime-mutation
+2026-03-21T00:48:39Z|tx=tx-20260321-004839-18879|action=begin|detail=runtime-mutation
+2026-03-21T00:48:39Z|tx=tx-20260321-004839-18879|action=commit|detail=runtime-mutation
+2026-03-21T00:48:43Z|tx=tx-20260321-004843-23238|action=begin|detail=runtime-mutation
+2026-03-21T00:48:43Z|tx=tx-20260321-004843-23238|action=commit|detail=runtime-mutation
+2026-03-21T00:48:46Z|tx=tx-20260321-004846-7371|action=begin|detail=runtime-mutation
+2026-03-21T00:48:46Z|tx=tx-20260321-004846-7371|action=commit|detail=runtime-mutation
+2026-03-21T00:48:50Z|tx=tx-20260321-004850-26775|action=begin|detail=runtime-mutation
+2026-03-21T00:48:50Z|tx=tx-20260321-004850-26775|action=commit|detail=runtime-mutation
+2026-03-21T00:48:53Z|tx=tx-20260321-004853-22535|action=begin|detail=runtime-mutation
+2026-03-21T00:48:53Z|tx=tx-20260321-004853-22535|action=commit|detail=runtime-mutation
+2026-03-21T00:48:53Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:48:57Z|tx=tx-20260321-004856-4353|action=begin|detail=runtime-mutation
+2026-03-21T00:48:57Z|tx=tx-20260321-004856-4353|action=commit|detail=runtime-mutation
+2026-03-21T00:49:00Z|tx=tx-20260321-004900-16225|action=begin|detail=runtime-mutation
+2026-03-21T00:49:00Z|tx=tx-20260321-004900-16225|action=commit|detail=runtime-mutation
+2026-03-21T00:49:04Z|tx=tx-20260321-004903-26978|action=begin|detail=runtime-mutation
+2026-03-21T00:49:04Z|tx=tx-20260321-004903-26978|action=commit|detail=runtime-mutation
+2026-03-21T00:49:07Z|tx=tx-20260321-004907-2293|action=begin|detail=runtime-mutation
+2026-03-21T00:49:07Z|tx=tx-20260321-004907-2293|action=commit|detail=runtime-mutation
+2026-03-21T00:49:13Z|tx=tx-20260321-004913-17725|action=begin|detail=runtime-mutation
+2026-03-21T00:49:13Z|tx=tx-20260321-004913-17725|action=commit|detail=runtime-mutation
+2026-03-21T00:49:16Z|tx=tx-20260321-004916-30738|action=begin|detail=runtime-mutation
+2026-03-21T00:49:16Z|tx=tx-20260321-004916-30738|action=commit|detail=runtime-mutation
+2026-03-21T00:49:20Z|tx=tx-20260321-004919-18723|action=begin|detail=runtime-mutation
+2026-03-21T00:49:20Z|tx=tx-20260321-004919-18723|action=commit|detail=runtime-mutation
+2026-03-21T00:49:20Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:49:23Z|tx=tx-20260321-004923-31793|action=begin|detail=runtime-mutation
+2026-03-21T00:49:23Z|tx=tx-20260321-004923-31793|action=commit|detail=runtime-mutation
+2026-03-21T00:49:27Z|tx=tx-20260321-004927-6237|action=begin|detail=runtime-mutation
+2026-03-21T00:49:27Z|tx=tx-20260321-004927-6237|action=commit|detail=runtime-mutation
+2026-03-21T00:49:30Z|tx=tx-20260321-004930-3897|action=begin|detail=runtime-mutation
+2026-03-21T00:49:30Z|tx=tx-20260321-004930-3897|action=commit|detail=runtime-mutation
+2026-03-21T00:49:34Z|tx=tx-20260321-004934-5945|action=begin|detail=runtime-mutation
+2026-03-21T00:49:34Z|tx=tx-20260321-004934-5945|action=commit|detail=runtime-mutation
+2026-03-21T00:49:37Z|tx=tx-20260321-004937-27883|action=begin|detail=runtime-mutation
+2026-03-21T00:49:37Z|tx=tx-20260321-004937-27883|action=commit|detail=runtime-mutation
+2026-03-21T00:49:41Z|tx=tx-20260321-004941-31541|action=begin|detail=runtime-mutation
+2026-03-21T00:49:41Z|tx=tx-20260321-004941-31541|action=commit|detail=runtime-mutation
+2026-03-21T00:49:44Z|tx=tx-20260321-004944-3451|action=begin|detail=runtime-mutation
+2026-03-21T00:49:44Z|tx=tx-20260321-004944-3451|action=commit|detail=runtime-mutation
+2026-03-21T00:49:44Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:49:48Z|tx=tx-20260321-004948-12095|action=begin|detail=runtime-mutation
+2026-03-21T00:49:48Z|tx=tx-20260321-004948-12095|action=commit|detail=runtime-mutation
+2026-03-21T00:49:52Z|tx=tx-20260321-004952-19641|action=begin|detail=runtime-mutation
+2026-03-21T00:49:52Z|tx=tx-20260321-004952-19641|action=commit|detail=runtime-mutation
+2026-03-21T00:49:55Z|tx=tx-20260321-004955-6598|action=begin|detail=runtime-mutation
+2026-03-21T00:49:55Z|tx=tx-20260321-004955-6598|action=commit|detail=runtime-mutation
+2026-03-21T00:49:59Z|tx=tx-20260321-004959-5088|action=begin|detail=runtime-mutation
+2026-03-21T00:49:59Z|tx=tx-20260321-004959-5088|action=commit|detail=runtime-mutation
+2026-03-21T00:50:03Z|tx=tx-20260321-005003-20337|action=begin|detail=runtime-mutation
+2026-03-21T00:50:03Z|tx=tx-20260321-005003-20337|action=commit|detail=runtime-mutation
+2026-03-21T00:50:07Z|tx=tx-20260321-005007-6850|action=begin|detail=runtime-mutation
+2026-03-21T00:50:07Z|tx=tx-20260321-005007-6850|action=commit|detail=runtime-mutation
+2026-03-21T00:50:10Z|tx=tx-20260321-005010-6411|action=begin|detail=runtime-mutation
+2026-03-21T00:50:10Z|tx=tx-20260321-005010-6411|action=commit|detail=runtime-mutation
+2026-03-21T00:50:10Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:50:14Z|tx=tx-20260321-005014-21217|action=begin|detail=runtime-mutation
+2026-03-21T00:50:14Z|tx=tx-20260321-005014-21217|action=commit|detail=runtime-mutation
+2026-03-21T00:50:17Z|tx=tx-20260321-005017-25526|action=begin|detail=runtime-mutation
+2026-03-21T00:50:17Z|tx=tx-20260321-005017-25526|action=commit|detail=runtime-mutation
+2026-03-21T00:53:09Z|tx=tx-20260321-005309-24927|action=begin|detail=runtime-mutation
+2026-03-21T00:53:09Z|tx=tx-20260321-005309-24927|action=commit|detail=runtime-mutation
+2026-03-21T00:53:13Z|tx=tx-20260321-005313-21208|action=begin|detail=runtime-mutation
+2026-03-21T00:53:13Z|tx=tx-20260321-005313-21208|action=commit|detail=runtime-mutation
+2026-03-21T00:53:16Z|tx=tx-20260321-005316-31529|action=begin|detail=runtime-mutation
+2026-03-21T00:53:16Z|tx=tx-20260321-005316-31529|action=commit|detail=runtime-mutation
+2026-03-21T00:53:16Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:53:20Z|tx=tx-20260321-005320-7339|action=begin|detail=runtime-mutation
+2026-03-21T00:53:20Z|tx=tx-20260321-005320-7339|action=commit|detail=runtime-mutation
+2026-03-21T00:53:24Z|tx=tx-20260321-005324-14971|action=begin|detail=runtime-mutation
+2026-03-21T00:53:24Z|tx=tx-20260321-005324-14971|action=commit|detail=runtime-mutation
+2026-03-21T00:53:28Z|tx=tx-20260321-005327-11125|action=begin|detail=runtime-mutation
+2026-03-21T00:53:28Z|tx=tx-20260321-005327-11125|action=commit|detail=runtime-mutation
+2026-03-21T00:53:31Z|tx=tx-20260321-005331-8414|action=begin|detail=runtime-mutation
+2026-03-21T00:53:31Z|tx=tx-20260321-005331-8414|action=commit|detail=runtime-mutation
+2026-03-21T00:53:35Z|tx=tx-20260321-005335-17412|action=begin|detail=runtime-mutation
+2026-03-21T00:53:35Z|tx=tx-20260321-005335-17412|action=commit|detail=runtime-mutation
+2026-03-21T00:53:39Z|tx=tx-20260321-005339-11405|action=begin|detail=runtime-mutation
+2026-03-21T00:53:39Z|tx=tx-20260321-005339-11405|action=commit|detail=runtime-mutation
+2026-03-21T00:53:43Z|tx=tx-20260321-005343-19765|action=begin|detail=runtime-mutation
+2026-03-21T00:53:43Z|tx=tx-20260321-005343-19765|action=commit|detail=runtime-mutation
+2026-03-21T00:53:43Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:53:47Z|tx=tx-20260321-005347-21541|action=begin|detail=runtime-mutation
+2026-03-21T00:53:47Z|tx=tx-20260321-005347-21541|action=commit|detail=runtime-mutation
+2026-03-21T00:53:50Z|tx=tx-20260321-005350-25978|action=begin|detail=runtime-mutation
+2026-03-21T00:53:51Z|tx=tx-20260321-005350-25978|action=commit|detail=runtime-mutation
+2026-03-21T00:53:54Z|tx=tx-20260321-005354-12739|action=begin|detail=runtime-mutation
+2026-03-21T00:53:54Z|tx=tx-20260321-005354-12739|action=commit|detail=runtime-mutation
+2026-03-21T00:53:58Z|tx=tx-20260321-005358-99|action=begin|detail=runtime-mutation
+2026-03-21T00:53:58Z|tx=tx-20260321-005358-99|action=commit|detail=runtime-mutation
+2026-03-21T00:54:04Z|tx=tx-20260321-005404-27367|action=begin|detail=runtime-mutation
+2026-03-21T00:54:04Z|tx=tx-20260321-005404-27367|action=commit|detail=runtime-mutation
+2026-03-21T00:55:38Z|tx=tx-20260321-005538-8384|action=begin|detail=runtime-mutation
+2026-03-21T00:55:38Z|tx=tx-20260321-005538-8384|action=commit|detail=runtime-mutation
+2026-03-21T00:55:42Z|tx=tx-20260321-005542-25503|action=begin|detail=runtime-mutation
+2026-03-21T00:55:42Z|tx=tx-20260321-005542-25503|action=commit|detail=runtime-mutation
+2026-03-21T00:55:46Z|tx=tx-20260321-005546-27841|action=begin|detail=runtime-mutation
+2026-03-21T00:55:46Z|tx=tx-20260321-005546-27841|action=commit|detail=runtime-mutation
+2026-03-21T00:55:46Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:55:50Z|tx=tx-20260321-005550-6358|action=begin|detail=runtime-mutation
+2026-03-21T00:55:50Z|tx=tx-20260321-005550-6358|action=commit|detail=runtime-mutation
+2026-03-21T00:55:54Z|tx=tx-20260321-005554-22348|action=begin|detail=runtime-mutation
+2026-03-21T00:55:54Z|tx=tx-20260321-005554-22348|action=commit|detail=runtime-mutation
+2026-03-21T00:55:58Z|tx=tx-20260321-005558-13231|action=begin|detail=runtime-mutation
+2026-03-21T00:55:58Z|tx=tx-20260321-005558-13231|action=commit|detail=runtime-mutation
+2026-03-21T00:56:02Z|tx=tx-20260321-005602-6947|action=begin|detail=runtime-mutation
+2026-03-21T00:56:02Z|tx=tx-20260321-005602-6947|action=commit|detail=runtime-mutation
+2026-03-21T00:56:07Z|tx=tx-20260321-005607-7009|action=begin|detail=runtime-mutation
+2026-03-21T00:56:07Z|tx=tx-20260321-005607-7009|action=commit|detail=runtime-mutation
+2026-03-21T00:56:11Z|tx=tx-20260321-005611-22056|action=begin|detail=runtime-mutation
+2026-03-21T00:56:11Z|tx=tx-20260321-005611-22056|action=commit|detail=runtime-mutation
+2026-03-21T00:56:15Z|tx=tx-20260321-005615-14585|action=begin|detail=runtime-mutation
+2026-03-21T00:56:15Z|tx=tx-20260321-005615-14585|action=commit|detail=runtime-mutation
+2026-03-21T00:56:15Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:56:19Z|tx=tx-20260321-005619-15387|action=begin|detail=runtime-mutation
+2026-03-21T00:56:19Z|tx=tx-20260321-005619-15387|action=commit|detail=runtime-mutation
+2026-03-21T00:56:23Z|tx=tx-20260321-005623-566|action=begin|detail=runtime-mutation
+2026-03-21T00:56:23Z|tx=tx-20260321-005623-566|action=commit|detail=runtime-mutation
+2026-03-21T00:56:27Z|tx=tx-20260321-005627-16002|action=begin|detail=runtime-mutation
+2026-03-21T00:56:27Z|tx=tx-20260321-005627-16002|action=commit|detail=runtime-mutation
+2026-03-21T00:56:31Z|tx=tx-20260321-005631-9376|action=begin|detail=runtime-mutation
+2026-03-21T00:56:31Z|tx=tx-20260321-005631-9376|action=commit|detail=runtime-mutation
+2026-03-21T00:56:37Z|tx=tx-20260321-005637-25789|action=begin|detail=runtime-mutation
+2026-03-21T00:56:37Z|tx=tx-20260321-005637-25789|action=commit|detail=runtime-mutation
+2026-03-21T00:56:41Z|tx=tx-20260321-005641-21312|action=begin|detail=runtime-mutation
+2026-03-21T00:56:41Z|tx=tx-20260321-005641-21312|action=commit|detail=runtime-mutation
+2026-03-21T00:56:45Z|tx=tx-20260321-005645-17287|action=begin|detail=runtime-mutation
+2026-03-21T00:56:45Z|tx=tx-20260321-005645-17287|action=commit|detail=runtime-mutation
+2026-03-21T00:56:45Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T00:56:49Z|tx=tx-20260321-005649-31569|action=begin|detail=runtime-mutation
+2026-03-21T00:56:49Z|tx=tx-20260321-005649-31569|action=commit|detail=runtime-mutation
+2026-03-21T00:56:53Z|tx=tx-20260321-005653-18703|action=begin|detail=runtime-mutation
+2026-03-21T00:56:53Z|tx=tx-20260321-005653-18703|action=commit|detail=runtime-mutation
+2026-03-21T00:56:57Z|tx=tx-20260321-005657-29215|action=begin|detail=runtime-mutation
+2026-03-21T00:56:57Z|tx=tx-20260321-005657-29215|action=commit|detail=runtime-mutation
+2026-03-21T00:57:01Z|tx=tx-20260321-005701-144|action=begin|detail=runtime-mutation
+2026-03-21T00:57:35Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T01:13:18Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T01:13:46Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T01:16:30Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T01:16:58Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T01:20:11Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T01:20:39Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T01:49:30Z|connectivity_refresh network=online local_llm=absent
+2026-03-21T01:49:59Z|connectivity_refresh network=online local_llm=absent

@@ -11,6 +11,18 @@ source "${KROOT}/lib/runtime/live_capture.sh"
 cmd="${1:-}"
 shift || true
 
+kao_entry_depth_raw="${KAO_ENTRY_DEPTH:-0}"
+case "${kao_entry_depth_raw}" in
+    ''|*[!0-9]*) kao_entry_depth_raw=0 ;;
+esac
+
+if [ "${kao_entry_depth_raw}" -ge 1 ]; then
+    echo "KAO ENTRYPOINT FAILSAFE: recursion blocked (depth=${kao_entry_depth_raw})" >&2
+    exit 70
+fi
+
+export KAO_ENTRY_DEPTH=$((kao_entry_depth_raw + 1))
+
 kao_cli_live_capture_finalize() {
     local rc=$?
     local live_name="${cmd:-empty}"
@@ -23,16 +35,43 @@ kao_cli_live_capture_finalize() {
     fi
 }
 
+kao_usage() {
+    cat <<'USAGE'
+KAO CLI
+
+Usage:
+  kao
+  kao <command> [args...]
+
+Examples:
+  kao status
+  kao boot
+  kao user
+  kao ask "prompt"
+USAGE
+}
+
 kao_live_capture_command_start "${cmd:-empty}"
 trap 'kao_cli_live_capture_finalize' EXIT
 
 case "${cmd}" in
-ask)
-    response="$("${KROOT}/bin/brain" infer "$@")"
-    echo "[KAO sovereign cognition]"
-    echo "${response}"
-    exit 0
-    ;;
+    ask)
+        response="$("${KROOT}/bin/brain" infer "$@")"
+        echo "[KAO sovereign cognition]"
+        echo "${response}"
+        exit 0
+        ;;
+    "")
+        kao_usage
+        exit 0
+        ;;
+    *)
+        subcommand_path="${SCRIPT_DIR}/kao-${cmd}"
+        if [ ! -x "${subcommand_path}" ]; then
+            echo "KAO CLI ERROR: unknown command '${cmd}'" >&2
+            echo "Expected executable: ${subcommand_path}" >&2
+            exit 64
+        fi
+        exec "${subcommand_path}" "$@"
+        ;;
 esac
-
-exec "${SCRIPT_DIR}/kao" "$cmd" "$@"

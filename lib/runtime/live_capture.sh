@@ -7,6 +7,7 @@ STATE_DIR="${KAO_ROOT}/state"
 RAW_LOG="${STATE_DIR}/runtime/events.raw.log"
 SIGNALS_LOG="${STATE_DIR}/sense/signals.log"
 NORMALIZER="${KAO_ROOT}/lib/runtime/event_normalizer.sh"
+KAO_CAPTURE_SYNC="${KAO_CAPTURE_SYNC:-0}"
 
 mkdir -p "$(dirname "${RAW_LOG}")" "$(dirname "${SIGNALS_LOG}")"
 
@@ -22,7 +23,14 @@ kao_capture_event() {
   printf '%s\n' "${raw_line}" >> "${RAW_LOG}"
 
   if [ -x "${NORMALIZER}" ]; then
-    "${NORMALIZER}" append "${raw_line}" || true
+    if [ "${KAO_CAPTURE_SYNC}" = "1" ]; then
+      "${NORMALIZER}" append "${raw_line}" || true
+    else
+      (
+        nohup "${NORMALIZER}" append "${raw_line}" \
+          >/dev/null 2>&1 &
+      ) || true
+    fi
   fi
 }
 
@@ -54,4 +62,3 @@ kao_live_capture_session_open() {
 kao_live_capture_session_close() {
     return 0
 }
-

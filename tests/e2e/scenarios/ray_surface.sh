@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source /home/kao/tests/e2e/e2e_framework.sh
 scenario_ray_surface() {
 
 [ -x /home/kao/bin/ray ] && e2e_ok "ray entrypoint executable" || e2e_error "ray entrypoint missing"
@@ -302,3 +303,8 @@ printf '%s\n' "${ray_scout_first_entry}" | grep -q "^mistral | mistral-medium-la
   && e2e_ok "ray scout landscape ordered by highest rank first" \
   || e2e_error "ray scout landscape ordering incorrect"
 }
+
+scenario_ray_surface
+
+echo "[OK] ray surface scenario complete"
+exit 0

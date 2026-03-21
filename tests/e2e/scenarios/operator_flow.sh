@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source /home/kao/tests/e2e/e2e_framework.sh
 scenario_operator_flow() {
 
 [ -x /home/kao/bin/kao ] && e2e_ok "kao entry ok" || e2e_warn "kao not executable"
@@ -138,3 +139,5 @@ printf '%s\n' "${BOOT_RETURN_OUTPUT}" | grep -Fq 'USER STATE        : AVAILABLE'
 rm -f "${USER_ENV_FILE}" "${USER_STATE_FILE}" "${USER_SNAPSHOT_FILE}"
 
 }
+
+scenario_operator_flow

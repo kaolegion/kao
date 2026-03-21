@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+cmd="${1:-status}"
+
+# load libs
+. "${KROOT}/lib/gateway/router.sh"
+source "${KROOT}/lib/runtime/kao-runtime.sh"
+
+# READONLY GUARD
+if [ "${cmd}" != "status" ]; then
+  kao_router_refresh_connectivity || true
+  kao_router_apply_gateway_decision || true
+fi
+
+. "${KROOT}/lib/cognition/intent_router.sh"
+. "${KROOT}/lib/cognition/execution_bridge.sh"
+. "${KROOT}/lib/system/local_paths_registry.sh"
+. "${KROOT}/lib/system/system_inspector.sh"
+. "${KROOT}/lib/runtime/session_manager.sh"
+. "${KROOT}/lib/runtime/timeline_query.sh"
+
+case "${cmd}" in
+  status|"")
+    ray_status
+    ;;
+  *)
+    echo "ray: command flow unchanged"
+    ;;
+esac
