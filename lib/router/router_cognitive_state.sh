@@ -49,3 +49,43 @@ mv "$tmp" "${ROUTER_STATE_FILE}"
 router_state_health_ok() {
 router_state_write ROUTER_HEALTH STABLE
 }
+
+# =========================================================
+# KAO ROUTER — COGNITIVE SCORING V0
+# atomic minimal sovereign decision helper
+# =========================================================
+
+kao_router_score_provider() {
+
+    local provider="$1"
+    local local_available="$2"
+    local cloud_allowed="$3"
+    local operator_pref="$4"
+
+    local score=0
+    local reason=""
+
+    if [ "$provider" = "local" ] && [ "$local_available" = "1" ]; then
+        score=$((score+50))
+        reason="local_available"
+    fi
+
+    if [ "$provider" = "cloud" ] && [ "$cloud_allowed" = "1" ]; then
+        score=$((score+20))
+        reason="$reason cloud_allowed"
+    fi
+
+    if [ "$provider" = "$operator_pref" ]; then
+        score=$((score+15))
+        reason="$reason operator_pref"
+    fi
+
+    echo "$score|$reason"
+}
+
+
+# KAO-CANON-POLICY-FALLBACK: sovereign router selection policy surface.
+# TODO(REKON): replace fallback with direct canonical projection once router selection integration is unified.
+kao_router_selection_policy() {
+    printf 'best-available-by-state\n'
+}

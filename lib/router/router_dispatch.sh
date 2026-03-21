@@ -42,3 +42,12 @@ router_dispatch() {
     # --- legacy behaviour ---
     echo "ROUTER DISPATCH (legacy execution)"
 }
+
+# --- cognitive router decision trace ---
+kao_router_log_decision() {
+    local provider="$1"
+    local score="$2"
+    local reason="$3"
+    echo "[KAO][ROUTER][DECISION] provider=${provider} score=${score} reason=${reason}"
+}
+

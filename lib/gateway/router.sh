@@ -534,7 +534,7 @@ gateway_execution_mode() {
 }
 
 gateway_selection_policy() {
-  printf 'local-first-authority\n'
+  printf 'best-available-by-state\n'
 }
 
 gateway_decision_state() {
