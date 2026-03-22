@@ -8,8 +8,10 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
 ROUTER_CORE_LIB="${KROOT}/lib/router/router_core_contract.sh"
 SELF_LOOP_LIB="${KROOT}/lib/cognition/kao_self_loop.sh"
+LOCAL_FALLBACK_LIB="${KROOT}/lib/cognition/kao_local_fallback.sh"
 
 . "${SELF_LOOP_LIB}"
+[ -f "${LOCAL_FALLBACK_LIB}" ] && . "${LOCAL_FALLBACK_LIB}"
 [ -f "${ROUTER_CORE_LIB}" ] && . "${ROUTER_CORE_LIB}"
 . "${ROUTER_LIB}"
 
@@ -63,6 +65,16 @@ brain_infer() {
   if [ "${organ_decision}" = "decision=self-answer" ]; then
     self_answer="$(kao_self_answer "${query}" || true)"
     [ -n "${self_answer}" ] && { echo "${self_answer}"; return; }
+  fi
+
+  if declare -F kao_local_can_think >/dev/null 2>&1; then
+    if kao_local_can_think "${query}"; then
+      local_answer="$(kao_local_think "${query}" || true)"
+      if [ -n "${local_answer}" ]; then
+        echo "${local_answer}"
+        return
+      fi
+    fi
   fi
 
   selected_provider="$(gateway_provider_select 2>/dev/null || true)"
