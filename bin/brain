@@ -1,31 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# REKON-CANONICAL-CANDIDATE: cognitive orchestration entrypoint with explicit sovereign memory-first path.
-# TODO(SENTINEL): ensure router-core remains side-effect free and memory-first stays prior to provider arbitration.
-# TODO(SYFER): maintain clear boundary self-answer -> router-core -> gateway.
-# TODO(REKON-TEST): preserve truthful sovereign self-answer before any provider call when local cognition is sufficient.
-
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
 KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
 ROUTER_CORE_LIB="${KROOT}/lib/router/router_core_contract.sh"
-MISSION_LIB="${KROOT}/lib/agents/mission_kernel.sh"
 SELF_LOOP_LIB="${KROOT}/lib/cognition/kao_self_loop.sh"
 
 [ -f "${ROUTER_LIB}" ] || {
   printf 'BRAIN_ERROR gateway router missing: %s\n' "${ROUTER_LIB}" >&2
-  exit 66
+  exit 1
 }
 
-# shellcheck disable=SC1090
-source "${ROUTER_LIB}"
+[ -f "${SELF_LOOP_LIB}" ] || {
+  printf 'BRAIN_ERROR self loop missing: %s\n' "${SELF_LOOP_LIB}" >&2
+  exit 1
+}
 
-[ -f "${ROUTER_CORE_LIB}" ] && source "${ROUTER_CORE_LIB}"
-[ -f "${MISSION_LIB}" ] && source "${MISSION_LIB}"
-[ -f "${SELF_LOOP_LIB}" ] && source "${SELF_LOOP_LIB}"
+. "${SELF_LOOP_LIB}"
+[ -f "${ROUTER_CORE_LIB}" ] && . "${ROUTER_CORE_LIB}"
+. "${ROUTER_LIB}"
 
 brain_usage() {
   printf 'BRAIN\n'
@@ -33,71 +29,64 @@ brain_usage() {
   printf '  brain infer "<query>"\n'
 }
 
-brain_hotpath_log() {
-  local stage detail
-  stage="${1:-UNKNOWN}"
-  detail="${2:-none}"
-  printf '[KAO][BRAIN][%s] %s\n' "${stage}" "${detail}"
+kao_voice_journal() {
+  local mode="${1:-unknown}"
+  mkdir -p "${KROOT}/state/runtime"
+  printf 'KAO_VOICE|mode=%s|ts=%s\n' \
+    "${mode}" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    >> "${KROOT}/state/runtime/runtime.journal"
 }
 
-brain_hot_path_handle() {
-  local query="${1:-}"
+kao_integrate_provider_voice() {
+  local raw="${1:-}"
 
-  if declare -F kao_mission_gate_handle >/dev/null 2>&1; then
-    if kao_mission_gate_handle "${query}"; then
-      brain_hotpath_log "MISSION_GATE" "opened"
+  kao_voice_journal "integrated-provider"
+
+  printf 'Réponse intégrée par Kao pour kaolegion :\n\n'
+  printf '%s\n' "${raw}"
+}
+
+brain_infer() {
+  local query organ_decision self_answer selected_provider provider_output
+
+  query="${*:-}"
+
+  if declare -F kao_organs_flow_run >/dev/null 2>&1; then
+    organ_decision="$(kao_organs_flow_run "${query}")"
+  else
+    organ_decision="decision=unknown"
+  fi
+
+  if [ "${organ_decision}" = "decision=self-answer" ]; then
+    self_answer="$(kao_self_answer "${query}" || true)"
+    if [ -n "${self_answer}" ]; then
+      printf '%s\n' "${self_answer}"
       return 0
     fi
   fi
 
-  return 1
-}
-
-brain_infer() {
-  local query context self_answered=0
-
-  query="${*:-}"
-  if [ -z "${query}" ]; then
-    printf 'BRAIN_ERROR missing query\n' >&2
-    return 64
-  fi
-
-  if declare -F kao_agent_task_attach >/dev/null 2>&1; then
-    kao_agent_task_attach
-  fi
-
-  if brain_hot_path_handle "${query}"; then
-    return 0
-  fi
-
-  if declare -F kao_self_can_answer >/dev/null 2>&1; then
-    if kao_self_can_answer "${query}"; then
-      brain_hotpath_log "SELF_ANSWER" "memory-first"
-      kao_self_answer "${query}"
-      self_answered=1
-    fi
-  fi
-
-  if [ "${self_answered}" -eq 1 ]; then
-    return 0
-  fi
-
-  context=""
-  if declare -F kao_self_llm_context_build >/dev/null 2>&1; then
-    context="$(kao_self_llm_context_build "${query}")"
-  fi
-
   if declare -F router_core_contract_build >/dev/null 2>&1; then
-    router_core_contract_build "${query}"
+    router_core_contract_build "${query}" >/dev/null 2>&1 || true
   fi
 
-  if [ -n "${context}" ]; then
-    brain_hotpath_log "LLM_ARBITRATION" "gateway-context"
-    gateway_infer "${context}${query}"
-  else
-    brain_hotpath_log "LLM_ARBITRATION" "raw-query-fallback"
-    gateway_infer "${query}"
+  selected_provider="$(gateway_provider_select 2>/dev/null || true)"
+  [ -n "${selected_provider}" ] || selected_provider="unknown"
+
+  mkdir -p "${KROOT}/state/runtime"
+  printf 'PROVIDER_DECISION|provider=%s|ts=%s\n' \
+    "${selected_provider}" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    >> "${KROOT}/state/runtime/runtime.journal"
+
+  provider_output="$(gateway_infer "${query}" 2>/dev/null || true)"
+
+  if [ -n "${provider_output}" ]; then
+    kao_integrate_provider_voice "${provider_output}"
+    return 0
   fi
+
+  return 0
 }
 
 case "${1:-}" in
