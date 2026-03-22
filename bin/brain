@@ -9,25 +9,9 @@ ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
 ROUTER_CORE_LIB="${KROOT}/lib/router/router_core_contract.sh"
 SELF_LOOP_LIB="${KROOT}/lib/cognition/kao_self_loop.sh"
 
-[ -f "${ROUTER_LIB}" ] || {
-  printf 'BRAIN_ERROR gateway router missing: %s\n' "${ROUTER_LIB}" >&2
-  exit 1
-}
-
-[ -f "${SELF_LOOP_LIB}" ] || {
-  printf 'BRAIN_ERROR self loop missing: %s\n' "${SELF_LOOP_LIB}" >&2
-  exit 1
-}
-
 . "${SELF_LOOP_LIB}"
 [ -f "${ROUTER_CORE_LIB}" ] && . "${ROUTER_CORE_LIB}"
 . "${ROUTER_LIB}"
-
-brain_usage() {
-  printf 'BRAIN\n'
-  printf 'Usage:\n'
-  printf '  brain infer "<query>"\n'
-}
 
 kao_voice_journal() {
   local mode="${1:-unknown}"
@@ -38,13 +22,35 @@ kao_voice_journal() {
     >> "${KROOT}/state/runtime/runtime.journal"
 }
 
+kao_response_shaping_journal() {
+  mkdir -p "${KROOT}/state/runtime"
+  printf 'KAO_RESPONSE_SHAPING|ts=%s\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    >> "${KROOT}/state/runtime/runtime.journal"
+}
+
+kao_shape_provider_response() {
+  local raw="${1:-}"
+
+  # shaping minimal basé sur signaux réels
+  if echo "${raw}" | grep -qi "ollama"; then
+    echo "Je reste l’instance souveraine de réponse."
+    echo "Une capacité locale a été mobilisée."
+    echo "Etat courant : route locale via Ollama."
+    return
+  fi
+
+  echo "Réponse traitée par Kao."
+}
+
 kao_integrate_provider_voice() {
   local raw="${1:-}"
 
   kao_voice_journal "integrated-provider"
+  kao_response_shaping_journal
 
-  printf 'Réponse intégrée par Kao pour kaolegion :\n\n'
-  printf '%s\n' "${raw}"
+  echo
+  kao_shape_provider_response "${raw}"
 }
 
 brain_infer() {
@@ -52,41 +58,17 @@ brain_infer() {
 
   query="${*:-}"
 
-  if declare -F kao_organs_flow_run >/dev/null 2>&1; then
-    organ_decision="$(kao_organs_flow_run "${query}")"
-  else
-    organ_decision="decision=unknown"
-  fi
+  organ_decision="$(kao_organs_flow_run "${query}")"
 
   if [ "${organ_decision}" = "decision=self-answer" ]; then
     self_answer="$(kao_self_answer "${query}" || true)"
-    if [ -n "${self_answer}" ]; then
-      printf '%s\n' "${self_answer}"
-      return 0
-    fi
-  fi
-
-  if declare -F router_core_contract_build >/dev/null 2>&1; then
-    router_core_contract_build "${query}" >/dev/null 2>&1 || true
+    [ -n "${self_answer}" ] && { echo "${self_answer}"; return; }
   fi
 
   selected_provider="$(gateway_provider_select 2>/dev/null || true)"
-  [ -n "${selected_provider}" ] || selected_provider="unknown"
-
-  mkdir -p "${KROOT}/state/runtime"
-  printf 'PROVIDER_DECISION|provider=%s|ts=%s\n' \
-    "${selected_provider}" \
-    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    >> "${KROOT}/state/runtime/runtime.journal"
-
   provider_output="$(gateway_infer "${query}" 2>/dev/null || true)"
 
-  if [ -n "${provider_output}" ]; then
-    kao_integrate_provider_voice "${provider_output}"
-    return 0
-  fi
-
-  return 0
+  [ -n "${provider_output}" ] && kao_integrate_provider_voice "${provider_output}"
 }
 
 case "${1:-}" in
@@ -94,11 +76,7 @@ case "${1:-}" in
     shift
     brain_infer "$@"
     ;;
-  ""|-h|--help|help)
-    brain_usage
-    ;;
   *)
-    printf 'BRAIN_ERROR unknown command: %s\n' "${1:-}" >&2
-    exit 64
+    echo "brain usage"
     ;;
 esac
