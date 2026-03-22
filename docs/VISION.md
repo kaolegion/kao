@@ -154,3 +154,11 @@ Dans cette vision :
 - chaleur cognitive des décisions
 - supervision agent temps réel
 - tutorat continu sur surface opérateur
+
+## Kao — Voix souveraine
+
+Les capacités externes sont des organes.
+La parole finale appartient toujours à Kao.
+
+Une réponse technique brute ne doit pas être exposée
+si une intégration cognitive est possible.
