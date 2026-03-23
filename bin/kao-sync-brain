@@ -35,20 +35,18 @@ extract_field() {
   grep -m1 "^${key}=" "${file}" | head -n1 | cut -d= -f2- || true
 }
 
-extract_answer_block_OLD() {
+extract_answer_inline() {
   local file="${1:-}"
   awk '
     BEGIN {capture=0}
-    /^answer<<EOF$/ {capture=1; next}
-    /^EOF$/ {if (capture==1) exit}
+    /^answer=/ {
+      capture=1
+      sub(/^answer=/, "", $0)
+      print
+      next
+    }
     capture==1 {print}
-  ' "${file}"
-}
-
-
-extract_answer_inline() {
-  local file="${1:-}"
-  grep -m1 '^answer=' "${file}" | cut -d= -f2- || true
+  ' "${file}" | sed '/^heat=[0-9][0-9]*$/d'
 }
 
 sanitize_title() {
@@ -64,15 +62,49 @@ slugify() {
     | sed 's/[^a-z0-9._-]/-/g; s/-\{2,\}/-/g; s/^-//; s/-$//'
 }
 
+capsule_fingerprint() {
+  local capsule_file="${1:-}"
+  sha1sum "${capsule_file}" | awk '{print $1}'
+}
+
+marker_read_value() {
+  local key="${1:-}"
+  local marker="${2:-}"
+  [ -f "${marker}" ] || return 0
+  grep -m1 "^${key}=" "${marker}" | cut -d= -f2- || true
+}
+
+write_marker() {
+  local marker="${1:-}"
+  local capsule_file="${2:-}"
+  local target="${3:-}"
+  local fingerprint="${4:-}"
+  local heat="${5:-}"
+
+  cat > "${marker}" <<MARKER
+synced_at=$(timestamp_utc)
+capsule=${capsule_file}
+target=${target}
+target_dir=${KAOBOX_NOTES_DIR}
+fingerprint=${fingerprint}
+heat=${heat}
+signal_heat=${heat}
+sync_mode=incremental-v2
+MARKER
+}
+
 write_projection_note() {
   local capsule_file="${1:-}"
   local capsule_id="${2:-}"
-  local query provider heat answer title slug target
+  local sync_status="${3:-}"
+  local sync_reason="${4:-}"
+  local query provider heat answer title slug target fingerprint
 
   query="$(extract_field query "${capsule_file}")"
   provider="$(extract_field source_provider "${capsule_file}")"
   heat="$(extract_field heat "${capsule_file}")"
   answer="$(extract_answer_inline "${capsule_file}")"
+  fingerprint="$(capsule_fingerprint "${capsule_file}")"
 
   [ -n "${heat}" ] || heat="1"
   [ -n "${provider}" ] || provider="unknown"
@@ -98,6 +130,11 @@ Capsule-ID: ${capsule_id}
 Query: ${query}
 Provider: ${provider}
 Heat: ${heat}
+Cognitive-Signal: heat=${heat}
+Cognitive-Origin: kao-runtime
+Sync-Status: ${sync_status}
+Sync-Reason: ${sync_reason}
+Fingerprint: ${fingerprint}
 Synced-At: $(timestamp_utc)
 
 ## Answer
@@ -111,17 +148,43 @@ NOTE
 sync_one_capsule() {
   local capsule_file="${1:-}"
   local capsule_id marker projected
+  local current_fingerprint current_heat previous_fingerprint previous_heat previous_target
+  local sync_status sync_reason
 
   capsule_id="$(basename "${capsule_file}" .capsule)"
   marker="$(capsule_synced_marker "${capsule_id}")"
+  current_fingerprint="$(capsule_fingerprint "${capsule_file}")"
+  current_heat="$(extract_field heat "${capsule_file}")"
+  [ -n "${current_heat}" ] || current_heat="1"
 
-  if [ -f "${marker}" ]; then
-    log_sync "status=skip|reason=already-synced|capsule_id=${capsule_id}"
+  previous_fingerprint="$(marker_read_value fingerprint "${marker}")"
+  previous_heat="$(marker_read_value heat "${marker}")"
+  previous_target="$(marker_read_value target "${marker}")"
+
+  sync_status=""
+  sync_reason=""
+
+  if [ ! -f "${marker}" ]; then
+    sync_status="created"
+    sync_reason="new-capsule"
+  elif [ "${previous_fingerprint}" != "${current_fingerprint}" ]; then
+    sync_status="updated"
+    sync_reason="fingerprint-change"
+  elif [ "${previous_heat}" != "${current_heat}" ]; then
+    sync_status="updated"
+    sync_reason="heat-change"
+  else
+    sync_status="skipped"
+    sync_reason="unchanged"
+  fi
+
+  if [ "${sync_status}" = "skipped" ]; then
+    log_sync "status=skipped|reason=${sync_reason}|capsule_id=${capsule_id}|fingerprint=${current_fingerprint}|heat=${current_heat}"
     return 0
   fi
 
-  projected="$(write_projection_note "${capsule_file}" "${capsule_id}")"
-  log_sync "status=projected|capsule_id=${capsule_id}|target=${projected}"
+  projected="$(write_projection_note "${capsule_file}" "${capsule_id}" "${sync_status}" "${sync_reason}")"
+  log_sync "status=${sync_status}|phase=projected|reason=${sync_reason}|capsule_id=${capsule_id}|target=${projected}|fingerprint=${current_fingerprint}|heat=${current_heat}"
 
   if [ ! -x "${KAOBOX_BRAIN_BIN}" ]; then
     log_sync "status=error|capsule_id=${capsule_id}|reason=missing-kaobox-brain-bin"
@@ -133,11 +196,14 @@ sync_one_capsule() {
     return 1
   fi
 
-  printf 'synced_at=%s\n' "$(timestamp_utc)" > "${marker}"
-  printf 'capsule=%s\n' "${capsule_file}" >> "${marker}"
-  printf 'target_dir=%s\n' "${KAOBOX_NOTES_DIR}" >> "${marker}"
+  write_marker "${marker}" "${capsule_file}" "${projected}" "${current_fingerprint}" "${current_heat}"
 
-  log_sync "status=done|capsule_id=${capsule_id}|reindex=ok"
+  log_sync "status=${sync_status}|phase=done|reason=${sync_reason}|capsule_id=${capsule_id}|reindex=ok|target=${projected}|fingerprint=${current_fingerprint}|heat=${current_heat}"
+
+  if [ -n "${previous_target}" ] && [ "${previous_target}" != "${projected}" ] && [ -f "${previous_target}" ]; then
+    rm -f "${previous_target}"
+    log_sync "status=cleanup|reason=target-renamed|capsule_id=${capsule_id}|old_target=${previous_target}"
+  fi
 }
 
 main() {
