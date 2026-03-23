@@ -1,3 +1,6 @@
+DOC ROLE: CORE AUTHORITY
+DOC LAYER: KAO SYSTEM
+
 # KAO — Development Workflow
 
 This document defines the canonical development workflow

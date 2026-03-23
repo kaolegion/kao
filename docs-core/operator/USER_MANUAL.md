@@ -1,3 +1,6 @@
+DOC ROLE: CORE AUTHORITY
+DOC LAYER: KAO SYSTEM
+
 # KAO — User Manual
 
 ## Purpose of this manual

@@ -1,3 +1,6 @@
+DOC ROLE: CORE AUTHORITY
+DOC LAYER: KAO SYSTEM
+
 # KAO Architecture — Baseline
 
 Kao est un organisme cognitif opératoire.

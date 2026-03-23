@@ -236,3 +236,180 @@ Kao should evolve by keeping:
    - Reduce implicit Kao dependencies
    - Clarify hybrid runtime and provider scoring surfaces
 
+
+## KAO COSMOS ARCHITECTURE — PRODUCTION V1
+
+### Canonical structure
+
+Kao now converges toward a production architecture organized as a sovereign software cosmos.
+
+The canonical structure is:
+
+- `/home/kao`
+  - AI-OS-ONE core
+  - sovereign runtime cognition
+  - governance and doctrine
+  - operator control plane
+  - operator CLI / API
+  - vital organs
+  - lab sandbox
+
+- `/opt/kaobox`
+  - cognitive workspace
+  - graph memory surfaces
+  - navigation and think engine
+  - operator-facing tools
+  - modular cognitive applications
+
+- `/opt/kaobox/devtools`
+  - repository intelligence tools
+  - codebase analysis organs
+  - structural, semantic, risk, diff, and explain tooling
+  - `codebase-snapshot` convergence zone
+
+- `/opt/kaobox/surfaces`
+  - operator surfaces
+  - lightweight TUI
+  - operator web shell
+  - operator PWA
+  - cinematic cockpit UI
+
+- `/dist/ray`
+  - open-source minimal distribution
+  - reproducible Kao-like runtime
+  - minimum vital organs required
+  - sovereign local-first baseline
+
+- external web / studio ecosystem
+  - public site
+  - documentation portals
+  - community
+  - studio / lab communication
+  - merch and product universe
+
+### Production role of each layer
+
+#### `/home/kao` — Kao Core
+
+`/home/kao` is the sovereign AI-OS-ONE core.
+
+It owns:
+
+- runtime cognition
+- governance
+- routing and provider arbitration
+- session lifecycle
+- memory authority
+- organ doctrine
+- operator control plane
+- canonical system documentation
+
+Rule:
+
+> Everything that belongs to sovereign runtime cognition lives under Kao core.
+
+#### `/opt/kaobox` — KaoBox World
+
+`/opt/kaobox` is the operator cognitive world.
+
+It contains:
+
+- navigable brain capabilities
+- graph exploration
+- related / neighbors / think / session surfaces
+- modular user-facing cognition tools
+- future operator applications and workspaces
+
+Rule:
+
+> KaoBox is not the sovereign core itself; it is a governed cognitive world connected to Kao.
+
+#### `/opt/kaobox/devtools` — Development Intelligence
+
+This zone hosts advanced repository and development intelligence tooling.
+
+It contains:
+
+- codebase structural analysis
+- repository explain
+- lint and policy inspection
+- graph and dependency reading
+- repository DNA and system evolution analysis
+
+Rule:
+
+> Development intelligence tools are governed organs of the Kao world, not ad-hoc side utilities.
+
+#### `/home/kao/lab` — Sovereign Lab
+
+The lab is the sovereign experimentation zone.
+
+It is intended for:
+
+- prototype organs
+- cognitive experiments
+- UI/UX concept trials
+- new routing strategies
+- future provider integrations
+- advanced operator concepts before canonization
+
+Rule:
+
+> The lab can explore freely, but must not destabilize canonical runtime.
+
+#### `/opt/kaobox/surfaces` — Operator Surfaces
+
+This zone hosts operator-facing surfaces.
+
+It is intended for:
+
+- operator CLI facades
+- lightweight TUI cockpit
+- web operator shell
+- PWA cockpit
+- final immersive operator dashboard
+
+Rule:
+
+> All visual and interactive operator surfaces must converge here instead of fragmenting across the runtime.
+
+#### `/dist/ray` — Ray Distribution
+
+Ray is the reproducible open-source Kao-like distribution.
+
+It provides:
+
+- minimum vital organs
+- installable local-first runtime
+- reduced sovereign cognition baseline
+- open-source reproducible boundary
+
+Rule:
+
+> Ray is the reproducible public distribution, while Kao remains the sovereign master environment.
+
+### Governance rules for future placement
+
+When adding a new capability, placement must follow these rules:
+
+- sovereign runtime cognition -> `/home/kao`
+- operator cognitive tool -> `/opt/kaobox`
+- development intelligence organ -> `/opt/kaobox/devtools`
+- operator-facing UI surface -> `/opt/kaobox/surfaces`
+- experimental or pre-canon feature -> `/home/kao/lab`
+- open-source reproducible minimum distribution -> `/dist/ray`
+- public ecosystem / community / merch / studio -> external web ecosystem
+
+### Strategic commitment
+
+This roadmap commits Kao production V1 to a clear cosmos structure:
+
+- Kao as sovereign AI-OS-ONE
+- KaoBox as governed cognitive workspace
+- Devtools as intelligence organs for repositories and engineering
+- Surfaces as the operator cockpit layer
+- Lab as the experimentation field
+- Ray as the open-source minimum distribution
+- Studio/community ecosystem as the external product universe
+
+This structure is now the canonical architectural direction for future convergence.

@@ -1,3 +1,6 @@
+DOC ROLE: CORE AUTHORITY
+DOC LAYER: KAO SYSTEM
+
 # KAO — Cognitive Core (Canonical V0)
 
 ## Purpose
