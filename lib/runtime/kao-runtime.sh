@@ -232,9 +232,10 @@ kao_router_refresh_connectivity() {
     kao_runtime_state_set KAO_CLOUD_ACCESS "unavailable"
   fi
 
+  # SYFER-GATEWAY-SOVEREIGN-CONTROL:
+  # runtime remains a perception layer only.
+  # provider selection must happen inside brain, not during connectivity refresh.
   kao_router_journal "connectivity_refresh network=${net} local_llm=${llm}"
-
-  kao_router_apply_gateway_decision
 }
 
 kao_runtime_snapshot_refresh() {

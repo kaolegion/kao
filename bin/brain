@@ -77,8 +77,24 @@ brain_infer() {
     fi
   fi
 
-  selected_provider="$(gateway_provider_select 2>/dev/null || true)"
-  provider_output="$(gateway_infer "${query}" 2>/dev/null || true)"
+  # SYFER-SOVEREIGN-PROVIDER:
+  # brain now decides provider explicitly based on runtime perception.
+  net="$(grep '^KAO_CONNECTIVITY_NETWORK=' state/runtime/runtime.state | cut -d= -f2)"
+  local_llm="$(grep '^KAO_LOCAL_LLM=' state/runtime/runtime.state | cut -d= -f2)"
+  cloud="$(grep '^KAO_CLOUD_ACCESS=' state/runtime/runtime.state | cut -d= -f2)"
+
+  if [ "${net}" = "offline" ] && [ "${local_llm}" = "present" ]; then
+    selected_provider="ollama"
+  elif [ "${cloud}" = "available" ]; then
+    selected_provider="mistral"
+  elif [ "${local_llm}" = "present" ]; then
+    selected_provider="ollama"
+  else
+    selected_provider="none"
+  fi
+
+  provider_output="$(gateway_infer "${query}" "${selected_provider}" 2>/dev/null || true)"
+
 
   [ -n "${provider_output}" ] && kao_integrate_provider_voice "${provider_output}"
 }
