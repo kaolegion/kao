@@ -175,6 +175,42 @@ Doctrine de sécurité :
 
 ---
 
+## Brain graph traversal doctrine
+
+Kao distingue maintenant plusieurs surfaces graphes déjà traversées en terrain réel :
+
+- `brain graph` expose les liens sortants et backlinks d'une note
+- `brain neighbors` expose le voisinage direct
+- `brain related` expose une lecture liée au voisinage immédiat
+- `brain think` consomme un `graph_context` borné pour enrichir le ranking cognitif
+
+Le sprint de champ thermique graphe a confirmé que la doctrine actuelle du
+`graph_context` utilisé par `think` reste :
+
+- déterministe
+- bornée par profondeur
+- orientée traversal sortant (`outgoing-only`)
+
+Cette doctrine n'est pas un bug.
+Elle correspond à une politique de contexte causal local.
+
+Conséquences opératoires actuelles :
+
+- le ranking thermique local reste explicable
+- la propagation multi-distance reste faible et observable
+- certaines notes visibles via backlinks ou autres surfaces ne sont pas injectées
+  dans le `graph_context` de `think`
+- une future évolution devra passer par une primitive paramétrable gouvernée par Kao,
+  et non par remplacement brutal de la primitive canonique actuelle
+
+Cette distinction prépare la gouvernance future entre :
+
+- traversal causal sortant
+- voisinage bidirectionnel
+- modes cognitifs paramétrables selon la surface opérateur
+
+---
+
 ## Runtime transaction engine — crash-safe local mutation layer
 
 Kao introduit maintenant une couche transactionnelle runtime explicite
@@ -1082,3 +1118,26 @@ Cette couche réduit la charge mentale de l'opérateur et prépare les surfaces 
 Kao now exposes a session cognition surface through `kao session status`
 and persists a session memory artifact on close. This establishes the first
 observable continuity loop between runtime experience and stored memory.
+
+---
+
+## Brain graph traversal doctrine
+
+Current brain traversal used by think context follows:
+
+- deterministic BFS traversal
+- depth bounded context projection
+- outgoing-only causal propagation
+
+This doctrine is intentional and preserves:
+
+- explainability
+- ranking stability
+- cognitive locality
+
+Future evolution may introduce:
+
+- bidirectional traversal modes
+- operator-driven graph context policies
+- cognitive network visualization surfaces
+

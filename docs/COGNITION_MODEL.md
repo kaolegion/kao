@@ -67,6 +67,31 @@ The current summary renders:
 
 This establishes the first human-readable cognitive synthesis surface for session memory.
 
+## Thermal graph cognition layer
+
+Kao now has a first validated local thermal graph cognition layer on the KaoBox side.
+
+Current validated properties:
+
+- note heat can be extracted from projected cognitive notes
+- heat contributes to ranking through a weak logarithmic signal
+- thermal graph propagation can influence nearby graph candidates
+- propagation is observable in think trace fields
+- ranking remains stable while thermal influence stays perceptible
+
+Current doctrine:
+
+- thermal propagation is local
+- propagation remains weak and non-destructive
+- graph-context traversal used by `think` is currently depth-bounded and outgoing-only
+- this constraint is explicit and should be governed before any future extension
+
+This layer establishes a first cognitive bridge between:
+
+- local memory heat
+- graph distance
+- explainable ranking behavior
+
 ## Next evolution
 
 The next logical step is a richer interpretation layer:
@@ -75,3 +100,8 @@ The next logical step is a richer interpretation layer:
 - timeline event count
 - active / cooling / idle reading
 - future router influence
+- graph traversal governance under Kao
+- future parametric graph cognition modes
+
+---
+

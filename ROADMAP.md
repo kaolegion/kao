@@ -102,11 +102,24 @@ Goals:
 - prepare concurrency-safe runtime mutation
 - connect reliability semantics to future UX
 
+
+### 5. Graph cognitive field evolution
+
+Extend the current cognitive field without breaking stable ranking behavior.
+
+Goals:
+
+- preserve local thermal graph propagation as a weak signal
+- keep think ranking explainable through observable trace fields
+- formalize current graph context doctrine as depth-bounded outgoing traversal
+- prepare future parametric graph traversal modes under Kao governance
+- prepare operator-readable graph and thermal visualization surfaces
+
 ---
 
 ## Mid-term priorities
 
-### 5. Kao Brain foundation
+### 6. Kao Brain foundation
 
 Prepare the memory layer.
 
@@ -117,7 +130,7 @@ Directions:
 - timeline reasoning
 - skill and trace structures
 
-### 6. Agent orchestration foundation
+### 7. Agent orchestration foundation
 
 Prepare supervised agent execution.
 
@@ -129,7 +142,7 @@ Directions:
 - human supervision paths
 - mutation safety rules backed by reliability kernel
 
-### 7. Dev intelligence layer
+### 8. Dev intelligence layer
 
 Expand repository cognition.
 
@@ -140,7 +153,7 @@ Directions:
 - diff intelligence
 - sprint assistance
 
-### 8. Reliability-aware runtime orchestration
+### 9. Reliability-aware runtime orchestration
 
 Prepare the runtime for heavier system activity.
 
@@ -156,7 +169,7 @@ Directions:
 
 ## Long-term direction
 
-### 9. Cognitive operating system maturity
+### 10. Cognitive operating system maturity
 
 Kao aims to become:
 
@@ -166,7 +179,7 @@ Kao aims to become:
 - a development cognition platform
 - an open modular architecture for human-agent collaboration
 
-### 10. Distributed cognitive reliability
+### 11. Distributed cognitive reliability
 
 Kao should later be able to extend reliability beyond one local runtime.
 
@@ -222,3 +235,4 @@ Kao should evolve by keeping:
    - Split e2e contracts into smoke vs advanced
    - Reduce implicit Kao dependencies
    - Clarify hybrid runtime and provider scoring surfaces
+

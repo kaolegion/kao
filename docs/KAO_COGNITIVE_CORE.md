@@ -62,6 +62,29 @@ but one layer of the cognitive stack.
 - runtime exposes cognitive signals
 - sovereignty is preserved when possible
 
+## Local graph thermal cognition
+
+A first local graph thermal cognition layer has now been validated through the
+KaoBox brain stack.
+
+This layer currently provides:
+
+- note-local heat extraction
+- weak logarithmic heat boost
+- local thermal graph propagation by distance
+- explainable trace visibility for ranking components
+
+Current governance constraint:
+
+- graph context used for think ranking remains depth-bounded and outgoing-only
+
+This means:
+
+- thermal cognition is already real
+- graph propagation is observable
+- broader bidirectional or operator-specific graph modes require an explicit
+  governance layer and should not silently replace the current canonical primitive
+
 ## Target evolution
 
 Future architecture may introduce:
@@ -70,6 +93,8 @@ Future architecture may introduce:
 - extended signal families
 - predictive cognition layers
 - adaptive routing influence
+- parametric graph traversal governance
+- operator-facing graph cognition modes
 
 But V0 remains:
 
@@ -87,3 +112,6 @@ Resolution order:
 5. async governed mission
 
 This tier ensures responsiveness, operator trust, and cognitive presence.
+
+---
+
