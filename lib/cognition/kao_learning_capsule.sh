@@ -17,7 +17,7 @@ kao_capsule_answer_useful() {
 kao_capsule_lookup() {
   local raw="$*"
   local query dir file stored normalized_stored
-
+      
   query="$(kao_self_normalize "${raw}")"
   dir="$(kao_capsule_dir)"
 
@@ -28,9 +28,10 @@ kao_capsule_lookup() {
 
     stored="$(grep '^query=' "${file}" | head -n1 | cut -d= -f2-)"
     normalized_stored="$(kao_self_normalize "${stored}")"
-
-    if [ "${normalized_stored}" = "${query}" ]; then
-      sed -n '/^answer=/,$p' "${file}" | sed '1s/^answer=//'
+      
+    if echo "${query}" | grep -qi "${normalized_stored}"; then
+      kao_capsule_heat_increment "${file}"
+            sed -n '/^answer=/,$p' "${file}" | sed '1s/^answer=//'
       return 0
     fi
   done
@@ -62,7 +63,21 @@ source_type=provider
 source_provider=${provider}
 confidence=medium
 status=learned
+heat=1
 ts=${ts}
 answer=${answer}
 CAPS
+}
+
+kao_capsule_heat_increment() {
+  local file="$1"
+  local h
+
+  h="$(grep '^heat=' "${file}" | cut -d= -f2)"
+
+  [ -z "${h}" ] && h=1
+
+  h=$((h+1))
+
+  sed -i "s/^heat=.*/heat=${h}/" "${file}"
 }

@@ -9,10 +9,12 @@ ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
 ROUTER_CORE_LIB="${KROOT}/lib/router/router_core_contract.sh"
 SELF_LOOP_LIB="${KROOT}/lib/cognition/kao_self_loop.sh"
 LOCAL_FALLBACK_LIB="${KROOT}/lib/cognition/kao_local_fallback.sh"
+LEARNING_CAPSULE_LIB="${KROOT}/lib/cognition/kao_learning_capsule.sh"
 
 . "${SELF_LOOP_LIB}"
 [ -f "${LOCAL_FALLBACK_LIB}" ] && . "${LOCAL_FALLBACK_LIB}"
 [ -f "${ROUTER_CORE_LIB}" ] && . "${ROUTER_CORE_LIB}"
+. "${LEARNING_CAPSULE_LIB}"
 . "${ROUTER_LIB}"
 
 kao_voice_journal() {
@@ -59,17 +61,30 @@ brain_infer() {
   local query organ_decision self_answer selected_provider provider_output
 
   query="${*:-}"
+ echo "TRACE|start|${query}" >> state/runtime/runtime.journal
 
-  organ_decision="$(kao_organs_flow_run "${query}")"
+  echo "TRACE|before_organs" >> state/runtime/runtime.journal
+organ_decision="$(kao_organs_flow_run "${query}")"
+echo "TRACE|after_organs|${organ_decision}" >> state/runtime/runtime.journal
 
   if [ "${organ_decision}" = "decision=self-answer" ]; then
-    self_answer="$(kao_self_answer "${query}" || true)"
+    echo "TRACE|self_answer_check" >> state/runtime/runtime.journal
+self_answer="$(kao_self_answer "${query}" || true)"
     [ -n "${self_answer}" ] && { echo "${self_answer}"; return; }
   fi
 
-  if declare -F kao_local_can_think >/dev/null 2>&1; then
+  
+  if declare -F kao_capsule_lookup >/dev/null 2>&1; then
+    capsule_answer="$(kao_capsule_lookup "${query}" || true)"
+    if [ -n "${capsule_answer}" ]; then
+      echo "${capsule_answer}"
+      return
+    fi
+  fi
+if declare -F kao_local_can_think >/dev/null 2>&1; then
     if kao_local_can_think "${query}"; then
-      local_answer="$(kao_local_think "${query}" || true)"
+      echo "TRACE|local_fallback_check" >> state/runtime/runtime.journal
+local_answer="$(kao_local_think "${query}" || true)"
       if [ -n "${local_answer}" ]; then
         echo "${local_answer}"
         return
@@ -84,16 +99,21 @@ brain_infer() {
   cloud="$(grep '^KAO_CLOUD_ACCESS=' state/runtime/runtime.state | cut -d= -f2)"
 
   if [ "${net}" = "offline" ] && [ "${local_llm}" = "present" ]; then
-    selected_provider="ollama"
+    echo "TRACE|provider_decision" >> state/runtime/runtime.journal
+selected_provider="ollama"
   elif [ "${cloud}" = "available" ]; then
-    selected_provider="mistral"
+    echo "TRACE|provider_decision" >> state/runtime/runtime.journal
+selected_provider="mistral"
   elif [ "${local_llm}" = "present" ]; then
-    selected_provider="ollama"
+    echo "TRACE|provider_decision" >> state/runtime/runtime.journal
+selected_provider="ollama"
   else
-    selected_provider="none"
+    echo "TRACE|provider_decision" >> state/runtime/runtime.journal
+selected_provider="none"
   fi
 
-  provider_output="$(gateway_infer "${query}" "${selected_provider}" 2>/dev/null || true)"
+  echo "TRACE|before_provider_call" >> state/runtime/runtime.journal
+provider_output="$(gateway_infer "${query}" "${selected_provider}" 2>/dev/null || true)"
 
 
   if [ -n "${provider_output}" ]; then
@@ -116,3 +136,4 @@ case "${1:-}" in
     echo "brain usage"
     ;;
 esac
+
