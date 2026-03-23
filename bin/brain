@@ -33,6 +33,28 @@ kao_response_shaping_journal() {
     >> "${KROOT}/state/runtime/runtime.journal"
 }
 
+
+kao_capsule_heat_journal() {
+  local heat="${1:-unknown}"
+  mkdir -p "${KROOT}/state/runtime"
+  printf 'KAO_CAPSULE_HEAT|heat=%s|ts=%s\n' \
+    "${heat}" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    >> "${KROOT}/state/runtime/runtime.journal"
+}
+
+
+kao_heat_decision_journal() {
+  local decision="${1:-unknown}"
+  local heat="${2:-unknown}"
+  mkdir -p "${KROOT}/state/runtime"
+  printf 'KAO_HEAT_DECISION|decision=%s|heat=%s|ts=%s\n' \
+    "${decision}" \
+    "${heat}" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    >> "${KROOT}/state/runtime/runtime.journal"
+}
+
 kao_shape_provider_response() {
   local raw="${1:-}"
 
@@ -58,7 +80,7 @@ kao_integrate_provider_voice() {
 }
 
 brain_infer() {
-  local query organ_decision self_answer selected_provider provider_output
+  local query organ_decision self_answer selected_provider provider_output capsule_answer capsule_heat net local_llm cloud
 
   query="${*:-}"
  echo "TRACE|start|${query}" >> state/runtime/runtime.journal
@@ -77,6 +99,16 @@ self_answer="$(kao_self_answer "${query}" || true)"
   if declare -F kao_capsule_lookup >/dev/null 2>&1; then
     capsule_answer="$(kao_capsule_lookup "${query}" || true)"
     if [ -n "${capsule_answer}" ]; then
+      capsule_heat="$(kao_capsule_last_hit_heat 2>/dev/null || true)"
+      [ -n "${capsule_heat}" ] && kao_capsule_heat_journal "${capsule_heat}"
+
+      if [ -n "${capsule_heat}" ] && [ "${capsule_heat}" -ge 3 ]; then
+        kao_heat_decision_journal "memory-preferred" "${capsule_heat}"
+        echo "${capsule_answer}"
+        return
+      fi
+
+      kao_heat_decision_journal "memory-light-hit" "${capsule_heat:-unknown}"
       echo "${capsule_answer}"
       return
     fi
