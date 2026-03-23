@@ -96,7 +96,15 @@ brain_infer() {
   provider_output="$(gateway_infer "${query}" "${selected_provider}" 2>/dev/null || true)"
 
 
-  [ -n "${provider_output}" ] && kao_integrate_provider_voice "${provider_output}"
+  if [ -n "${provider_output}" ]; then
+  kao_integrate_provider_voice "${provider_output}"
+
+  # SYFER-LEARNING-RUNTIME:
+  # brain stores useful cognition after provider integration.
+  if declare -F kao_capsule_write >/dev/null 2>&1; then
+    kao_capsule_write "${query}" "${selected_provider}" "${provider_output}"
+  fi
+fi
 }
 
 case "${1:-}" in
