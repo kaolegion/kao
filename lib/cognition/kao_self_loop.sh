@@ -1,5 +1,10 @@
+kao_self_ascii_fold() {
+  iconv -f utf8 -t ascii//TRANSLIT 2>/dev/null
+}
+
 kao_self_normalize() {
   printf '%s' "$*" \
+  | kao_self_ascii_fold \
   | tr '[:upper:]' '[:lower:]' \
   | sed 's/[[:punct:]]//g' \
   | tr -d '[:space:]'
