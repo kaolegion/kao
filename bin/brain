@@ -10,6 +10,12 @@ ROUTER_CORE_LIB="${KROOT}/lib/router/router_core_contract.sh"
 SELF_LOOP_LIB="${KROOT}/lib/cognition/kao_self_loop.sh"
 LOCAL_FALLBACK_LIB="${KROOT}/lib/cognition/kao_local_fallback.sh"
 LEARNING_CAPSULE_LIB="${KROOT}/lib/cognition/kao_learning_capsule.sh"
+RUNTIME_DIR="${KROOT}/state/runtime"
+RUNTIME_JOURNAL="${RUNTIME_DIR}/runtime.journal"
+RUNTIME_STATE="${RUNTIME_DIR}/runtime.state"
+
+mkdir -p "${RUNTIME_DIR}"
+touch "${RUNTIME_JOURNAL}"
 
 . "${SELF_LOOP_LIB}"
 [ -f "${LOCAL_FALLBACK_LIB}" ] && . "${LOCAL_FALLBACK_LIB}"
@@ -19,46 +25,43 @@ LEARNING_CAPSULE_LIB="${KROOT}/lib/cognition/kao_learning_capsule.sh"
 
 kao_voice_journal() {
   local mode="${1:-unknown}"
-  mkdir -p "${KROOT}/state/runtime"
+  mkdir -p "${RUNTIME_DIR}"
   printf 'KAO_VOICE|mode=%s|ts=%s\n' \
     "${mode}" \
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    >> "${KROOT}/state/runtime/runtime.journal"
+    >> "${RUNTIME_JOURNAL}"
 }
 
 kao_response_shaping_journal() {
-  mkdir -p "${KROOT}/state/runtime"
+  mkdir -p "${RUNTIME_DIR}"
   printf 'KAO_RESPONSE_SHAPING|ts=%s\n' \
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    >> "${KROOT}/state/runtime/runtime.journal"
+    >> "${RUNTIME_JOURNAL}"
 }
-
 
 kao_capsule_heat_journal() {
   local heat="${1:-unknown}"
-  mkdir -p "${KROOT}/state/runtime"
+  mkdir -p "${RUNTIME_DIR}"
   printf 'KAO_CAPSULE_HEAT|heat=%s|ts=%s\n' \
     "${heat}" \
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    >> "${KROOT}/state/runtime/runtime.journal"
+    >> "${RUNTIME_JOURNAL}"
 }
-
 
 kao_heat_decision_journal() {
   local decision="${1:-unknown}"
   local heat="${2:-unknown}"
-  mkdir -p "${KROOT}/state/runtime"
+  mkdir -p "${RUNTIME_DIR}"
   printf 'KAO_HEAT_DECISION|decision=%s|heat=%s|ts=%s\n' \
     "${decision}" \
     "${heat}" \
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    >> "${KROOT}/state/runtime/runtime.journal"
+    >> "${RUNTIME_JOURNAL}"
 }
 
 kao_shape_provider_response() {
   local raw="${1:-}"
 
-  # shaping minimal basé sur signaux réels
   if echo "${raw}" | grep -qi "ollama"; then
     echo "Je reste l’instance souveraine de réponse."
     echo "Une capacité locale a été mobilisée."
@@ -80,22 +83,24 @@ kao_integrate_provider_voice() {
 }
 
 brain_infer() {
-  local query organ_decision self_answer selected_provider provider_output capsule_answer capsule_heat net local_llm cloud
+  local query organ_decision self_answer selected_provider provider_output capsule_answer capsule_heat net local_llm cloud local_answer
 
   query="${*:-}"
- echo "TRACE|start|${query}" >> state/runtime/runtime.journal
+  printf 'TRACE|start|%s\n' "${query}" >> "${RUNTIME_JOURNAL}"
 
-  echo "TRACE|before_organs" >> state/runtime/runtime.journal
-organ_decision="$(kao_organs_flow_run "${query}")"
-echo "TRACE|after_organs|${organ_decision}" >> state/runtime/runtime.journal
+  printf 'TRACE|before_organs\n' >> "${RUNTIME_JOURNAL}"
+  organ_decision="$(kao_organs_flow_run "${query}")"
+  printf 'TRACE|after_organs|%s\n' "${organ_decision}" >> "${RUNTIME_JOURNAL}"
 
   if [ "${organ_decision}" = "decision=self-answer" ]; then
-    echo "TRACE|self_answer_check" >> state/runtime/runtime.journal
-self_answer="$(kao_self_answer "${query}" || true)"
-    [ -n "${self_answer}" ] && { echo "${self_answer}"; return; }
+    printf 'TRACE|self_answer_check\n' >> "${RUNTIME_JOURNAL}"
+    self_answer="$(kao_self_answer "${query}" || true)"
+    if [ -n "${self_answer}" ]; then
+      echo "${self_answer}"
+      return
+    fi
   fi
 
-  
   if declare -F kao_capsule_lookup >/dev/null 2>&1; then
     capsule_answer="$(kao_capsule_lookup "${query}" || true)"
     if [ -n "${capsule_answer}" ]; then
@@ -113,10 +118,11 @@ self_answer="$(kao_self_answer "${query}" || true)"
       return
     fi
   fi
-if declare -F kao_local_can_think >/dev/null 2>&1; then
+
+  if declare -F kao_local_can_think >/dev/null 2>&1; then
     if kao_local_can_think "${query}"; then
-      echo "TRACE|local_fallback_check" >> state/runtime/runtime.journal
-local_answer="$(kao_local_think "${query}" || true)"
+      printf 'TRACE|local_fallback_check\n' >> "${RUNTIME_JOURNAL}"
+      local_answer="$(kao_local_think "${query}" || true)"
       if [ -n "${local_answer}" ]; then
         echo "${local_answer}"
         return
@@ -124,39 +130,37 @@ local_answer="$(kao_local_think "${query}" || true)"
     fi
   fi
 
-  # SYFER-SOVEREIGN-PROVIDER:
-  # brain now decides provider explicitly based on runtime perception.
-  net="$(grep '^KAO_CONNECTIVITY_NETWORK=' state/runtime/runtime.state | cut -d= -f2)"
-  local_llm="$(grep '^KAO_LOCAL_LLM=' state/runtime/runtime.state | cut -d= -f2)"
-  cloud="$(grep '^KAO_CLOUD_ACCESS=' state/runtime/runtime.state | cut -d= -f2)"
+  net="$(grep '^KAO_CONNECTIVITY_NETWORK=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || true)"
+  local_llm="$(grep '^KAO_LOCAL_LLM=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || true)"
+  cloud="$(grep '^KAO_CLOUD_ACCESS=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || true)"
 
-  if [ "${net}" = "offline" ] && [ "${local_llm}" = "present" ]; then
-    echo "TRACE|provider_decision" >> state/runtime/runtime.journal
-selected_provider="ollama"
-  elif [ "${cloud}" = "available" ]; then
-    echo "TRACE|provider_decision" >> state/runtime/runtime.journal
-selected_provider="mistral"
-  elif [ "${local_llm}" = "present" ]; then
-    echo "TRACE|provider_decision" >> state/runtime/runtime.journal
-selected_provider="ollama"
+  if [ "${net:-unknown}" = "offline" ] && [ "${local_llm:-absent}" = "present" ]; then
+    printf 'TRACE|provider_decision\n' >> "${RUNTIME_JOURNAL}"
+    selected_provider="ollama"
+  elif [ "${cloud:-absent}" = "available" ]; then
+    printf 'TRACE|provider_decision\n' >> "${RUNTIME_JOURNAL}"
+    selected_provider="mistral"
+  elif [ "${local_llm:-absent}" = "present" ]; then
+    printf 'TRACE|provider_decision\n' >> "${RUNTIME_JOURNAL}"
+    selected_provider="ollama"
   else
-    echo "TRACE|provider_decision" >> state/runtime/runtime.journal
-selected_provider="none"
+    printf 'TRACE|provider_decision\n' >> "${RUNTIME_JOURNAL}"
+    selected_provider="none"
   fi
 
-  echo "TRACE|before_provider_call" >> state/runtime/runtime.journal
-provider_output="$(gateway_infer "${query}" "${selected_provider}" 2>/dev/null || true)"
-
+  printf 'TRACE|before_provider_call\n' >> "${RUNTIME_JOURNAL}"
+  provider_output="$(gateway_infer "${query}" "${selected_provider}" 2>/dev/null || true)"
 
   if [ -n "${provider_output}" ]; then
-  kao_integrate_provider_voice "${provider_output}"
+    kao_integrate_provider_voice "${provider_output}"
 
-  # SYFER-LEARNING-RUNTIME:
-  # brain stores useful cognition after provider integration.
-  if declare -F kao_capsule_write >/dev/null 2>&1; then
-    kao_capsule_write "${query}" "${selected_provider}" "${provider_output}"
+    if declare -F kao_capsule_write >/dev/null 2>&1; then
+      kao_capsule_write "${query}" "${selected_provider}" "${provider_output}"
+    fi
+    return
   fi
-fi
+
+  echo "Oui."
 }
 
 case "${1:-}" in
@@ -168,4 +172,3 @@ case "${1:-}" in
     echo "brain usage"
     ;;
 esac
-

@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+KROOT="/home/kao"
+KAOBOX_BRAIN="/opt/kaobox/bin/brain"
+
+operator_usage() {
+  cat <<'USAGE'
+KAO OPERATOR
+
+usage:
+  kao operator status
+  kao operator ask <query>
+  kao operator think <query>
+  kao operator graph [note]
+  kao operator session
+
+notes:
+  - 'ask' uses the sovereign Kao brain
+  - 'think', 'graph', and 'session' use the KaoBox workspace brain
+  - 'graph' without note falls back to the active session note when available
+USAGE
+}
+
+operator_need_query() {
+  local cmd="${1:-command}"
+  echo "KAO OPERATOR ERROR: '${cmd}' requires an intention/query." >&2
+  echo "Try:" >&2
+  echo "  kao operator ${cmd} \"topic\"" >&2
+}
+
+operator_active_note() {
+  local active_line active_path
+  active_line="$("${KAOBOX_BRAIN}" session 2>/dev/null | grep '^Active:' || true)"
+  active_path="${active_line#Active: }"
+  active_path="$(printf '%s' "${active_path}" | sed 's/^ *//')"
+
+  if [ -n "${active_path}" ] && [ "${active_path}" != "(none)" ]; then
+    printf '%s\n' "${active_path}"
+    return 0
+  fi
+
+  return 1
+}
+
+sub="${1:-}"
+shift || true
+
+case "${sub}" in
+  status)
+    echo "[KAO operator status]"
+    "${KROOT}/bin/kao-status"
+    echo
+    echo "[KAOBOX workspace status]"
+    "${KAOBOX_BRAIN}" status
+    ;;
+
+  ask)
+    if [ $# -eq 0 ]; then
+      operator_need_query "ask"
+      exit 64
+    fi
+    exec "${KROOT}/bin/brain" infer "$@"
+    ;;
+
+  think)
+    if [ $# -eq 0 ]; then
+      operator_need_query "think"
+      exit 64
+    fi
+    exec "${KAOBOX_BRAIN}" think "$@"
+    ;;
+
+  graph)
+    if [ $# -eq 0 ]; then
+      note="$(operator_active_note || true)"
+      if [ -z "${note:-}" ]; then
+        echo "KAO OPERATOR ERROR: graph requires a note or an active session note." >&2
+        echo "Try:" >&2
+        echo "  kao operator graph \"note-path-or-title\"" >&2
+        exit 64
+      fi
+      exec "${KAOBOX_BRAIN}" graph "${note}"
+    fi
+    exec "${KAOBOX_BRAIN}" graph "$@"
+    ;;
+
+  session)
+    exec "${KAOBOX_BRAIN}" session
+    ;;
+
+  ""|-h|--help|help)
+    operator_usage
+    ;;
+
+  *)
+    echo "KAO OPERATOR ERROR: unknown subcommand '${sub}'" >&2
+    echo >&2
+    operator_usage >&2
+    exit 64
+    ;;
+esac
