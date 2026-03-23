@@ -48,6 +48,7 @@ Examples:
   kao boot
   kao user
   kao ask "prompt"
+  kao sync-brain
 USAGE
 }
 
@@ -60,6 +61,9 @@ case "${cmd}" in
         echo "[KAO sovereign cognition]"
         echo "${response}"
         exit 0
+        ;;
+    sync-brain)
+        exec "${KROOT}/bin/kao-sync-brain" "$@"
         ;;
     "")
         kao_usage

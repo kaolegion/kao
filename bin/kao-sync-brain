@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+KAOBOX_ROOT="${KAOBOX_ROOT:-/opt/kaobox}"
+KAOBOX_NOTES_DIR="${KAOBOX_NOTES_DIR:-/data/brain/notes/kao_capsules}"
+KAOBOX_BRAIN_BIN="${KAOBOX_BRAIN_BIN:-${KAOBOX_ROOT}/bin/brain}"
+CAPSULE_DIR="${KROOT}/state/brain/learning_capsules"
+SYNC_STATE_DIR="${KROOT}/state/brain/sync"
+SYNC_STATE_FILE="${SYNC_STATE_DIR}/kaobox_sync.state"
+SYNC_LOG_DIR="${KROOT}/state/logs"
+SYNC_LOG_FILE="${SYNC_LOG_DIR}/brain_sync.log"
+
+mkdir -p "${SYNC_STATE_DIR}" "${SYNC_LOG_DIR}" "${KAOBOX_NOTES_DIR}"
+
+timestamp_utc() {
+  date -u +%Y-%m-%dT%H:%M:%SZ
+}
+
+log_sync() {
+  printf 'KAO_SYNC_BRAIN|ts=%s|%s\n' "$(timestamp_utc)" "$*" >> "${SYNC_LOG_FILE}"
+}
+
+capsule_synced_marker() {
+  local capsule_id="${1:-}"
+  printf '%s/%s.synced\n' "${SYNC_STATE_DIR}" "${capsule_id}"
+}
+
+extract_field() {
+  local key="${1:-}"
+  local file="${2:-}"
+  grep -m1 "^${key}=" "${file}" | head -n1 | cut -d= -f2- || true
+}
+
+extract_answer_block_OLD() {
+  local file="${1:-}"
+  awk '
+    BEGIN {capture=0}
+    /^answer<<EOF$/ {capture=1; next}
+    /^EOF$/ {if (capture==1) exit}
+    capture==1 {print}
+  ' "${file}"
+}
+
+
+extract_answer_inline() {
+  local file="${1:-}"
+  grep -m1 '^answer=' "${file}" | cut -d= -f2- || true
+}
+
+sanitize_title() {
+  local text="${1:-}"
+  text="$(printf '%s' "${text}" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+  printf '%s' "${text}" | cut -c1-80
+}
+
+slugify() {
+  local text="${1:-}"
+  printf '%s' "${text}" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed 's/[^a-z0-9._-]/-/g; s/-\{2,\}/-/g; s/^-//; s/-$//'
+}
+
+write_projection_note() {
+  local capsule_file="${1:-}"
+  local capsule_id="${2:-}"
+  local query provider heat answer title slug target
+
+  query="$(extract_field query "${capsule_file}")"
+  provider="$(extract_field source_provider "${capsule_file}")"
+  heat="$(extract_field heat "${capsule_file}")"
+  answer="$(extract_answer_inline "${capsule_file}")"
+
+  [ -n "${heat}" ] || heat="1"
+  [ -n "${provider}" ] || provider="unknown"
+  [ -n "${query}" ] || query="capsule-${capsule_id}"
+
+  title="$(sanitize_title "${query}")"
+  slug="$(slugify "${capsule_id}-${title}")"
+  [ -n "${slug}" ] || slug="${capsule_id}"
+
+  target="${KAOBOX_NOTES_DIR}/${slug}.md"
+
+  cat > "${target}" <<NOTE
+# ${title}
+
+Tags: #kao #capsule #sync #heat-${heat} #provider-${provider}
+
+Résumé:
+Projection synchronisée depuis Kao vers KaoBox memory.
+
+---
+Source: ${capsule_file}
+Capsule-ID: ${capsule_id}
+Query: ${query}
+Provider: ${provider}
+Heat: ${heat}
+Synced-At: $(timestamp_utc)
+
+## Answer
+
+${answer}
+NOTE
+
+  printf '%s\n' "${target}"
+}
+
+sync_one_capsule() {
+  local capsule_file="${1:-}"
+  local capsule_id marker projected
+
+  capsule_id="$(basename "${capsule_file}" .capsule)"
+  marker="$(capsule_synced_marker "${capsule_id}")"
+
+  if [ -f "${marker}" ]; then
+    log_sync "status=skip|reason=already-synced|capsule_id=${capsule_id}"
+    return 0
+  fi
+
+  projected="$(write_projection_note "${capsule_file}" "${capsule_id}")"
+  log_sync "status=projected|capsule_id=${capsule_id}|target=${projected}"
+
+  if [ ! -x "${KAOBOX_BRAIN_BIN}" ]; then
+    log_sync "status=error|capsule_id=${capsule_id}|reason=missing-kaobox-brain-bin"
+    return 1
+  fi
+
+  if ! BRAIN_NOTES_DIR="${KAOBOX_NOTES_DIR}" "${KAOBOX_BRAIN_BIN}" reindex >/dev/null 2>&1; then
+    log_sync "status=error|capsule_id=${capsule_id}|reason=reindex-failed"
+    return 1
+  fi
+
+  printf 'synced_at=%s\n' "$(timestamp_utc)" > "${marker}"
+  printf 'capsule=%s\n' "${capsule_file}" >> "${marker}"
+  printf 'target_dir=%s\n' "${KAOBOX_NOTES_DIR}" >> "${marker}"
+
+  log_sync "status=done|capsule_id=${capsule_id}|reindex=ok"
+}
+
+main() {
+  local total=0 synced=0 failed=0 capsule
+
+  [ -d "${CAPSULE_DIR}" ] || {
+    echo "[KAO sync-brain] capsule dir missing: ${CAPSULE_DIR}" >&2
+    exit 1
+  }
+
+  shopt -s nullglob
+  for capsule in "${CAPSULE_DIR}"/*.capsule; do
+    total=$((total + 1))
+    if sync_one_capsule "${capsule}"; then
+      synced=$((synced + 1))
+    else
+      failed=$((failed + 1))
+    fi
+  done
+  shopt -u nullglob
+
+  echo "[KAO sync-brain]"
+  echo "capsules total : ${total}"
+  echo "capsules synced: ${synced}"
+  echo "capsules failed: ${failed}"
+  echo "kaobox notes   : ${KAOBOX_NOTES_DIR}"
+  echo "sync log       : ${SYNC_LOG_FILE}"
+
+  [ "${failed}" -eq 0 ]
+}
+
+main "$@"

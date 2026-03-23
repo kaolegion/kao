@@ -118,3 +118,14 @@ ts=${ts}
 answer=${answer}
 CAPS
 }
+
+kao_capsule_list() {
+  local dir file
+  dir="$(kao_capsule_dir)"
+  [ -d "${dir}" ] || return 0
+  for file in "${dir}"/*.capsule; do
+    [ -f "${file}" ] || continue
+    printf '%s\n' "${file}"
+  done
+}
+
