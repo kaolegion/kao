@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+KAOBOX_BRAIN_BIN="${KAOBOX_BRAIN_BIN:-/opt/kaobox/bin/brain}"
+
+sub="${1:-help}"
+shift || true
+
+usage() {
+cat <<'USAGE'
+KAO OPERATOR
+
+Usage:
+  kao operator status
+  kao operator cockpit
+  kao operator session
+  kao operator heat
+  kao operator router
+  kao operator learning
+  kao operator think "<query>"
+  kao operator graph <note>
+  kao operator neighbors <note>
+  kao operator related <note>
+
+Doctrine:
+  - operator enters through Kao
+  - Kao remains sovereign
+  - KaoBox brain surfaces are delegated when needed
+USAGE
+}
+
+require_kaobox_brain() {
+  if [ ! -x "${KAOBOX_BRAIN_BIN}" ]; then
+    echo "KAO OPERATOR ERROR: KaoBox brain unavailable at ${KAOBOX_BRAIN_BIN}" >&2
+    exit 69
+  fi
+}
+
+last_learning_signal() {
+  local journal="${KROOT}/state/runtime/runtime.journal"
+  if [ -f "${journal}" ]; then
+    grep -E 'KAO_CAPSULE_HEAT|KAO_HEAT_DECISION' "${journal}" | tail -n 4 || true
+  else
+    echo "learning journal unavailable"
+  fi
+}
+
+case "${sub}" in
+  status)
+    exec "${KROOT}/bin/kao-cockpit"
+    ;;
+  cockpit)
+    exec "${KROOT}/bin/kao-cockpit"
+    ;;
+  session)
+    exec "${KROOT}/bin/kao" runtime session status
+    ;;
+  heat)
+    exec "${KROOT}/bin/kao" runtime session status
+    ;;
+  router)
+    exec "${KROOT}/bin/kao-router-cockpit"
+    ;;
+  learning)
+    last_learning_signal
+    ;;
+  think)
+    require_kaobox_brain
+    exec "${KAOBOX_BRAIN_BIN}" think --trace "$@"
+    ;;
+  graph)
+    require_kaobox_brain
+    exec "${KAOBOX_BRAIN_BIN}" graph "$@"
+    ;;
+  neighbors)
+    require_kaobox_brain
+    exec "${KAOBOX_BRAIN_BIN}" neighbors "$@"
+    ;;
+  related)
+    require_kaobox_brain
+    exec "${KAOBOX_BRAIN_BIN}" related "$@"
+    ;;
+  help|-h|--help|"")
+    usage
+    ;;
+  *)
+    echo "KAO OPERATOR ERROR: unknown subcommand '${sub}'" >&2
+    usage >&2
+    exit 64
+    ;;
+esac

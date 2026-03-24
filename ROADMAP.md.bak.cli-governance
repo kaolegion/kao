@@ -423,4 +423,3 @@ Restore a sovereign CLI operator contract after the Kao ↔ KaoBox bridge:
 - KaoBox brain remains a delegated cognitive workspace
 - `kao operator ...` becomes the governed surface layer
 - future TUI / API / web / PWA surfaces must inherit this contract
-

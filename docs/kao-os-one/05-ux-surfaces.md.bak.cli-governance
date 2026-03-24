@@ -35,6 +35,3 @@ This doctrine preserves:
 - delegated cognitive tooling in KaoBox
 - a single mental entrypoint for the operator
 - future compatibility with TUI / web / PWA / SSH / SDK surfaces
-
----
-

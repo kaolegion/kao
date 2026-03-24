@@ -51,8 +51,6 @@ Examples:
   kao sync-brain
   kao operator cockpit
   kao operator think "query"
-  kao operator router
-  kao operator think "query"
 USAGE
 }
 

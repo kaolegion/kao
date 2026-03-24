@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-KROOT="/home/kao"
-KAOBOX_BRAIN="/opt/kaobox/bin/brain"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+KAOBOX_BRAIN_BIN="${KAOBOX_BRAIN_BIN:-/opt/kaobox/bin/brain}"
 
 operator_usage() {
   cat <<'USAGE'
@@ -10,15 +13,21 @@ KAO OPERATOR
 
 usage:
   kao operator status
+  kao operator cockpit
   kao operator ask <query>
   kao operator think <query>
   kao operator graph [note]
+  kao operator neighbors <note>
+  kao operator related <note>
   kao operator session
+  kao operator router
+  kao operator learning
 
 notes:
   - 'ask' uses the sovereign Kao brain
-  - 'think', 'graph', and 'session' use the KaoBox workspace brain
+  - 'think', 'graph', 'neighbors', 'related', and 'session' use the KaoBox workspace brain
   - 'graph' without note falls back to the active session note when available
+  - operator always enters through Kao first
 USAGE
 }
 
@@ -29,9 +38,18 @@ operator_need_query() {
   echo "  kao operator ${cmd} \"topic\"" >&2
 }
 
+operator_require_kaobox_brain() {
+  if [ ! -x "${KAOBOX_BRAIN_BIN}" ]; then
+    echo "KAO OPERATOR ERROR: KaoBox brain unavailable at ${KAOBOX_BRAIN_BIN}" >&2
+    exit 69
+  fi
+}
+
 operator_active_note() {
+  operator_require_kaobox_brain
+
   local active_line active_path
-  active_line="$("${KAOBOX_BRAIN}" session 2>/dev/null | grep '^Active:' || true)"
+  active_line="$("${KAOBOX_BRAIN_BIN}" session 2>/dev/null | grep '^Active:' || true)"
   active_path="${active_line#Active: }"
   active_path="$(printf '%s' "${active_path}" | sed 's/^ *//')"
 
@@ -43,6 +61,17 @@ operator_active_note() {
   return 1
 }
 
+operator_learning_tail() {
+  local journal="${KROOT}/state/runtime/runtime.journal"
+
+  if [ ! -f "${journal}" ]; then
+    echo "learning journal unavailable"
+    return 0
+  fi
+
+  grep -E 'KAO_CAPSULE_HEAT|KAO_HEAT_DECISION|KAO_RESPONSE_SHAPING|KAO_VOICE' "${journal}" | tail -n 12 || true
+}
+
 sub="${1:-}"
 shift || true
 
@@ -52,7 +81,12 @@ case "${sub}" in
     "${KROOT}/bin/kao-status"
     echo
     echo "[KAOBOX workspace status]"
-    "${KAOBOX_BRAIN}" status
+    operator_require_kaobox_brain
+    "${KAOBOX_BRAIN_BIN}" status
+    ;;
+
+  cockpit)
+    exec "${KROOT}/bin/kao-cockpit"
     ;;
 
   ask)
@@ -68,10 +102,12 @@ case "${sub}" in
       operator_need_query "think"
       exit 64
     fi
-    exec "${KAOBOX_BRAIN}" think "$@"
+    operator_require_kaobox_brain
+    exec "${KAOBOX_BRAIN_BIN}" think --trace "$@"
     ;;
 
   graph)
+    operator_require_kaobox_brain
     if [ $# -eq 0 ]; then
       note="$(operator_active_note || true)"
       if [ -z "${note:-}" ]; then
@@ -80,13 +116,40 @@ case "${sub}" in
         echo "  kao operator graph \"note-path-or-title\"" >&2
         exit 64
       fi
-      exec "${KAOBOX_BRAIN}" graph "${note}"
+      exec "${KAOBOX_BRAIN_BIN}" graph "${note}"
     fi
-    exec "${KAOBOX_BRAIN}" graph "$@"
+    exec "${KAOBOX_BRAIN_BIN}" graph "$@"
+    ;;
+
+  neighbors)
+    if [ $# -eq 0 ]; then
+      operator_need_query "neighbors"
+      exit 64
+    fi
+    operator_require_kaobox_brain
+    exec "${KAOBOX_BRAIN_BIN}" neighbors "$@"
+    ;;
+
+  related)
+    if [ $# -eq 0 ]; then
+      operator_need_query "related"
+      exit 64
+    fi
+    operator_require_kaobox_brain
+    exec "${KAOBOX_BRAIN_BIN}" related "$@"
     ;;
 
   session)
-    exec "${KAOBOX_BRAIN}" session
+    operator_require_kaobox_brain
+    exec "${KAOBOX_BRAIN_BIN}" session
+    ;;
+
+  router)
+    exec "${KROOT}/bin/kao-router-cockpit"
+    ;;
+
+  learning)
+    operator_learning_tail
     ;;
 
   ""|-h|--help|help)
