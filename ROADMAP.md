@@ -424,3 +424,12 @@ Restore a sovereign CLI operator contract after the Kao ↔ KaoBox bridge:
 - `kao operator ...` becomes the governed surface layer
 - future TUI / API / web / PWA surfaces must inherit this contract
 
+
+### Study mode milestone
+
+Introduce a governed learning channel for Kao:
+
+- `kao study ask "<question>"` becomes a dedicated study surface
+- study remains distinct from runtime speech
+- learned material is stored as sovereign capsules in Kao memory
+- sync-brain can later project this knowledge into KaoBox workspace surfaces

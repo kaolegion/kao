@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
+KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
+LEARNING_CAPSULE_LIB="${KROOT}/lib/cognition/kao_learning_capsule.sh"
+RUNTIME_DIR="${KROOT}/state/runtime"
+RUNTIME_STATE="${RUNTIME_DIR}/runtime.state"
+RUNTIME_JOURNAL="${RUNTIME_DIR}/runtime.journal"
+
+mkdir -p "${RUNTIME_DIR}"
+touch "${RUNTIME_JOURNAL}"
+
+. "${LEARNING_CAPSULE_LIB}"
+. "${ROUTER_LIB}"
+
+study_usage() {
+  cat <<'USAGE'
+KAO STUDY
+
+Usage:
+  kao study ask "<question>"
+
+Doctrine:
+  - study is a governed learning channel
+  - ask remains runtime speech
+  - study writes sovereign capsules for later reuse
+USAGE
+}
+
+study_journal() {
+  local event="${1:-unknown}"
+  local detail="${2:-}"
+  printf 'KAO_STUDY|event=%s|detail=%s|ts=%s\n' \
+    "${event}" \
+    "${detail}" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    >> "${RUNTIME_JOURNAL}"
+}
+
+study_select_provider() {
+  local net local_llm cloud
+
+  net="$(grep '^KAO_CONNECTIVITY_NETWORK=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || true)"
+  local_llm="$(grep '^KAO_LOCAL_LLM=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || true)"
+  cloud="$(grep '^KAO_CLOUD_ACCESS=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || true)"
+
+  if [ "${net:-unknown}" = "offline" ] && [ "${local_llm:-absent}" = "present" ]; then
+    printf 'ollama\n'
+  elif [ "${cloud:-absent}" = "available" ]; then
+    printf 'mistral\n'
+  elif [ "${local_llm:-absent}" = "present" ]; then
+    printf 'ollama\n'
+  else
+    printf 'none\n'
+  fi
+}
+
+study_make_capsule() {
+  local query="${1:-}"
+  local provider="${2:-unknown}"
+  local answer="${3:-}"
+  local dir id ts file
+
+  [ -n "${query}" ] || return 1
+  [ -n "${answer}" ] || return 1
+
+  dir="${KROOT}/state/brain/learning_capsules"
+  mkdir -p "${dir}"
+
+  id="$(date +%s)"
+  ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  file="${dir}/${id}.capsule"
+
+  cat > "${file}" <<CAPS
+id=${id}
+query=${query}
+topic=study
+source_type=provider
+source_provider=${provider}
+confidence=medium
+status=learned
+heat=1
+ts=${ts}
+answer=${answer}
+CAPS
+
+  printf '%s\n' "${file}"
+}
+
+study_ask() {
+  local query="${*:-}"
+  local provider raw capsule_file
+
+  [ -n "${query}" ] || {
+    echo "KAO STUDY ERROR: ask requires a question." >&2
+    echo 'Try: kao study ask "tcp slow start"' >&2
+    exit 64
+  }
+
+  provider="$(study_select_provider)"
+  study_journal "provider-selected" "provider=${provider};query=${query}"
+
+  if [ "${provider}" = "none" ]; then
+    echo "KAO STUDY"
+    echo "---------"
+    echo "No provider available for study."
+    echo "Learning capsule not created."
+    study_journal "no-provider" "query=${query}"
+    exit 1
+  fi
+
+  raw="$(gateway_infer "${query}" "${provider}" 2>/dev/null || true)"
+
+  if [ -z "${raw}" ]; then
+    echo "KAO STUDY"
+    echo "---------"
+    echo "Provider returned no study material."
+    echo "Learning capsule not created."
+    study_journal "empty-response" "provider=${provider};query=${query}"
+    exit 1
+  fi
+
+  capsule_file="$(study_make_capsule "${query}" "${provider}" "${raw}")"
+  study_journal "capsule-created" "provider=${provider};query=${query};capsule=${capsule_file}"
+
+  echo "KAO STUDY"
+  echo "---------"
+  printf 'query    : %s\n' "${query}"
+  printf 'provider : %s\n' "${provider}"
+  printf 'capsule  : %s\n' "${capsule_file}"
+  echo
+  echo "[study material]"
+  printf '%s\n' "${raw}"
+}
+
+cmd="${1:-}"
+shift || true
+
+case "${cmd}" in
+  ask)
+    study_ask "$@"
+    ;;
+  ""|-h|--help|help)
+    study_usage
+    ;;
+  *)
+    echo "KAO STUDY ERROR: unknown subcommand '${cmd}'" >&2
+    study_usage >&2
+    exit 64
+    ;;
+esac
