@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+KROOT="$(cd "$(dirname "$0")/.." && pwd)"
+CAP_DIR="${KROOT}/state/brain/learning_capsules"
+
+usage() {
+  cat <<'USAGE'
+usage:
+  kao memory list
+  kao memory show <id>
+  kao memory search <text>
+  kao memory stats
+USAGE
+}
+
+cmd="${1:-}"
+shift || true
+
+case "${cmd}" in
+  list)
+    ls -1 "${CAP_DIR}"/*.capsule 2>/dev/null || echo "no memory"
+    ;;
+  show)
+    [ $# -ge 1 ] || { usage; exit 64; }
+    sed -n '1,200p' "${CAP_DIR}/$1.capsule"
+    ;;
+  search)
+    [ $# -ge 1 ] || { usage; exit 64; }
+    grep -Rin "$1" "${CAP_DIR}" || echo "no match"
+    ;;
+  stats)
+    total=$(find "${CAP_DIR}" -maxdepth 1 -type f -name '*.capsule' 2>/dev/null | wc -l)
+    echo "capsules: $total"
+    ;;
+  *)
+    usage
+    ;;
+esac

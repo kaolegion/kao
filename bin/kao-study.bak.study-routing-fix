@@ -7,8 +7,6 @@ KROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 ROUTER_LIB="${KROOT}/lib/gateway/router.sh"
 LEARNING_CAPSULE_LIB="${KROOT}/lib/cognition/kao_learning_capsule.sh"
-MISTRAL_PROVIDER_LIB="${KROOT}/lib/gateway/providers/mistral.sh"
-OLLAMA_PROVIDER_LIB="${KROOT}/lib/gateway/providers/ollama.sh"
 RUNTIME_DIR="${KROOT}/state/runtime"
 RUNTIME_STATE="${RUNTIME_DIR}/runtime.state"
 RUNTIME_JOURNAL="${RUNTIME_DIR}/runtime.journal"
@@ -18,8 +16,6 @@ touch "${RUNTIME_JOURNAL}"
 
 . "${LEARNING_CAPSULE_LIB}"
 . "${ROUTER_LIB}"
-. "${MISTRAL_PROVIDER_LIB}"
-. "${OLLAMA_PROVIDER_LIB}"
 
 study_usage() {
   cat <<'USAGE'
@@ -27,7 +23,6 @@ KAO STUDY
 
 Usage:
   kao study ask "<question>"
-  kao study status
 
 Doctrine:
   - study is a governed learning channel
@@ -64,24 +59,6 @@ study_select_provider() {
   fi
 }
 
-study_provider_infer() {
-  local provider="${1:-none}"
-  local query="${2:-}"
-
-  case "${provider}" in
-    mistral)
-      gateway_load_secrets runtime >/dev/null 2>&1 || true
-      gateway_provider_mistral_infer "${query}"
-      ;;
-    ollama)
-      gateway_provider_ollama_infer "${query}"
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
 study_make_capsule() {
   local query="${1:-}"
   local provider="${2:-unknown}"
@@ -114,18 +91,6 @@ CAPS
   printf '%s\n' "${file}"
 }
 
-study_status() {
-  local provider
-  provider="$(study_select_provider)"
-
-  echo "KAO STUDY STATUS"
-  echo "----------------"
-  printf 'network       : %s\n' "$(grep '^KAO_CONNECTIVITY_NETWORK=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || echo unknown)"
-  printf 'local llm     : %s\n' "$(grep '^KAO_LOCAL_LLM=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || echo unknown)"
-  printf 'cloud access  : %s\n' "$(grep '^KAO_CLOUD_ACCESS=' "${RUNTIME_STATE}" 2>/dev/null | cut -d= -f2 || echo unknown)"
-  printf 'study route   : %s\n' "${provider}"
-}
-
 study_ask() {
   local query="${*:-}"
   local provider raw capsule_file
@@ -148,7 +113,7 @@ study_ask() {
     exit 1
   fi
 
-  raw="$(study_provider_infer "${provider}" "${query}" 2>/dev/null || true)"
+  raw="$(gateway_infer "${query}" "${provider}" 2>/dev/null || true)"
 
   if [ -z "${raw}" ]; then
     echo "KAO STUDY"
@@ -178,9 +143,6 @@ shift || true
 case "${cmd}" in
   ask)
     study_ask "$@"
-    ;;
-  status)
-    study_status
     ;;
   ""|-h|--help|help)
     study_usage
